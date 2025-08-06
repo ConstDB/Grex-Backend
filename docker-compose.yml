@@ -1,0 +1,54 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./app:/app
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+    networks:
+      - grex-net
+
+  db:
+    image: postgres:17.4
+    restart: always
+    volumes:
+      - ./data/db/:/var/lib/postgresql/data
+      - ./app/init.sql:/docker-entrypoint-initdb.d/init.sql
+    env_file:
+      - .env
+    ports:
+      - "5432:5432"
+    networks:
+      - grex-net
+
+  redis:
+    image: redis:7
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - grex-net
+
+  pgadmin:
+    image: dpage/pgadmin4
+    ports:
+      - "15433:80"
+    env_file:
+      - .env
+    volumes:
+      - ./data/pgadmin-data:/var/lib/pgadmin
+    depends_on:
+      - db
+    networks:
+      - grex-net
+
+networks:
+  grex-net:
+    driver: bridge
