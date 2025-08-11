@@ -9,7 +9,7 @@ load_dotenv()
 
 JWT_SECRET = os.getenv("JWT_SECRET")
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM")
-pwd_content = CryptContext(schemes=["bcrypt"], deprecated=auto)
+pwd_content = CryptContext(schemes=["bcrypt"])
 
 
 def token_response(token:str):
