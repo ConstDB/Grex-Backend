@@ -1,10 +1,8 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 import logging
-from .db.database import Database
+from .db_instance import db
 from .api.api_router import router
-
-db = Database()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

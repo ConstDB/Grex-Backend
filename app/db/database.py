@@ -1,6 +1,6 @@
 import asyncio
 import asyncpg
-
+from contextlib import asynccontextmanager
 import os
 from dotenv import load_dotenv
 import logging
@@ -45,14 +45,14 @@ class Database:
                 else:
                     logger.error("Max retries reached. Could not connect to database.")
                     raise
-
+    
+    @asynccontextmanager
     async def get_connection(self):
         if self.pool is None:
             raise Exception("Database not initialized. Call Database.initialize() first.")
-
         try:
             conn = await self.pool.acquire()
-
+            yield conn
         finally:
             await self.release_connection(conn)	
 
