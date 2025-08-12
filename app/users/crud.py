@@ -4,7 +4,7 @@ from ..db.database import Database
 
 async def add_user_to_db(user: dict, conn: asyncpg.Connection):
     query = """
-        INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3) RETURNING *
+        INSERT INTO users (first_name, last_name, email, password_hash, phone_number) VALUES ($1, $2, $3, $4, $5) RETURNING *
     """
     
     res = await conn.fetchrow(query, *user.values())
