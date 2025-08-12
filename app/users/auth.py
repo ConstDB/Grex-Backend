@@ -33,7 +33,7 @@ def signJWT(user_id:str):
 
         token = jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
-        return token_response(token)
+        return token
     except Exception as e:
         return { "message": f"Failed to encode token -> {e}"}
 
