@@ -29,7 +29,7 @@ async def sign_up(user: UserRegisterSchema, conn: asyncpg.Connection = Depends(g
         return res_dict
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail="User creation failed. -> {e}")
+        raise HTTPException(status_code=500, detail=f"User creation failed. -> {e}")
     
     
 

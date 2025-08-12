@@ -3,9 +3,12 @@ from typing import Optional
 
 
 class UserRegisterSchema(BaseModel):
-    full_name: str
+    first_name: str
+    last_name: str
     email: str
     password_hash: str
+    phone_number: str
+    
 
 
 class UserLoginSchema(BaseModel):
@@ -15,9 +18,11 @@ class UserLoginSchema(BaseModel):
 
 class UserInformation(BaseModel):
     user_id: int # change to str later
-    name: str
+    first_name: str
+    last_name: str
     email: str
     password_hash: str
+    phone_number: str
     profile_picture: Optional[str] = None
     status: str
 
