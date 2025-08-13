@@ -1,12 +1,15 @@
-import jwt
+from fastapi import HTTPException, Request
+from authlib.integrations.starlette_client import OAuth
+from passlib.context import CryptContext
 from dotenv import load_dotenv
+import jwt
 import os
 import time
-from fastapi import HTTPException
-from passlib.context import CryptContext
+
 
 load_dotenv()
 
+# JWT config
 JWT_SECRET = os.getenv("JWT_SECRET")
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM")
 pwd_content = CryptContext(schemes=["bcrypt"])
@@ -44,3 +47,15 @@ def decodeJWT(token:str):
         return decoded_token if decoded_token["expires"] >= time.time() else None
     except Exception as e:
         return { "message": f"Failed to decode token -> {e}"}
+
+#Google OAuth config
+
+oauth = OAuth()
+oauth.register(
+    name="grex",
+    client_id=os.getenv("GOOGLE_CLIENT_ID"),
+    client_secret=os.getenv("GOOGLE_CLIENT_SECRET"),
+    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+    client_kwargs={"scope": "openid profile email"}
+)
+

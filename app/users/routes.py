@@ -1,10 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from .schemas import UserLoginSchema, UserRegisterSchema, UserInformation
-from .auth import verify_password, get_password_hash, signJWT, token_response
+from .auth import verify_password, get_password_hash, signJWT, token_response, oauth
+from authlib.integrations.starlette_client import OAuth
 from ..db.database import Database
 from ..deps import get_db_connection
 from .crud import add_user_to_db, get_user
 import asyncpg
+import os
 
 router = APIRouter()
 
@@ -14,7 +16,7 @@ async def Testing():
     return "hello this is users route"
 
 
-@router.post("/sign-up")
+@router.post("/auth/sign-up")
 async def sign_up(user: UserRegisterSchema, conn: asyncpg.Connection = Depends(get_db_connection)):
     try:
         user_dict = user.model_dump()
@@ -33,7 +35,7 @@ async def sign_up(user: UserRegisterSchema, conn: asyncpg.Connection = Depends(g
     
     
 
-@router.post("/login")
+@router.post("/auth/login")
 async def login(user: UserLoginSchema, conn: asyncpg.Connection = Depends(get_db_connection)):
     try:
         user_dict = user.model_dump()
@@ -50,4 +52,31 @@ async def login(user: UserLoginSchema, conn: asyncpg.Connection = Depends(get_db
         return res_dict
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"User login failed. -> {e}")
+    
+# Oauth Routes
+
+
+@router.get("/auth/google")
+async def auth_google(request: Request):
+    redirect_uri = request.url_for('auth_google_callback')
+    return await oauth.grex.authorize_redirect(request, redirect_uri)
+    
+
+@router.get("/auth/google/callback")
+async def auth_google_callback(request: Request):
+    token = await oauth.grex.authorize_access_token(request)
+    user_info = token.get('userinfo')
+
+
+    if not user_info:
+        raise HTTPException(status_code=400, detail="Failed to retrieve user info")
+
+    res = {
+        "first_name": user_info["given_name"],
+        "last_name" : user_info["family_name"],
+        "email" : user_info["email"],
+        "password": get_password_hash(os.getenv("SECRET_PASSWORD")),
+        "profile_picture" : user_info["picture"]
+    }
+
     
