@@ -29,7 +29,6 @@ async def sign_up(user: UserRegisterSchema, conn: asyncpg.Connection = Depends(g
         res_dict = dict(res)
         res_dict["access_token"] = access_token
         return res_dict
-
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"User creation failed. -> {e}")
     
@@ -63,20 +62,36 @@ async def auth_google(request: Request):
     
 
 @router.get("/auth/google/callback")
-async def auth_google_callback(request: Request):
-    token = await oauth.grex.authorize_access_token(request)
-    user_info = token.get('userinfo')
+async def auth_google_callback(request: Request, conn: asyncpg.Connection = Depends(get_db_connection)):
+    try:
+        token = await oauth.grex.authorize_access_token(request)
+        user_info = token.get('userinfo')
 
 
-    if not user_info:
-        raise HTTPException(status_code=400, detail="Failed to retrieve user info")
+        if not user_info:
+            raise HTTPException(status_code=400, detail="Failed to retrieve user info")
 
-    res = {
-        "first_name": user_info["given_name"],
-        "last_name" : user_info["family_name"],
-        "email" : user_info["email"],
-        "password": get_password_hash(os.getenv("SECRET_PASSWORD")),
-        "profile_picture" : user_info["picture"]
-    }
+        res = {
+            "first_name": user_info["given_name"],
+            "last_name" : user_info["family_name"],
+            "email" : user_info["email"],
+            "password_hash": get_password_hash(os.getenv("SECRET_PASSWORD")),
+            "profile_picture" : user_info["picture"]
+        }
 
+        access_token = signJWT(user_info["email"])
+        existing_user = await get_user(user_info["email"], conn)
+        user_dict = dict(existing_user)
+
+        if not existing_user:
+            user = await add_user_to_db(res, conn)
+            user_dict = dict(user)
+            user_dict["access_token"] = access_token
+            return user
+            
+        user_dict["access_token"] = access_token
+
+        return user_dict
     
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Something Went Wrong -> {e}")
