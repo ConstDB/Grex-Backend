@@ -1,8 +1,10 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
+from starlette.middleware.sessions import SessionMiddleware
 import logging
 from .db_instance import db
 from .api.api_router import router
+import os
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -16,9 +18,14 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+app.add_middleware(
+  SessionMiddleware,
+  secret_key=os.getenv("SESSION_SECRET")
+)
 app.include_router(router)
-
 
 @app.get("/")
 async def dummy_server():
   return "Hello, Web World!"
+
+
