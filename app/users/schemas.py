@@ -7,7 +7,6 @@ class UserRegisterSchema(BaseModel):
     last_name: str
     email: str
     password_hash: str
-    phone_number: str
     
 
 
