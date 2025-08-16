@@ -42,12 +42,20 @@ async def login(user: UserLoginSchema, conn: asyncpg.Connection = Depends(get_db
         res = await get_user(user_dict["email"], conn) 
 
         res_dict = dict(res)
+        res_dict.pop("password_hash")
         res_dict["access_token"] = access_token
+
+        
+
+
 
         if res is None:
             raise HTTPException(status_code=404, detail="User does not exists.")
         if not verify_password(user_dict["password_hash"], res["password_hash"]):
             raise HTTPException(status_code=401, detail="Wrong email or password.")
+        
+
+
         return res_dict
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"User login failed. -> {e}")
@@ -57,14 +65,14 @@ async def login(user: UserLoginSchema, conn: asyncpg.Connection = Depends(get_db
 
 @router.get("/auth/google")
 async def auth_google(request: Request):
-    redirect_uri = request.url_for('auth_google_callback')
+    redirect_uri = "http://localhost:5142/auth/google/callback"
     return await oauth.grex.authorize_redirect(request, redirect_uri)
     
 
 @router.get("/auth/google/callback")
-async def auth_google_callback(request: Request, conn: asyncpg.Connection = Depends(get_db_connection)):
+async def auth_google_callback(data: dict, request: Request, conn: asyncpg.Connection = Depends(get_db_connection)):
     try:
-        token = await oauth.grex.authorize_access_token(request)
+        token = await oauth.grex.authorize_access_token(request, data={"code": data["code"]})
         user_info = token.get('userinfo')
 
 

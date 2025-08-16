@@ -9,7 +9,7 @@ async def add_user_to_db(user: dict, conn: asyncpg.Connection):
     #     INSERT INTO users (first_name, last_name, email, password_hash, phone_number) VALUES ($1, $2, $3, $4, $5) RETURNING *
     # """
     try:
-        query = insert_query(user, table="users")
+        query = insert_query(user, table="users", returning="(user_id, first_name, last_name, email, profile_picture, phone_number, status)")
         
         res = await conn.fetchrow(query, *user.values())
 
