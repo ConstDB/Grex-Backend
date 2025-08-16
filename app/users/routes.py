@@ -1,15 +1,19 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from .schemas import UserLoginSchema, UserRegisterSchema, UserInformation
-from .auth import verify_password, get_password_hash, signJWT, token_response, oauth
+from .auth import verify_password, get_password_hash, create_access_token, create_refresh_token, token_response, oauth
 from authlib.integrations.starlette_client import OAuth
 from ..db.database import Database
 from ..deps import get_db_connection
-from .crud import add_user_to_db, get_user
+from .crud import add_user_to_db, get_user, update_refresh_token
+import logging
 import asyncpg
 import os
 
 router = APIRouter()
 
+
+
+logger = logging.getLogger("uvicorn")
 
 @router.get("/testing")
 async def Testing():
@@ -19,16 +23,31 @@ async def Testing():
 @router.post("/auth/sign-up")
 async def sign_up(user: UserRegisterSchema, conn: asyncpg.Connection = Depends(get_db_connection)):
     try:
-        user_dict = user.model_dump()
+        user_dict = user.model_dump() # convert object to dict
 
-        access_token = signJWT(user.email)
+        access_payload = create_access_token(user.email) # get short-lived token from JWT
+        refresh_payload = create_refresh_token(user.email)
 
+        # add data that does not come from frontend to user_dict so it can be added on the DB as well
         user_dict["password_hash"] = get_password_hash(user.password_hash)
-        res = await add_user_to_db(user_dict, conn)
+        user_dict["refresh_token"] = str(refresh_payload["refresh_token"])
+        # logger.info(f"token: {user_dict["refresh_token"]}")
+        user_dict["refresh_token_expires_at"] = refresh_payload["refresh_token_expires_at"]
+        user_dict["revoked"] = refresh_payload["revoked"]
 
-        res_dict = dict(res)
-        res_dict["access_token"] = access_token
-        return res_dict
+        raw = await add_user_to_db(user_dict, conn)
+
+        user_data = dict(raw)
+        logger.info(f"user_data: {user_data}")
+
+        response = {
+            "user": user_data,
+            "access_token": access_payload["token"],
+            "refresh_token": refresh_payload["refresh_token"],
+            "expires_at": access_payload["expires"]
+        }
+
+        return response
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"User creation failed. -> {e}")
     
@@ -38,28 +57,40 @@ async def sign_up(user: UserRegisterSchema, conn: asyncpg.Connection = Depends(g
 async def login(user: UserLoginSchema, conn: asyncpg.Connection = Depends(get_db_connection)):
     try:
         user_dict = user.model_dump()
-        access_token = signJWT(user.email)
-        res = await get_user(user_dict["email"], conn) 
+        access_payload = create_access_token(user.email)
+        refresh_payload = create_refresh_token(user.email)
 
-        res_dict = dict(res)
-        res_dict.pop("password_hash")
-        res_dict["access_token"] = access_token
-
+        raw = await get_user(user_dict["email"], conn) 
         
-
-
-
-        if res is None:
+        if raw is None:
             raise HTTPException(status_code=404, detail="User does not exists.")
-        if not verify_password(user_dict["password_hash"], res["password_hash"]):
+        if not verify_password(user_dict["password_hash"], raw["password_hash"]):
             raise HTTPException(status_code=401, detail="Wrong email or password.")
+ 
+        update_token = await update_refresh_token(user_id= raw["user_id"], payload=refresh_payload, conn=conn)
         
+        user_data = dict(raw)
+        user_data.pop("password_hash")
 
+        response = {
+            "user": user_data,
+            "access_token": access_payload["token"],
+            "refresh_token": refresh_payload["refresh_token"],
+            "expires_at": access_payload["expires"] #UNIX timestamp
+        }
 
-        return res_dict
+        # if raw is None:
+        #     raise HTTPException(status_code=404, detail="User does not exists.")
+        # if not verify_password(user_dict["password_hash"], raw["password_hash"]):
+        #     raise HTTPException(status_code=401, detail="Wrong email or password.")
+ 
+        return response
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"User login failed. -> {e}")
-    
+
+# @router.post("/auth/refresh")
+# async def refresh_token(payload:)
+
 # Oauth Routes
 
 
