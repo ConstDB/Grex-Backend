@@ -10,7 +10,8 @@ import time
 load_dotenv()
 
 # JWT config
-JWT_SECRET = os.getenv("JWT_SECRET")
+JWT_ACCESS_SECRET = os.getenv("JWT_ACCESS_SECRET")
+JWT_REFRESH_SECRET = os.getenv("JWT_REFRESH_SECRET")
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM")
 pwd_content = CryptContext(schemes=["bcrypt"])
 
@@ -27,18 +28,37 @@ def verify_password(plain_password:str, hashed_password:str):
     return pwd_content.verify(plain_password, hashed_password)
 
 
-def signJWT(user_id:str):
+def create_access_token(email:str, expires = time.time() + 1200):
     try:
         payload = {
-            "id" : user_id,
-            "expires": time.time() + 1200
+            "email" : email,
+            "expires": expires # 20 minutes
         }
 
-        token = jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
-
-        return token
+        payload["token"] = jwt.encode(payload, JWT_ACCESS_SECRET, algorithm=JWT_ALGORITHM)
+        
+        payload.pop("email")
+        return payload
     except Exception as e:
-        return { "message": f"Failed to encode token -> {e}"}
+        raise HTTPException(status_code=500, detail=f"Failed to encode access token -> {e}")
+
+
+def create_refresh_token(email:str, expires = time.time() + 7 * 24 * 60 * 60):
+    try:
+        payload = {
+            "email" : email,
+            "refresh_token_expires_at" : expires # 7 days
+        }
+        payload["refresh_token"] = jwt.encode(payload, JWT_REFRESH_SECRET, algorithm=JWT_ALGORITHM)
+        
+        payload.pop("email")
+        payload["revoked"] = False
+        
+        return payload
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to encode refresh token -> {e}")
+
 
 
 def decodeJWT(token:str):
@@ -46,7 +66,7 @@ def decodeJWT(token:str):
         decoded_token = jwt.decode(token, JWT_SECRET, algorithms=JWT_ALGORITHM)
         return decoded_token if decoded_token["expires"] >= time.time() else None
     except Exception as e:
-        return { "message": f"Failed to decode token -> {e}"}
+        raise HTTPException(status_code=500, detail=f"Failed to decode token -> {e}")
 
 #Google OAuth config
 
