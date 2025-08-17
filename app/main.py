@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import logging
 from .db_instance import db
 from .api.api_router import router
+from .config.settings import settings as st
 import os
 
 @asynccontextmanager
@@ -29,7 +30,7 @@ app.add_middleware(
 
 app.add_middleware(
   SessionMiddleware,
-  secret_key=os.getenv("SESSION_SECRET")
+  secret_key=st.SESSION_SECRET
 )
 
 

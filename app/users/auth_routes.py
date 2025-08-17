@@ -7,6 +7,7 @@ from ..deps import get_db_connection
 from .crud import add_user_to_db, get_user, update_refresh_token
 import logging
 import asyncpg
+from ..config.settings import settings as st
 import os
 
 router = APIRouter()
@@ -31,15 +32,16 @@ async def sign_up(user: UserRegisterSchema, conn: asyncpg.Connection = Depends(g
         # add data that does not come from frontend to user_dict so it can be added on the DB as well
         user_dict["password_hash"] = get_password_hash(user.password_hash)
         user_dict["refresh_token"] = str(refresh_payload["refresh_token"])
-        # logger.info(f"token: {user_dict["refresh_token"]}")
         user_dict["refresh_token_expires_at"] = refresh_payload["refresh_token_expires_at"]
         user_dict["revoked"] = refresh_payload["revoked"]
 
+        # get the user infos from DB
         raw = await add_user_to_db(user_dict, conn)
 
+        # then convert it into dict
         user_data = dict(raw)
-        logger.info(f"user_data: {user_data}")
 
+        # Construct response
         response = {
             "user": user_data,
             "access_token": access_payload["token"],
@@ -57,16 +59,22 @@ async def sign_up(user: UserRegisterSchema, conn: asyncpg.Connection = Depends(g
 async def login(user: UserLoginSchema, conn: asyncpg.Connection = Depends(get_db_connection)):
     try:
         user_dict = user.model_dump()
+
+        # Get token payloads
         access_payload = create_access_token(user.email)
         refresh_payload = create_refresh_token(user.email)
 
+        # Get user data from DB    
         raw = await get_user(user_dict["email"], conn, fetch="user_id, first_name, last_name, email, profile_picture, phone_number, status, password_hash") 
         
+
         if raw is None:
             raise HTTPException(status_code=404, detail="User does not exists.")
+
         if not verify_password(user_dict["password_hash"], raw["password_hash"]):
             raise HTTPException(status_code=401, detail="Wrong email or password.")
  
+        # Updates the refresh_token related attributes to the DB
         update_token = await update_refresh_token(user_id= raw["user_id"], payload=refresh_payload, conn=conn)
         
         user_data = dict(raw)
@@ -85,16 +93,22 @@ async def login(user: UserLoginSchema, conn: asyncpg.Connection = Depends(get_db
 
 @router.post("/auth/refresh")
 async def refresh_token(token: RefreshToken, conn: asyncpg.Connection = Depends(get_db_connection)):
+    """
+        will be called once the access_token is expired
+    """
     try:
+        #checks if the token is still valid
         refresh_token = decode_refresh_token(token.refresh_token)
+
         if refresh_token is None:
             raise HTTPException(status_code=401, detail=f"refresh token expired")
-
+        # get the user data and validates if the token is already revoked
         user = await get_user(refresh_token["email"], conn, fetch="refresh_token, revoked")
         if user["refresh_token"] != token.refresh_token or user["revoked"] == True:
 
             raise HTTPException(status_code=401, detail=f"token either revoked or invalid")
 
+        # generate new access token and remove the expires on the payload
         new_access_token = create_access_token(refresh_token["email"])
         new_access_token.pop("expires")
 
@@ -127,7 +141,7 @@ async def auth_google_callback(data: dict, request: Request, conn: asyncpg.Conne
             "first_name": user_info["given_name"],
             "last_name" : user_info["family_name"],
             "email" : user_info["email"],
-            "password_hash": get_password_hash(os.getenv("SECRET_PASSWORD")),
+            "password_hash": get_password_hash(st.SECRET_PASSWORD),
             "profile_picture" : user_info["picture"]
         }
 
