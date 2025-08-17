@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
-from .schemas import UserLoginSchema, UserRegisterSchema, UserInformation
-from .auth import verify_password, get_password_hash, create_access_token, create_refresh_token, token_response, oauth
+from .schemas import UserLoginSchema, UserRegisterSchema, UserInformation, RefreshToken
+from .auth import verify_password, get_password_hash, create_access_token, create_refresh_token, token_response, oauth, decode_refresh_token
 from authlib.integrations.starlette_client import OAuth
 from ..db.database import Database
 from ..deps import get_db_connection
@@ -60,7 +60,7 @@ async def login(user: UserLoginSchema, conn: asyncpg.Connection = Depends(get_db
         access_payload = create_access_token(user.email)
         refresh_payload = create_refresh_token(user.email)
 
-        raw = await get_user(user_dict["email"], conn) 
+        raw = await get_user(user_dict["email"], conn, fetch="user_id, first_name, last_name, email, profile_picture, phone_number, status, password_hash") 
         
         if raw is None:
             raise HTTPException(status_code=404, detail="User does not exists.")
@@ -78,18 +78,30 @@ async def login(user: UserLoginSchema, conn: asyncpg.Connection = Depends(get_db
             "refresh_token": refresh_payload["refresh_token"],
             "expires_at": access_payload["expires"] #UNIX timestamp
         }
-
-        # if raw is None:
-        #     raise HTTPException(status_code=404, detail="User does not exists.")
-        # if not verify_password(user_dict["password_hash"], raw["password_hash"]):
-        #     raise HTTPException(status_code=401, detail="Wrong email or password.")
  
         return response
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"User login failed. -> {e}")
 
-# @router.post("/auth/refresh")
-# async def refresh_token(payload:)
+@router.post("/auth/refresh")
+async def refresh_token(token: RefreshToken, conn: asyncpg.Connection = Depends(get_db_connection)):
+    try:
+        refresh_token = decode_refresh_token(token.refresh_token)
+        if refresh_token is None:
+            raise HTTPException(status_code=401, detail=f"refresh token expired")
+
+        user = await get_user(refresh_token["email"], conn, fetch="refresh_token, revoked")
+        if user["refresh_token"] != token.refresh_token or user["revoked"] == True:
+
+            raise HTTPException(status_code=401, detail=f"token either revoked or invalid")
+
+        new_access_token = create_access_token(refresh_token["email"])
+        new_access_token.pop("expires")
+
+        return new_access_token
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to renew token -> {e}")
 
 # Oauth Routes
 
@@ -98,6 +110,7 @@ async def login(user: UserLoginSchema, conn: asyncpg.Connection = Depends(get_db
 async def auth_google(request: Request):
     redirect_uri = "http://localhost:5142/auth/google/callback"
     return await oauth.grex.authorize_redirect(request, redirect_uri)
+
     
 
 @router.get("/auth/google/callback")

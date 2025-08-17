@@ -61,10 +61,18 @@ def create_refresh_token(email:str, expires = time.time() + 7 * 24 * 60 * 60):
 
 
 
-def decodeJWT(token:str):
+def decode_access_token(token:str):
     try:
         decoded_token = jwt.decode(token, JWT_SECRET, algorithms=JWT_ALGORITHM)
         return decoded_token if decoded_token["expires"] >= time.time() else None
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to decode token -> {e}")
+
+
+def decode_refresh_token(token:str):
+    try:
+        decoded_token = jwt.decode(token, JWT_REFRESH_SECRET, algorithms=JWT_ALGORITHM)
+        return decoded_token if decoded_token["refresh_token_expires_at"] >= time.time() else None
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to decode token -> {e}")
 
