@@ -20,14 +20,14 @@ async def add_user_to_db(user: dict, conn: asyncpg.Connection):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Something went wrong -> {e}")
 
-async def get_user(email:str, conn: asyncpg.Connection):
+async def get_user(email:str, conn: asyncpg.Connection, fetch:str="*"):
     # query = """
     #     SELECT * FROM users WHERE email = $1
     # """
 
     try:
 
-        query = get_query("email", fetch="user_id, first_name, last_name, email, profile_picture, phone_number, status, password_hash", table="users")
+        query = get_query("email", fetch=fetch, table="users")
         res = await conn.fetchrow(query, email)
 
         return res
