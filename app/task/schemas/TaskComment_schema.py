@@ -3,7 +3,6 @@ from typing import Optional
 from datetime import datetime
 
 class taskCommentBase(BaseModel):
-    comment_id: int
     content: str
     created_at: datetime
     sender_id: int

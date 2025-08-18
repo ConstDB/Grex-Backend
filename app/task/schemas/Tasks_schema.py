@@ -3,8 +3,6 @@ from typing import Optional
 from datetime import datetime
 
 class TaskBase(BaseModel):
-    task_id: int
-    workspace_id: int
     subject: str
     title: str
     description: str
@@ -24,15 +22,15 @@ class taskUpdate(BaseModel):
     description: Optional[str] = None
     deadline: Optional[datetime] = None
     status: Optional[str] = None
-    priority_level: str
-    marked_done_at: datetime
+    priority_level: Optional[str] = None
+    marked_done_at: Optional[datetime] = None
 
 class TaskDelete(BaseModel):
     task_id: int
-    message: str
+    message: Optional[str] = "Task deleted successfully!"   
 
 class TaskOut(TaskBase):
     task_id: int
     created_at: datetime
-    marked_done_at: Optional[datetime]
+    marked_done_at: Optional[datetime] = None
 
