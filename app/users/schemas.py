@@ -25,3 +25,8 @@ class UserInformation(BaseModel):
     profile_picture: Optional[str] = None
     status: str
 
+class RefreshToken(BaseModel):
+    refresh_token: str    
+
+class EmailObject(BaseModel):
+    email: str
