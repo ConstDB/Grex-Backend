@@ -1,11 +1,12 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from starlette.middleware.sessions import SessionMiddleware
+from fastapi.middleware.cors import CORSMiddleware
 import logging
 from .db_instance import db
 from .api.api_router import router
+from .config.settings import settings as st
 import os
-from app.task.routes import task_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -19,12 +20,29 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+origins = [
+  "http://localhost:5173",
+  "http://192.168.195.26:5173"
+]
+ 
+app.add_middleware(
+  CORSMiddleware,
+  # allow_origins = ["*"],
+  allow_origins = origins,
+  allow_credentials=True,
+  allow_methods = ["*"],
+  allow_headers = ["*"]
+)
+
 app.add_middleware(
   SessionMiddleware,
-  secret_key=os.getenv("SESSION_SECRET")
+  secret_key=st.SESSION_SECRET
 )
+
+
+
 app.include_router(router)
-app.include_router(task_router)
+
 
 @app.get("/")
 async def dummy_server():
