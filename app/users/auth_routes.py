@@ -126,6 +126,7 @@ async def login(user: UserLoginSchema, conn: asyncpg.Connection = Depends(get_db
 @router.post("/auth/refresh")
 async def refresh_token(email:EmailObject, conn: asyncpg.Connection = Depends(get_db_connection)):
     try:
+
         email_dict = email.model_dump()
         
         res = await get_user_from_db(email=email_dict["email"], conn=conn, fetch="refresh_token, revoked")
@@ -133,6 +134,7 @@ async def refresh_token(email:EmailObject, conn: asyncpg.Connection = Depends(ge
     
         if res["revoked"] == True:
             raise HTTPException(status_code=401, detail=f"token either revoked")
+
 
         new_access_token = create_access_token(refresh_token["sub"])
 
