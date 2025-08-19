@@ -4,7 +4,7 @@ from .auth import verify_password, get_password_hash, create_access_token, creat
 from authlib.integrations.starlette_client import OAuth
 from ..db.database import Database
 from ..deps import get_db_connection
-from .crud import add_user_to_db, get_user, update_refresh_token
+from .crud import add_user_to_db, get_user_from_db
 import logging
 import asyncpg
 import os
