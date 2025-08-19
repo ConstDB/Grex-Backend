@@ -4,6 +4,9 @@ CREATE TABLE IF NOT EXISTS users (
     last_name TEXT NOT NULL,
     email TEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
+    refresh_token TEXT,
+    refresh_token_expires_at BIGINT,
+    revoked BOOLEAN,
     profile_picture TEXT,
     phone_number VARCHAR(20),
     status VARCHAR(10) CHECK (status IN ('online', 'offline'))
@@ -74,7 +77,7 @@ CREATE TABLE IF NOT EXISTS task_assignments (
 -- =========================
 -- COMMENTS
 -- =========================
-CREATE TABLE IF NOT EXISTS comments (
+CREATE TABLE IF NOT EXISTS task_comments (
     comment_id SERIAL PRIMARY KEY,
     task_id INTEGER REFERENCES tasks(task_id) ON DELETE CASCADE,
     content TEXT NOT NULL,
