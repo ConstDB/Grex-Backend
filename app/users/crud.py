@@ -3,6 +3,9 @@ import asyncpg
 from asyncpg.exceptions import UniqueViolationError
 from ..db.database import Database
 from ..utils.query_builder import insert_query, get_query, update_query
+import logging
+
+logger = logging.getLogger("uvicorn")
 
 async def add_user_to_db(user: dict, conn: asyncpg.Connection):
     # query = """
@@ -20,7 +23,7 @@ async def add_user_to_db(user: dict, conn: asyncpg.Connection):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Something went wrong -> {e}")
 
-async def get_user(email:str, conn: asyncpg.Connection, fetch:str="*"):
+async def get_user_from_db(email:str, conn: asyncpg.Connection, fetch:str="*"):
     # query = """
     #     SELECT * FROM users WHERE email = $1
     # """
@@ -34,9 +37,18 @@ async def get_user(email:str, conn: asyncpg.Connection, fetch:str="*"):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Something went wrong -> {e}")
 
-async def update_refresh_token(user_id:int, payload:dict, conn: asyncpg.Connection):
+async def update_refresh_token_on_db(user_id:int, payload:dict, conn: asyncpg.Connection):
     try: 
         query = update_query("user_id", model=payload, table="users")
         return await conn.execute(query, *payload.values(), user_id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Something went wrong -> {e}")
+
+async def revoke_user_token_on_db(user_id:int, payload:dict, conn: asyncpg.Connection):
+    try:
+        query = update_query("user_id", model=payload, table="users")
+        logger.info(query)
+        await conn.execute(query, *payload.values(), user_id)
+        return {"message": "Successful Logout"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Something went wrong on CRUD -> {e}")

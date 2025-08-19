@@ -1,10 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import JSONResponse
 from .schemas import UserLoginSchema, UserRegisterSchema, UserInformation, RefreshToken
 from .auth import verify_password, get_password_hash, create_access_token, create_refresh_token, token_response, oauth, decode_refresh_token
 from authlib.integrations.starlette_client import OAuth
+from fastapi.security import OAuth2PasswordRequestForm
 from ..db.database import Database
 from ..deps import get_db_connection
-from .crud import add_user_to_db, get_user, update_refresh_token
+from .crud import add_user_to_db, get_user_from_db, update_refresh_token_on_db, revoke_user_token_on_db
 import logging
 import asyncpg
 from ..config.settings import settings as st
@@ -16,9 +18,22 @@ router = APIRouter()
 
 logger = logging.getLogger("uvicorn")
 
-@router.get("/testing")
-async def Testing():
-    return "hello this is users route"
+@router.post("/auth/token")
+async def issue_token(form_data: OAuth2PasswordRequestForm = Depends()):
+    
+    if form_data.username != "test" and form_data.password != "password":
+        raise HTTPException(status_code=401, detail=f"Wrong password or Username")
+
+    
+    access_payload = create_access_token(form_data.username) # get short-lived token from JWT
+    refresh_payload = create_refresh_token(form_data.username)
+
+    return {
+        "access_token": access_payload["token"],
+        "refresh_token": refresh_payload["refresh_token"],
+        "token_type": "bearer"
+    }
+    
 
 
 @router.post("/auth/sign-up")
@@ -41,13 +56,21 @@ async def sign_up(user: UserRegisterSchema, conn: asyncpg.Connection = Depends(g
         # then convert it into dict
         user_data = dict(raw)
 
-        # Construct response
-        response = {
+        res = {
             "user": user_data,
             "access_token": access_payload["token"],
-            "refresh_token": refresh_payload["refresh_token"],
-            "expires_at": access_payload["expires"]
+            "expires_at": access_payload["expires"], 
         }
+
+        response = JSONResponse(content=res)
+        response.set_cookie(
+            key="refresh_token",
+            value=refresh_payload["refresh_token"],
+            httponly=True,
+            samesite="lax",
+            secure=False, # for dev phase
+            max_age=7*24*60*60
+        )
 
         return response
     except Exception as e:
@@ -65,7 +88,7 @@ async def login(user: UserLoginSchema, conn: asyncpg.Connection = Depends(get_db
         refresh_payload = create_refresh_token(user.email)
 
         # Get user data from DB    
-        raw = await get_user(user_dict["email"], conn, fetch="user_id, first_name, last_name, email, profile_picture, phone_number, status, password_hash") 
+        raw = await get_user_from_db(user_dict["email"], conn, fetch="user_id, first_name, last_name, email, profile_picture, phone_number, status, password_hash") 
         
 
         if raw is None:
@@ -75,51 +98,66 @@ async def login(user: UserLoginSchema, conn: asyncpg.Connection = Depends(get_db
             raise HTTPException(status_code=401, detail="Wrong email or password.")
  
         # Updates the refresh_token related attributes to the DB
-        update_token = await update_refresh_token(user_id= raw["user_id"], payload=refresh_payload, conn=conn)
+        update_token = await update_refresh_token_on_db(user_id= raw["user_id"], payload=refresh_payload, conn=conn)
         
         user_data = dict(raw)
         user_data.pop("password_hash")
 
-        response = {
+        res = {
             "user": user_data,
             "access_token": access_payload["token"],
-            "refresh_token": refresh_payload["refresh_token"],
-            "expires_at": access_payload["expires"] #UNIX timestamp
+            "expires_at": access_payload["expires"], #UNIX timestamp
         }
+
+        response = JSONResponse(content=res)
+        response.set_cookie(
+            key="refresh_token",
+            value=refresh_payload["refresh_token"],
+            httponly=True,
+            secure=False, #For dev phase 
+            samesite="lax",
+            max_age=7*24*60*60
+        )
  
         return response
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"User login failed. -> {e}")
 
 @router.post("/auth/refresh")
-async def refresh_token(token: RefreshToken, conn: asyncpg.Connection = Depends(get_db_connection)):
-    """
-        will be called once the access_token is expired
-    """
+async def refresh_token(email:str, conn: asyncpg.Connection = Depends(get_db_connection)):
     try:
-        #checks if the token is still valid
-        refresh_token = decode_refresh_token(token.refresh_token)
+        
+        res = await get_user_from_db(email=email, conn=conn, fetch="refresh_token, revoked")
+        refresh_token = decode_refresh_token(res["refresh_token"])
+    
+        if res["revoked"] == True:
+            raise HTTPException(status_code=401, detail=f"token either revoked")
 
-        if refresh_token is None:
-            raise HTTPException(status_code=401, detail=f"refresh token expired")
-        # get the user data and validates if the token is already revoked
-        user = await get_user(refresh_token["email"], conn, fetch="refresh_token, revoked")
-        if user["refresh_token"] != token.refresh_token or user["revoked"] == True:
-
-            raise HTTPException(status_code=401, detail=f"token either revoked or invalid")
-
-        # generate new access token and remove the expires on the payload
-        new_access_token = create_access_token(refresh_token["email"])
-        new_access_token.pop("expires")
+        new_access_token = create_access_token(refresh_token["sub"])
 
         return new_access_token
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to renew token -> {e}")
 
+
+@router.post("/auth/logout")
+async def logout(user_id: int, conn: asyncpg.Connection = Depends(get_db_connection)):
+    
+    try:
+        payload = {
+            "revoked" : True
+        }
+        result = await revoke_user_token_on_db(user_id, payload, conn)
+
+        return result
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to signout user -> {e}")
+
+
+
 # Oauth Routes
-
-
 @router.get("/auth/google")
 async def auth_google(request: Request):
     redirect_uri = "http://localhost:5142/auth/google/callback"
@@ -146,7 +184,7 @@ async def auth_google_callback(data: dict, request: Request, conn: asyncpg.Conne
         }
 
         access_token = signJWT(user_info["email"])
-        existing_user = await get_user(user_info["email"], conn)
+        existing_user = await get_user_from_db(user_info["email"], conn)
         user_dict = dict(existing_user)
 
         if not existing_user:
