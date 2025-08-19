@@ -4,7 +4,7 @@ from .auth import verify_password, get_password_hash, create_access_token, creat
 from authlib.integrations.starlette_client import OAuth
 from ..db.database import Database
 from ..deps import get_db_connection
-from .crud import add_user_to_db, get_user, update_refresh_token
+from .crud import add_user_to_db, get_user_from_db, update_refresh_token_on_db, revoke_user_token_on_db
 import logging
 import asyncpg
 from ..config.settings import settings as st
@@ -65,7 +65,7 @@ async def login(user: UserLoginSchema, conn: asyncpg.Connection = Depends(get_db
         refresh_payload = create_refresh_token(user.email)
 
         # Get user data from DB    
-        raw = await get_user(user_dict["email"], conn, fetch="user_id, first_name, last_name, email, profile_picture, phone_number, status, password_hash") 
+        raw = await get_user_from_db(user_dict["email"], conn, fetch="user_id, first_name, last_name, email, profile_picture, phone_number, status, password_hash") 
         
 
         if raw is None:
@@ -75,7 +75,7 @@ async def login(user: UserLoginSchema, conn: asyncpg.Connection = Depends(get_db
             raise HTTPException(status_code=401, detail="Wrong email or password.")
  
         # Updates the refresh_token related attributes to the DB
-        update_token = await update_refresh_token(user_id= raw["user_id"], payload=refresh_payload, conn=conn)
+        update_token = await update_refresh_token_on_db(user_id= raw["user_id"], payload=refresh_payload, conn=conn)
         
         user_data = dict(raw)
         user_data.pop("password_hash")
@@ -103,7 +103,7 @@ async def refresh_token(token: RefreshToken, conn: asyncpg.Connection = Depends(
         if refresh_token is None:
             raise HTTPException(status_code=401, detail=f"refresh token expired")
         # get the user data and validates if the token is already revoked
-        user = await get_user(refresh_token["email"], conn, fetch="refresh_token, revoked")
+        user = await get_user_from_db(refresh_token["email"], conn, fetch="refresh_token, revoked")
         if user["refresh_token"] != token.refresh_token or user["revoked"] == True:
 
             raise HTTPException(status_code=401, detail=f"token either revoked or invalid")
@@ -117,9 +117,24 @@ async def refresh_token(token: RefreshToken, conn: asyncpg.Connection = Depends(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to renew token -> {e}")
 
+
+@router.post("/auth/logout")
+async def logout(user_id: int, conn: asyncpg.Connection = Depends(get_db_connection)):
+    
+    try:
+        payload = {
+            "revoked" : True
+        }
+        result = await revoke_user_token_on_db(user_id, payload, conn)
+
+        return result
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to signout user -> {e}")
+
+
+
 # Oauth Routes
-
-
 @router.get("/auth/google")
 async def auth_google(request: Request):
     redirect_uri = "http://localhost:5142/auth/google/callback"
