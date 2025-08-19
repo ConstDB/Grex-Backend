@@ -27,3 +27,6 @@ class UserInformation(BaseModel):
 
 class RefreshToken(BaseModel):
     refresh_token: str    
+
+class EmailObject(BaseModel):
+    email: str
