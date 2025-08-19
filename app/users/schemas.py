@@ -34,3 +34,6 @@ class UserDetail(BaseModel):
     phone_number: Optional[str] = None
 class RefreshToken(BaseModel):
     refresh_token: str    
+
+class EmailObject(BaseModel):
+    email: str
