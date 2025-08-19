@@ -8,6 +8,7 @@ from .db_instance import db
 from .api.api_router import router
 from .config.settings import settings as st
 import os
+from app.task.routes import task_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -41,6 +42,7 @@ app.add_middleware(
 )
 
 app.include_router(router)
+app.include_router(task_router)
 
 @app.get("/")
 async def dummy_server():
