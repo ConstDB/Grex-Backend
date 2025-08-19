@@ -9,7 +9,7 @@ class TaskBase(BaseModel):
     deadline: datetime
     status: str
     priority_level: str
-    created_by: str
+    created_by: int
     created_at: datetime
     marked_done_at: datetime
 

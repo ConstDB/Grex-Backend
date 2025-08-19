@@ -2,14 +2,23 @@ from typing import List, Optional
 from datetime import datetime
 from app.task.schemas.Tasks_schema import taskCreate, taskUpdate, TaskDelete
 
-async def create_task(conn, task: taskCreate): #Create tasks 
+async def create_task(conn, workspace_id: int, task: taskCreate):
     query = """
-        INSERT TASK INFO (workspace_id, title, subjects, description, deadline, status, priority_level, created_by, created_at)
-        VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
-        RETURNING workspace_id, title, subjects, description, deadline, status, priority_level, created_by, created_at
+        INSERT INTO tasks (workspace_id, title, subject, description, deadline, status, priority_level, created_by, created_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+        RETURNING task_id, workspace_id, title, subject, description, deadline, status, priority_level, created_by, created_at
     """
-    row = await conn.fetchrow(query, task.workspace_id, task.title, task.description,
-                              task.due_date, task.status, task.priority)
+    row = await conn.fetchrow(
+        query,
+        workspace_id,          # comes from path param
+        task.title,
+        task.subject,          # careful: schema has "subject" not "subjects"
+        task.description,
+        task.deadline,
+        task.status,
+        task.priority_level,
+        task.created_by,
+    )
     return dict(row)
 
 async def get_task(conn, task_id: int): #Get specific task by ID
