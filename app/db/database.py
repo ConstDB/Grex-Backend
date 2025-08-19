@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 import os
 from dotenv import load_dotenv
 import logging
+from ..config.settings import settings as st
 
 logger = logging.getLogger("uvicorn")
 
@@ -12,7 +13,7 @@ load_dotenv()
 
 class Database:
 
-    def __init__(self, database=os.getenv("POSTGRES_DB"), host="localhost", user=os.getenv("POSTGRES_USER"), password=os.getenv("POSTGRES_PASSWORD"), port=5432):
+    def __init__(self, database=st.POSTGRES_DB, host="localhost", user=st.POSTGRES_USER, password=st.POSTGRES_PASSWORD, port=5432):
         self.pool = None
         self.database = database
         self.host = host
