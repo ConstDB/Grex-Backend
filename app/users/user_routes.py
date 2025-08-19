@@ -6,6 +6,7 @@ from ..db.database import Database
 from ..deps import get_db_connection
 from .crud import add_user_to_db, get_user_from_db
 from .auth import get_current_user
+
 import logging
 import asyncpg
 import os
