@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
-from .schemas import UserLoginSchema, UserRegisterSchema, UserInformation, RefreshToken
+from .schemas import UserLoginSchema, UserRegisterSchema, UserInformation, RefreshToken, EmailObject
 from .auth import verify_password, get_password_hash, create_access_token, create_refresh_token, token_response, oauth, decode_refresh_token
 from authlib.integrations.starlette_client import OAuth
 from fastapi.security import OAuth2PasswordRequestForm
@@ -68,7 +68,7 @@ async def sign_up(user: UserRegisterSchema, conn: asyncpg.Connection = Depends(g
             value=refresh_payload["refresh_token"],
             httponly=True,
             samesite="lax",
-            secure=False, # for dev phase
+            # secure=False, # for dev phase
             max_age=7*24*60*60
         )
 
@@ -114,7 +114,7 @@ async def login(user: UserLoginSchema, conn: asyncpg.Connection = Depends(get_db
             key="refresh_token",
             value=refresh_payload["refresh_token"],
             httponly=True,
-            secure=False, #For dev phase 
+            # secure=False, #For dev phase  
             samesite="lax",
             max_age=7*24*60*60
         )
@@ -124,10 +124,11 @@ async def login(user: UserLoginSchema, conn: asyncpg.Connection = Depends(get_db
         raise HTTPException(status_code=500, detail=f"User login failed. -> {e}")
 
 @router.post("/auth/refresh")
-async def refresh_token(email:str, conn: asyncpg.Connection = Depends(get_db_connection)):
+async def refresh_token(email:EmailObject, conn: asyncpg.Connection = Depends(get_db_connection)):
     try:
+        email_dict = email.model_dump()
         
-        res = await get_user_from_db(email=email, conn=conn, fetch="refresh_token, revoked")
+        res = await get_user_from_db(email=email_dict["email"], conn=conn, fetch="refresh_token, revoked")
         refresh_token = decode_refresh_token(res["refresh_token"])
     
         if res["revoked"] == True:
