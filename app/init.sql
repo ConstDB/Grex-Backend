@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS workspace_members (
     nickname VARCHAR(100),
     joined_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (workspace_id, user_id)
+    
 );
 
 -- =========================

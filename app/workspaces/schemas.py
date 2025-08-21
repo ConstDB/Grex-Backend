@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional
 from datetime import date 
+import asyncpg
 
 class WorkspaceCreation(BaseModel):
     name: str
@@ -8,6 +9,7 @@ class WorkspaceCreation(BaseModel):
     project_nature: str
     start_date: date
     due_date: date
+    created_by: int
     
 class GetWorkSpaces(BaseModel):
     workspace_id : int
@@ -20,3 +22,4 @@ class GetWorkspaceInfo (BaseModel):
     description: str
     project_nature: str
     start_date: date
+   
