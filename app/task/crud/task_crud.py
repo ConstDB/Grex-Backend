@@ -1,15 +1,15 @@
-from datetime import datetime
-from app.task.schemas.Tasks_schema import taskCreate, taskUpdate, TaskDelete
+# app/api/task/crud/task_crud.py
+
+from app.task.schemas.Tasks_schema import TaskCreate, TaskUpdate
 from datetime import datetime, timezone
 
-now = datetime.now(timezone.utc)  # timezone-aware
+now = datetime.now(timezone.utc)  
 
-async def create_task(conn, workspace_id: int, task: taskCreate):
-    # Handle defaults in Python, not in SQL
+# Create task in workspace
+async def create_task(conn, workspace_id: int, task: TaskCreate):
     status = task.status or "pending"
     priority = task.priority_level or "low"
 
-    # Validate enum values
     valid_status = {"pending", "in_progress", "completed"}
     valid_priority = {"low", "medium", "high"}
 
@@ -32,13 +32,14 @@ async def create_task(conn, workspace_id: int, task: taskCreate):
         task.title,
         task.description,
         task.deadline,
-        status,     # safe, validated
-        priority,   # safe, validated
+        status,     
+        priority,  
         task.created_by,
     )
     return dict(row)
 
-async def get_task(conn, workspace_id: int, task_id: int):  # Get specific task by ID
+# Get specific task by ID
+async def get_task(conn, workspace_id: int, task_id: int):  
     query = """
         SELECT * 
         FROM tasks 
@@ -47,8 +48,8 @@ async def get_task(conn, workspace_id: int, task_id: int):  # Get specific task 
     row = await conn.fetchrow(query, workspace_id, task_id)
     return dict(row) if row else None
 
-
-async def get_tasks_by_workspace(conn, workspace_id: int):  # Get tasks from that workspace
+# Get tasks from that workspace
+async def get_tasks_by_workspace(conn, workspace_id: int): 
     query = """
         SELECT * 
         FROM tasks 
@@ -58,13 +59,8 @@ async def get_tasks_by_workspace(conn, workspace_id: int):  # Get tasks from tha
     rows = await conn.fetch(query, workspace_id)
     return [dict(r) for r in rows]
 
-from datetime import datetime, timezone
-
-from datetime import datetime, timezone
-
-from datetime import datetime, timezone
-
-async def update_task(conn, task_id: int, workspace_id: int, task_update: taskUpdate):
+# Update task in workspace
+async def update_task(conn, task_id: int, workspace_id: int, task_update: TaskUpdate):
     query = """
         UPDATE tasks
         SET title = COALESCE($1, title),
@@ -75,7 +71,7 @@ async def update_task(conn, task_id: int, workspace_id: int, task_update: taskUp
     """
     row = await conn.fetchrow(
         query,
-        task_update.title,       # ✅ works because it’s still a Pydantic model
+        task_update.title,       
         task_update.description,
         task_update.status,
         task_id,
@@ -83,7 +79,7 @@ async def update_task(conn, task_id: int, workspace_id: int, task_update: taskUp
     )
     return dict(row) if row else None
 
-async def delete_task(conn, workspace_id: int, task_id: int):
+async def delete_task(conn, workspace_id: int, task_id: int): 
     query = "DELETE FROM tasks WHERE task_id=$1 AND workspace_id=$2 RETURNING *;"
     row = await conn.fetchrow(query, task_id, workspace_id)
     return dict(row) if row else None
