@@ -5,6 +5,7 @@ from ..deps import get_db_connection
 import asyncpg
 from ..workspaces.schemas import WorkspaceCreation
 from .crud import add_workspace_to_db
+from .crud import get_all_workspaces_to_db
 
 
 router = APIRouter()
@@ -24,9 +25,12 @@ async def create_workspace(workspace: WorkspaceCreation, conn: asyncpg.Connectio
          raise HTTPException(status_code=500, detail=f"Workspace creation failed -> {e}")
      
 @router.get("/workspace/{user_id}")
-async def get_all_workspaces(conn: asyncpg.Connection = Depends(get_db_connection)):
+async def get_all_workspaces(user_id:int, conn: asyncpg.Connection = Depends(get_db_connection)):
     try:
-        return{"message": "success", "data": conn}
+        
+        res = await get_all_workspaces_to_db(user_id, conn)
+        
+        return res
     except Exception as e:
          raise HTTPException(status_code=500, detail=f"Process Failed -> {e}")
 

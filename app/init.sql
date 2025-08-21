@@ -22,7 +22,8 @@ CREATE TABLE IF NOT EXISTS workspaces (
     project_nature TEXT,
     start_date DATE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    due_date DATE
+    due_date DATE,
+    created_by INTEGER REFERENCES users(user_id) ON DELETE CASCADE 
 );
 
 -- =========================
@@ -35,6 +36,7 @@ CREATE TABLE IF NOT EXISTS workspace_members (
     nickname VARCHAR(100),
     joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (workspace_id, user_id)
+    
 );
 
 -- =========================
