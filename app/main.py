@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi.middleware.cors import CORSMiddleware
+from .workspaces.crud import workspace_trigger
 import logging
 from .db_instance import db
 from .api.api_router import router
@@ -13,7 +14,7 @@ async def lifespan(app: FastAPI):
     logger = logging.getLogger("uvicorn")
 
     await db.initialize_connection()
-
+    await workspace_trigger()
     yield
 
     await db.close_connection()
@@ -38,8 +39,6 @@ app.add_middleware(
   SessionMiddleware,
   secret_key=st.SESSION_SECRET
 )
-
-
 
 app.include_router(router)
 
