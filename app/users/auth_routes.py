@@ -7,16 +7,12 @@ from fastapi.security import OAuth2PasswordRequestForm
 from ..db.database import Database
 from ..deps import get_db_connection
 from .crud import add_user_to_db, get_user_from_db, update_refresh_token_on_db, revoke_user_token_on_db
-import logging
+from ..utils.logger import logger
 import asyncpg
 from ..config.settings import settings as st
 import os
 
 router = APIRouter()
-
-
-
-logger = logging.getLogger("uvicorn")
 
 @router.post("/auth/token")
 async def issue_token(form_data: OAuth2PasswordRequestForm = Depends()):
@@ -132,7 +128,7 @@ async def refresh_token(email:EmailObject, conn: asyncpg.Connection = Depends(ge
         refresh_token = decode_refresh_token(res["refresh_token"])
     
         if res["revoked"] == True:
-            raise HTTPException(status_code=401, detail=f"token either revoked")
+            raise HTTPException(status_code=401, detail=f"Refresh token revoked")
 
         new_access_token = create_access_token(refresh_token["sub"])
 
