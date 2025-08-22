@@ -1,11 +1,8 @@
 from fastapi import Depends, HTTPException
 import asyncpg
 from asyncpg.exceptions import UniqueViolationError
-from ..db.database import Database
 from ..utils.query_builder import insert_query, get_query, update_query
-import logging
-
-logger = logging.getLogger("uvicorn")
+from ..utils.logger import logger
 
 async def add_user_to_db(user: dict, conn: asyncpg.Connection):
     # query = """

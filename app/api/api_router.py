@@ -12,7 +12,7 @@ from ..workspaces.routes import router as workspaces_router
 router = APIRouter()
 
 
-router.include_router(messages_router, prefix="/messages", tags=["Messages"])
+router.include_router(messages_router, tags=["Messages"])
 router.include_router(notification_router, prefix="/notification", tags=["Notification"])
 router.include_router(summaries_router, prefix="/summaries", tags=["Summaries"])
 router.include_router(tasks_router, prefix="/tasks", tags=["Tasks"])
