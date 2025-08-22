@@ -4,12 +4,10 @@ from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer
 from dotenv import load_dotenv
 from ..config.settings import settings as st
-import logging
+from ..utils.logger import logger
 import jwt
 import os
 import time
-
-logger = logging.getLogger("uvicorn")
 
 
 load_dotenv()
