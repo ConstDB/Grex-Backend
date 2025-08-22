@@ -55,7 +55,6 @@ async def websocket_message_endpoint(websocket: WebSocket, workspace_id: int, us
             }
 
             await manager.broadcast(workspace_id, message_obj)
-
     except WebSocketDisconnect as e:
         logger.info(f"User {user_id} disconnects from workspace {workspace_id}")
         manager.disconnect(workspace_id, websocket)

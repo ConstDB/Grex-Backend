@@ -140,7 +140,6 @@ async def refresh_token(email:EmailObject, conn: asyncpg.Connection = Depends(ge
         if res["revoked"] == True:
             raise HTTPException(status_code=401, detail=f"Refresh token revoked")
 
-
         new_access_token = create_access_token(refresh_token["sub"])
 
         return new_access_token
