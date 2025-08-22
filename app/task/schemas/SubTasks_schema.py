@@ -5,21 +5,21 @@ from datetime import datetime
 class SubTasksBase(BaseModel):
     task_id: int
     description: str
-    is_done: datetime
-    created_at: datetime
+    is_done: bool = False
 
 class SubTasksCreate(SubTasksBase):
     pass
 
 class SubTasksUpdate(BaseModel):
     description: Optional[str] = None
-    is_done: datetime
-    created_at: datetime
+    is_done: Optional[bool] = None  
 
 class SubTasksDelete(BaseModel):
     subtask_id: int
-    description: str
 
-class SubTasksOut(SubTasksBase):
+class SubTasksOut(BaseModel):
     subtask_id: int
-    is_done: datetime
+    task_id: int
+    description: str
+    is_done: bool
+    created_at: datetime
