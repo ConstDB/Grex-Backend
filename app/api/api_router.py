@@ -10,7 +10,6 @@ from ..users.auth_routes import router as auth_router
 from ..workspaces.routes import router as workspaces_router
 
 
-
 router = APIRouter()
 
 

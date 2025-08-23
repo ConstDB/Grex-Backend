@@ -1,6 +1,6 @@
 # app/api/task/crud/task_attachment_crud.py
 
-from datetime import datetime, timezone
+from datetime import datetime
 from app.task.schemas.TaskAttachment_schema import TaskAttachmentCreate, TaskAttachmentDelete
 
 # Create a task attachment
@@ -12,9 +12,9 @@ async def create_attachment(conn, attachment: TaskAttachmentCreate):
 
     query = """
         INSERT INTO task_attachments
-        (task_id, uploaded_by, file_url, file_type, file_size )
-        VALUES ($1, $2, $3, $4, $5)
-        RETURNING attachment_id, task_id, uploaded_by, file_url, file_type, file_size, created_at;
+        (task_id, uploaded_by, file_url, file_type, file_size_mb, uploaded_at)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING attachment_id, task_id, uploaded_by, file_url, file_type, file_size_mb, uploaded_at;
     """
     row = await conn.fetchrow(
         query,
@@ -22,7 +22,8 @@ async def create_attachment(conn, attachment: TaskAttachmentCreate):
         attachment.uploaded_by,
         attachment.file_url,
         attachment.file_type,
-        attachment.file_size,
+        attachment.file_size_mb,
+        datetime.utcnow()  # ensure timestamp
     )
     return dict(row)
 
@@ -32,7 +33,7 @@ async def get_attachments_by_task(conn, task_id: int):
     query = """
         SELECT * FROM task_attachments
         WHERE task_id = $1
-        ORDER BY created_at DESC
+        ORDER BY uploaded_at DESC
     """
     rows = await conn.fetch(query, task_id)
     return [dict(r) for r in rows]
