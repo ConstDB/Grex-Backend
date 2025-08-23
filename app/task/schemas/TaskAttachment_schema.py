@@ -6,7 +6,7 @@ class TaskAttachmentBase(BaseModel):
     task_id: int
     file_url: str 
     file_type: Optional[Literal["image", "pdf", "docs"]] = None
-    file_size: Optional[float] = None
+    file_size_mb: Optional[float] = None
     uploaded_by: int
     uploaded_at: datetime = Field(default_factory=datetime.utcnow)
 
