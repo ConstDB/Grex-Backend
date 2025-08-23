@@ -28,4 +28,4 @@ async def remove_attachment(attachment: TaskAttachmentDelete, conn=Depends(get_d
     row = await delete_attachment(conn, attachment)
     if not row:
         raise HTTPException(status_code=404, detail="Attachment not found")
-    return row
+    return{"status": "success", "message": "Task attachment removed"} 
