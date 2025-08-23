@@ -9,6 +9,7 @@ from app.task.crud import task_crud
 
 router = APIRouter()
 
+# Create a Task
 @router.post("/{workspace_id}", response_model=TaskOut)
 async def create_task(   
     workspace_id: int,
@@ -18,17 +19,20 @@ async def create_task(
 ):
     return await task_crud.create_task(conn=conn, workspace_id=workspace_id, task=task_in)
 
-@router.get("/{workspace_id}/{task_id}", response_model=TaskOut) # Get specific Task
+# Get specific Task
+@router.get("/{workspace_id}/{task_id}", response_model=TaskOut) 
 async def get_task(workspace_id: int, task_id: int, conn: asyncpg.Connection = Depends(get_db_connection)):
     task = await task_crud.get_task(conn=conn, workspace_id=workspace_id, task_id=task_id)
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
     return task
 
-@router.get("/{workspace_id}", response_model=List[TaskOut]) # Get all Tasks in a Workspace
+# Get all Tasks in a Workspace
+@router.get("/{workspace_id}", response_model=List[TaskOut]) 
 async def get_all_tasks(workspace_id: int, conn: asyncpg.Connection = Depends(get_db_connection)):
     return await task_crud.get_tasks_by_workspace(conn=conn, workspace_id=workspace_id)
 
+# Update a task
 @router.put("/{workspace_id}/{task_id}", response_model=TaskOut)
 async def update_task(
     workspace_id: int,
@@ -46,7 +50,8 @@ async def update_task(
         raise HTTPException(status_code=404, detail="Task not found")
     return task
 
-@router.delete("/{workspace_id}/{task_id}") # Delete Task
+# Delete Task
+@router.delete("/{workspace_id}/{task_id}")
 async def delete_task(workspace_id: int, task_id: int, conn: asyncpg.Connection = Depends(get_db_connection)):
     deleted = await task_crud.delete_task(conn=conn, workspace_id=workspace_id, task_id=task_id)
     if not deleted:
