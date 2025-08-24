@@ -1,5 +1,5 @@
 from app.task.schemas.SubTasks_schema import SubTasksCreate, SubTasksUpdate, SubTasksDelete
-from datetime import datetime, timezone
+from datetime import datetime
 
 now = datetime.now()    
 
