@@ -3,18 +3,12 @@ import websockets
 import json
 
 async def test_ws():
-    uri = "ws://127.0.0.1:8000/workspace/1/10"
+    uri = "ws://127.0.0.1:8000/workspace/2/1"
     async with websockets.connect(uri) as ws:
         await ws.send(json.dumps({
             "type":"text",
             "content": """
-            
-            The Fool that doesn't belong to this era
-
-            The great ruler above the gray fog
-
-            King of Yellow and Black who wills good luck!
-            
+                po
             """,
             "reply_to": None
 
