@@ -10,7 +10,7 @@ async def create_task(conn, workspace_id: int, task: TaskCreate):
     status = task.status or "pending"
     priority = task.priority_level or "low"
 
-    valid_status = {"pending", "in_progress", "completed"}
+    valid_status = {"pending", "done", "overdue"}
     valid_priority = {"low", "medium", "high"}
 
     if status not in valid_status:
@@ -21,15 +21,16 @@ async def create_task(conn, workspace_id: int, task: TaskCreate):
 
     query = """
         INSERT INTO tasks 
-        (workspace_id, title, description, deadline, status, priority_level, created_by)
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
-        RETURNING task_id, workspace_id, title, description, deadline, status, priority_level, created_by, created_at;
+        (workspace_id, title, subject, description, deadline, status, priority_level, created_by)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        RETURNING task_id, workspace_id, title, subject, description, deadline, status, priority_level, created_by, created_at;
     """
 
     row = await conn.fetchrow(
         query,
         workspace_id,
         task.title,
+        task.subject,
         task.description,
         task.deadline,
         status,     
@@ -64,14 +65,16 @@ async def update_task(conn, task_id: int, workspace_id: int, task_update: TaskUp
     query = """
         UPDATE tasks
         SET title = COALESCE($1, title),
-            description = COALESCE($2, description),
-            status = COALESCE($3, status)
-        WHERE task_id = $4 AND workspace_id = $5
+            subject = COALESCE($2, subject),
+            description = COALESCE($3, description),
+            status = COALESCE($4, status)
+        WHERE task_id = $5 AND workspace_id = $6
         RETURNING *;
     """
     row = await conn.fetchrow(
         query,
-        task_update.title,       
+        task_update.title,
+        task_update.subject,       
         task_update.description,
         task_update.status,
         task_id,
