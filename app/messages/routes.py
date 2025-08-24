@@ -6,7 +6,7 @@ from ..db_instance import db
 from ..utils.logger import logger
 import json
 import asyncpg
-import datetime
+from datetime import datetime
 
 
 
@@ -51,10 +51,11 @@ async def websocket_message_endpoint(websocket: WebSocket, workspace_id: int, us
                 "type": payload["type"],
                 "content": payload.get("content"),
                 "reply_to": payload.get("reply_to"),
-                "sent_at": datetime.datetime.utcnow().isoformat()
+                "sent_at": datetime.utcnow().isoformat()
             }
 
             await manager.broadcast(workspace_id, message_obj)
+
     except WebSocketDisconnect as e:
         logger.info(f"User {user_id} disconnects from workspace {workspace_id}")
         manager.disconnect(workspace_id, websocket)
@@ -65,7 +66,7 @@ async def websocket_message_endpoint(websocket: WebSocket, workspace_id: int, us
         manager.disconnect(workspace_id, websocket)
 
 
-@router.get("/workspaces/{workspace_id}/messages")
+@router.get("/workspace/{workspace_id}/messages")
 async def get_messages(workspace_id: int, timestamp:datetime, conn: asyncpg.Connection = Depends(get_db_connection)):
     try:
         response = await get_few_messages_from_db(workspace_id, timestamp, conn)

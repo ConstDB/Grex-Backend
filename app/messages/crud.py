@@ -3,6 +3,7 @@ import asyncpg
 from asyncpg.exceptions import UniqueViolationError
 from ..utils.query_builder import insert_query, get_query, update_query
 from ..utils.logger import logger
+from datetime import datetime
 
 async def insert_messages_to_db(message_data: dict, conn:asyncpg.Connection):
     try:
