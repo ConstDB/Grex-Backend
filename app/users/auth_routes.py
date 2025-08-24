@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
-from .schemas import UserLoginSchema, UserRegisterSchema,  RefreshToken
+from .schemas import UserLoginSchema, UserRegisterSchema,  RefreshToken, EmailObject
 from fastapi.responses import JSONResponse
 from .auth import verify_password, get_password_hash, create_access_token, create_refresh_token, token_response, oauth, decode_refresh_token
 from authlib.integrations.starlette_client import OAuth
