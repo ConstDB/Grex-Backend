@@ -5,6 +5,7 @@ from typing import Optional, Literal
 from datetime import datetime
 class TaskBase(BaseModel):
     title: str
+    subject: Optional[str] = None
     description: str
     deadline: datetime
     status: Literal["pending", "in_progress", "completed"] = "pending"
@@ -16,9 +17,10 @@ class TaskCreate(TaskBase):
 
 class TaskUpdate(BaseModel):
     title: Optional[str] = None
+    subject: Optional[str] = None
     description: Optional[str] = None
     deadline: Optional[datetime] = None
-    status: Literal["pending", "in_progress", "completed"] = "pending"
+    status: Literal["pending", "done", "overdue"] = "pending"
     priority_level: Optional[Literal["low", "medium", "high"]] = None
     marked_done_at: Optional[datetime] = None
 
