@@ -232,3 +232,28 @@ CREATE TABLE IF NOT EXISTS ai_reports (
     content TEXT NOT NULL,
     generated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
+
+
+-- =========================
+-- VIEWS
+-- =========================
+
+CREATE OR REPLACE VIEW message_details AS
+SELECT m.message_id,
+       m.workspace_id,
+       m.sender_id,
+       u.profile_picture,
+       wm.nickname,
+       m.message_type,
+       m.reply_to,
+       m.sent_at,
+       t.content,
+       a.file_url,
+       a.file_type,
+       p.question
+FROM messages m
+LEFT JOIN workspace_members wm ON m.workspace_id = wm.workspace_id AND m.sender_id = wm.user_id
+LEFT JOIN users u ON m.sender_id = u.user_id
+LEFT JOIN text_messages t ON m.message_id = t.message_id
+LEFT JOIN message_attachments a ON m.message_id = a.message_id
+LEFT JOIN polls p ON m.message_id = p.message_id;
