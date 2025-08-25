@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS workspaces (
     description TEXT,
     project_nature TEXT,
     start_date DATE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     due_date DATE, 
     created_by INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
     workspace_profile_url TEXT
