@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from ...deps import get_db_connection
 from app.task.crud import sub_task_crud
-from app.task.schemas.SubTasks_schema import SubTasksCreate, SubTasksUpdate, SubTasksDelete
+from app.task.schemas.SubTasks_schema import SubTasksCreate, SubTasksPatch, SubTasksDelete
 import asyncpg
 
 router = APIRouter()
@@ -28,13 +28,18 @@ async def get_subtasks_by_task(task_id: int, conn: asyncpg.Connection = Depends(
     subtask = await sub_task_crud.get_subtasks_by_task(conn, task_id)
     return{"status": "success", "data": subtask}
 
-# Router for updating a subtask
-@router.put("/{task_id}/{subtasK_id}")
-async def update_subtask(task_id: int, subtask_id: int, subtask_update: SubTasksUpdate, conn: asyncpg.Connection = Depends(get_db_connection)):
-    updated = await sub_task_crud.update_subtask(conn, task_id, subtask_id, subtask_update)
+# Router for patching a subtask
+@router.patch("/{task_id}/{subtask_id}")
+async def subtask_patch(
+    task_id: int,
+    subtask_id: int,
+    subtask_patch: SubTasksPatch,
+    conn: asyncpg.Connection = Depends(get_db_connection)
+):
+    updated = await sub_task_crud.patch_subtask(conn, task_id, subtask_id, subtask_patch)
     if not updated:
-        raise HTTPException(status_code=404, detail="Subtask not found or failed to update")
-    return{"status": "success", "message": updated}
+        raise HTTPException(status_code=404, detail="Subtask not found")
+    return updated
 
 # Router for deleting a subtask
 @router.delete("/{task_id}/{subtask_id}")
@@ -43,5 +48,3 @@ async def delete_subtask(task_id: int, subtask_id: int, subtask_delete: SubTasks
     if not deleted:
         raise HTTPException(status_code=404, detail="Subtask not found or failed to delete")
     return{"status": "success", "message": "Subtask Deleted"}
-
-    

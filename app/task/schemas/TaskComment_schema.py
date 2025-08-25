@@ -2,17 +2,21 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
 
-class taskCommentBase(BaseModel):
+class TaskCommentBase(BaseModel):
     content: str
-    created_at: datetime
     sender_id: int
 
-class taskCommentCreate(taskCommentBase):
+class TaskCommentCreate(TaskCommentBase):
     pass
 
-class taskCommentUpdate(BaseModel):
-    content: Optional[str] = None
+class TaskCommentUpdate(BaseModel):
+    content: str
 
-class taskCommentDelete(taskCommentBase):
-    pass
+class TaskCommentDelete(BaseModel):
+    comment_id: int
 
+class TaskCommentOut(TaskCommentBase):
+    comment_id: int
+    task_id: int
+    created_at: datetime 
+    sender_id: int

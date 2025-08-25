@@ -7,6 +7,3 @@ class TaskAssignmentBase(BaseModel):
 
 class TaskAssignmentCreate(TaskAssignmentBase):
     pass
-
-class TaskAssignmentPatch(BaseModel):
-    user_id: Optional[int] = None
