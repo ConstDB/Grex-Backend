@@ -8,10 +8,10 @@ from app.task.crud.task_attachment_crud import create_attachment, get_attachment
 router = APIRouter()
 
 # Create a task attachment
-@router.post("/")
-async def add_attachment(attachment: TaskAttachmentCreate, conn=Depends(get_db_connection)):
+@router.post("/{task_id}")
+async def add_attachment(task_id: int, attachment: TaskAttachmentCreate, conn=Depends(get_db_connection)):
     try:
-        row = await create_attachment(conn, attachment)
+        row = await create_attachment(conn, task_id, attachment)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     return row
@@ -23,7 +23,7 @@ async def fetch_attachments(task_id: int, conn=Depends(get_db_connection)):
     return rows
 
 # Delete a task attachment
-@router.delete("/")
+@router.delete("/{task_id}")
 async def remove_attachment(attachment: TaskAttachmentDelete, conn=Depends(get_db_connection)):
     row = await delete_attachment(conn, attachment)
     if not row:

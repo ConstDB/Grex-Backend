@@ -3,7 +3,6 @@ from typing import Optional, Literal
 from datetime import datetime
 
 class TaskAttachmentBase(BaseModel):
-    task_id: int
     file_url: str 
     file_type: Optional[Literal["image", "pdf", "docs"]] = None
     file_size_mb: Optional[float] = None
