@@ -8,14 +8,14 @@ class TaskBase(BaseModel):
     subject: Optional[str] = None
     description: str
     deadline: datetime
-    status: Literal["pending", "in_progress", "completed"] = "pending"
+    status: Literal["pending", "done", "overdue"] = "pending"
     priority_level: Literal["low", "medium", "high"] = "low"
     created_by: int
 
 class TaskCreate(TaskBase):
     pass
 
-class TaskUpdate(BaseModel):
+class TaskPatch(BaseModel):
     title: Optional[str] = None
     subject: Optional[str] = None
     description: Optional[str] = None
