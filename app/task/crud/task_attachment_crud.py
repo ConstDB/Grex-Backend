@@ -4,11 +4,11 @@ from datetime import datetime
 from app.task.schemas.TaskAttachment_schema import TaskAttachmentCreate, TaskAttachmentDelete
 
 # Create a task attachment
-async def create_attachment(conn, attachment: TaskAttachmentCreate):
+async def create_attachment(conn, task_id: int, attachment: TaskAttachmentCreate):
     # Validate task exists
-    task = await conn.fetchrow("SELECT task_id FROM tasks WHERE task_id=$1", attachment.task_id)
+    task = await conn.fetchrow("SELECT task_id FROM tasks WHERE task_id=$1", task_id)
     if not task:
-        raise ValueError(f"Task with id {attachment.task_id} does not exist")
+        raise ValueError(f"Task with id {task_id} does not exist")
 
     query = """
         INSERT INTO task_attachments
@@ -18,15 +18,14 @@ async def create_attachment(conn, attachment: TaskAttachmentCreate):
     """
     row = await conn.fetchrow(
         query,
-        attachment.task_id,
+        task_id,
         attachment.uploaded_by,
         attachment.file_url,
         attachment.file_type,
         attachment.file_size_mb,
-        datetime.utcnow()  # ensure timestamp
+        datetime.now()
     )
     return dict(row)
-
 
 # Get all attachments for a task
 async def get_attachments_by_task(conn, task_id: int):

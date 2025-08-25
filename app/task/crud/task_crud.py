@@ -1,6 +1,6 @@
 # app/api/task/crud/task_crud.py
 
-from app.task.schemas.Tasks_schema import TaskCreate, TaskUpdate
+from app.task.schemas.Tasks_schema import TaskCreate, TaskPatch
 from datetime import datetime, timezone
 
 now = datetime.now(timezone.utc)  
@@ -60,27 +60,76 @@ async def get_tasks_by_workspace(conn, workspace_id: int):
     rows = await conn.fetch(query, workspace_id)
     return [dict(r) for r in rows]
 
-# Update task in workspace
-async def update_task(conn, task_id: int, workspace_id: int, task_update: TaskUpdate):
-    query = """
-        UPDATE tasks
-        SET title = COALESCE($1, title),
-            subject = COALESCE($2, subject),
-            description = COALESCE($3, description),
-            status = COALESCE($4, status)
-        WHERE task_id = $5 AND workspace_id = $6
-        RETURNING *;
-    """
-    row = await conn.fetchrow(
-        query,
-        task_update.title,
-        task_update.subject,       
-        task_update.description,
-        task_update.status,
-        task_id,
-        workspace_id,
-    )
+# Patch task in workspace
+async def patch_task(conn, task_id: int, workspace_id: int, patch_task: TaskPatch):
+    updates = []
+    values = []
+    idx = 1
+     
+    if patch_task.title is not None:
+        updates.append(f"title = ${idx}")
+        values.append(patch_task.title)
+        idx += 1
+
+    if patch_task.subject is not None:
+        updates.append(f"subject = ${idx}")
+        values.append(patch_task.subject)
+        idx += 1
+
+    if patch_task.description is not None:
+        updates.append(f"description = ${idx}")
+        values.append(patch_task.description)
+        idx += 1
+
+    if patch_task.deadline is not None:
+        updates.append(f"deadline = ${idx}")
+        values.append(patch_task.deadline)
+        idx += 1
+
+    if patch_task.status is not None:
+        updates.append(f"status = ${idx}")
+        values.append(patch_task.status)
+        idx += 1
+
+    if patch_task.priority_level is not None:
+        updates.append(f"priority_level = ${idx}")
+        values.append(patch_task.priority_level)
+        idx += 1
+
+    if not updates:
+        return None
+    
+    query = f"""
+            UPDATE tasks
+                SET {", ".join(updates)}
+            WHERE task_id = ${idx} AND workspace_id = ${idx+1}
+            RETURNING *;
+        """
+    values.extend([task_id, workspace_id])
+
+    row = await conn.fetchrow(query, *values)
     return dict(row) if row else None
+
+
+    # query = """
+    #     UPDATE tasks
+    #     SET title = COALESCE($1, title),
+    #         subject = COALESCE($2, subject),
+    #         description = COALESCE($3, description),
+    #         status = COALESCE($4, status)
+    #     WHERE task_id = $5 AND workspace_id = $6
+    #     RETURNING *;
+    # """
+    # row = await conn.fetchrow(
+    #     query,
+    #     task_update.title,
+    #     task_update.subject,       
+    #     task_update.description,
+    #     task_update.status,
+    #     task_id,
+    #     workspace_id,
+    # )
+    # return dict(row) if row else None
 
 async def delete_task(conn, workspace_id: int, task_id: int): 
     query = "DELETE FROM tasks WHERE task_id=$1 AND workspace_id=$2 RETURNING *;"

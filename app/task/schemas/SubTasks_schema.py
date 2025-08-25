@@ -10,7 +10,7 @@ class SubTasksBase(BaseModel):
 class SubTasksCreate(SubTasksBase):
     pass
 
-class SubTasksUpdate(BaseModel):
+class SubTasksPatch(BaseModel):
     description: Optional[str] = None
     is_done: Optional[bool] = None  
 

@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from typing import List
 import asyncpg
 from ...deps import get_db_connection  
-from app.task.schemas.Tasks_schema import TaskCreate, TaskOut, TaskUpdate, TaskDelete
+from app.task.schemas.Tasks_schema import TaskCreate, TaskOut, TaskPatch, TaskDelete
 from app.task.crud import task_crud
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -58,18 +58,18 @@ async def update_task(workspace_id: int, task_id: int, task_in: taskUpdate, conn
     return await task_crud.get_tasks_by_workspace(conn=conn, workspace_id=workspace_id)
 
 # Update a task
-@router.put("/{workspace_id}/{task_id}", response_model=TaskOut)
-async def update_task(
+@router.patch("/{workspace_id}/{task_id}", response_model=TaskOut)
+async def patch_task(
     workspace_id: int,
     task_id: int,
-    task_in: TaskUpdate,
+    patch_task: TaskPatch,
     conn: asyncpg.Connection = Depends(get_db_connection)
 ):
-    task = await task_crud.update_task(
+    task = await task_crud.patch_task(
         conn=conn,
         workspace_id=workspace_id,
         task_id=task_id,
-        task_update=task_in   
+        patch_task=patch_task   
     )
 >>>>>>> cd721dd (fixed and tested all endpoints for TASKS SPECIFICALLY)
     if not task:
