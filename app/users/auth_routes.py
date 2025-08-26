@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
+from .schemas import UserLoginSchema, UserRegisterSchema,  RefreshToken
 from fastapi.responses import JSONResponse
-from .schemas import UserLoginSchema, UserRegisterSchema, UserInformation, RefreshToken, EmailObject
 from .auth import verify_password, get_password_hash, create_access_token, create_refresh_token, token_response, oauth, decode_refresh_token
 from authlib.integrations.starlette_client import OAuth
 from fastapi.security import OAuth2PasswordRequestForm
@@ -13,6 +13,16 @@ from ..config.settings import settings as st
 import os
 
 router = APIRouter()
+
+@router.post("/auth/token")
+async def issue_token(form_data: OAuth2PasswordRequestForm = Depends()):
+    
+    if form_data.username != "test" and form_data.password != "password":
+        raise HTTPException(status_code=401, detail=f"Wrong password or Username")
+
+    
+    access_payload = create_access_token(form_data.username) # get short-lived token from JWT
+    refresh_payload = create_refresh_token(form_data.username)
 
 @router.post("/auth/token")
 async def issue_token(form_data: OAuth2PasswordRequestForm = Depends()):
