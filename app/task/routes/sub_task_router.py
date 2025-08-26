@@ -8,11 +8,22 @@ router = APIRouter()
 
 # Router for creating subtask
 @router.post("/{task_id}")
-async def create_subtask(task_id: int, subtask: SubTasksCreate, conn: asyncpg.Connection = Depends (get_db_connection)):
+async def create_subtask(
+    task_id: int,
+    subtask: SubTasksCreate,
+    conn: asyncpg.Connection = Depends(get_db_connection)
+):
+    task_exists = await conn.fetchrow("SELECT task_id FROM tasks WHERE task_id = $1", task_id)
+    if not task_exists:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Task with id {task_id} does not exist"
+        )
     created = await sub_task_crud.create_subtask(conn, task_id, subtask)
     if not created:
         raise HTTPException(status_code=400, detail="Failed to create subtask")
-    return{"status": "success", "data": created}
+    return {"status": "success", "data": created}
+    
 
 # Router for getting specific subtask by task_id and subtask_id
 @router.get("/{task_id}/{subtasK_id}")
