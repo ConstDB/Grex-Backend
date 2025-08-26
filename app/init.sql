@@ -23,7 +23,8 @@ CREATE TABLE IF NOT EXISTS workspaces (
     start_date DATE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     due_date DATE,
-    created_by INTEGER REFERENCES users(user_id) ON DELETE CASCADE 
+    created_by INTEGER REFERENCES users(user_id) ON DELETE CASCADE, 
+    workspace_profile_url TEXT 
 );
 
 -- =========================
@@ -44,6 +45,7 @@ CREATE TABLE IF NOT EXISTS workspace_members (
 -- =========================
 CREATE TABLE IF NOT EXISTS tasks (
     task_id SERIAL PRIMARY KEY,
+    
     workspace_id INTEGER REFERENCES workspaces(workspace_id) ON DELETE CASCADE,
     subject VARCHAR(200),
     title VARCHAR(200) NOT NULL,
