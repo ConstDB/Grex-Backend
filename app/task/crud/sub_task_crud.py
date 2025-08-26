@@ -14,14 +14,14 @@ async def create_subtask(conn, task_id: int, subtask: SubTasksCreate):
     return dict(row)
 
 # Get specific subtask by subtask_id
-async def get_subtask(conn, task_id: int, subtask_id: int):
-    query = """
-            SELECT *
-            FROM subtasks
-            WHERE task_id = $1 AND subtask_id = $2
-        """
-    row = await conn.fetchrow(query, task_id, subtask_id)
-    return dict(row) if row else None
+# async def get_subtask(conn, task_id: int, subtask_id: int):
+#     query = """
+#             SELECT *
+#             FROM subtasks
+#             WHERE task_id = $1 AND subtask_id = $2
+#         """
+#     row = await conn.fetchrow(query, task_id, subtask_id)
+#     return dict(row) if row else None
 
 # get all subtask from specific task
 async def get_subtasks_by_task(conn, task_id: int):
