@@ -3,7 +3,6 @@ from typing import Optional
 from datetime import datetime
 
 class SubTasksBase(BaseModel):
-    task_id: int
     description: str
     is_done: bool = False
 

@@ -14,7 +14,6 @@ router = APIRouter()
 async def create_task(   
     workspace_id: int,
     task_in: TaskCreate,
-
     conn: asyncpg.Connection = Depends(get_db_connection)
 ):
     return await task_crud.create_task(conn=conn, workspace_id=workspace_id, task=task_in)
@@ -24,13 +23,16 @@ async def create_task(
 async def get_task(workspace_id: int, task_id: int, conn: asyncpg.Connection = Depends(get_db_connection)):
     task = await task_crud.get_task(conn=conn, workspace_id=workspace_id, task_id=task_id)
     if not task:
-        raise HTTPException(status_code=404, detail="Task not found")
+        raise HTTPException(status_code=404, detail="Task or workspace not found")
     return task
 
 # Get all Tasks in a Workspace
 @router.get("/{workspace_id}", response_model=List[TaskOut]) 
 async def get_all_tasks(workspace_id: int, conn: asyncpg.Connection = Depends(get_db_connection)):
-    return await task_crud.get_tasks_by_workspace(conn=conn, workspace_id=workspace_id)
+    get = await task_crud.get_tasks_by_workspace(conn=conn, workspace_id=workspace_id)
+    if not get:
+        raise HTTPException(status_code=404, detail="Workspace does not exist")
+    return get
 
 # Update a task
 @router.patch("/{workspace_id}/{task_id}", response_model=TaskOut)
