@@ -4,7 +4,7 @@ from app.task.schemas.Tasks_schema import TaskCreate, TaskPatch
 from fastapi import HTTPException
 from datetime import datetime, timezone
 
-now = datetime.now(timezone.utc)  
+now = datetime.now()  
 
 # Create task in workspace
 async def create_task(conn, workspace_id: int, task: TaskCreate):
@@ -45,8 +45,6 @@ async def create_task(conn, workspace_id: int, task: TaskCreate):
         task.created_by,
     )
     return dict(row)
-
-
 
 async def get_task(conn, workspace_id: int, task_id: int):
     try:
@@ -108,25 +106,26 @@ async def get_tasks_by_workspace(conn, workspace_id: int):
         ORDER BY created_at DESC
     """
     rows = await conn.fetch(query, workspace_id)
+    return [dict(row.items()) for row in rows] if rows else []
 
-    results = []
-    for task in rows: 
-        task_id = task["task_id"]
+    # results = []
+    # for task in rows: 
+    #     task_id = task["task_id"]
 
-        rows = await conn.fetch(query, workspace_id)
-        subtasks = await conn.fetch("SELECT * FROM  subtasks WHERE task_id = $1", task_id)
-        comments = await conn.fetch("SELECT * FROM task_comments WHERE task_id = $1", task_id)
-        assignments = await conn.fetch("SELECT * FROM task_assignments WHERE task_id = $1", task_id)
-        attachments = await conn.fetch("SELECT * FROM task_attachments WHERE task_id = $1", task_id)
+    #     rows = await conn.fetch(query, workspace_id)
+    #     subtasks = await conn.fetch("SELECT * FROM  subtasks WHERE task_id = $1", task_id)
+    #     comments = await conn.fetch("SELECT * FROM task_comments WHERE task_id = $1", task_id)
+    #     assignments = await conn.fetch("SELECT * FROM task_assignments WHERE task_id = $1", task_id)
+    #     attachments = await conn.fetch("SELECT * FROM task_attachments WHERE task_id = $1", task_id)
 
-        results.append({
-            **dict(task),
-            "subtasks": [dict(s) for s in subtasks],
-            "comments": [dict(s) for s in comments],
-            "assignments": [dict(a) for a in assignments],
-            "attachments": [dict(att) for att in attachments], 
-        })
-    return results
+    #     results.append({
+    #         **dict(task),
+    #         "subtasks": [dict(s) for s in subtasks],
+    #         "comments": [dict(s) for s in comments],
+    #         "assignments": [dict(a) for a in assignments],
+    #         "attachments": [dict(att) for att in attachments], 
+    #     })
+    # return results
 
 # Patch task in workspace
 async def patch_task(conn, task_id: int, workspace_id: int, patch_task: TaskPatch):
@@ -162,6 +161,11 @@ async def patch_task(conn, task_id: int, workspace_id: int, patch_task: TaskPatc
     if patch_task.priority_level is not None:
         updates.append(f"priority_level = ${idx}")
         values.append(patch_task.priority_level)
+        idx += 1
+
+    if patch_task.marked_done_at is not None:
+        updates.append(f"marked_done_at = ${idx}")
+        values.append(patch_task.marked_done_at)
         idx += 1
 
     if not updates:
