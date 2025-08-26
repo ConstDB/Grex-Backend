@@ -1,6 +1,9 @@
 # app/api/task/crud/task_crud.py
+from app.core.decorators import db_error_handler
+from datetime import date, datetime
 
 # Assigning users to a specific task
+@db_error_handler
 async def create_taskassignment(conn, task_id, user_id):
     query = """
             INSERT INTO task_assignments(task_id, user_id)
@@ -11,6 +14,7 @@ async def create_taskassignment(conn, task_id, user_id):
     return dict(row)
 
 # Get assigned users from a task
+@db_error_handler
 async def get_taskassignment(conn, task_id):
     query = """
             SELECT *
@@ -21,6 +25,7 @@ async def get_taskassignment(conn, task_id):
     return [dict(row) for row in rows] if rows else None
 
 # Unassign users from task
+@db_error_handler
 async def delete_taskassignment(conn, task_id:int, user_id:int):
     query = "DELETE FROM task_assignments WHERE task_id=$1 AND user_id=$2 RETURNING *;"
     row = await conn.fetchrow(query, task_id, user_id)

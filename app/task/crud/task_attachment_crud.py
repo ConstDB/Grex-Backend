@@ -2,8 +2,10 @@
 
 from datetime import datetime
 from app.task.schemas.TaskAttachment_schema import TaskAttachmentCreate, TaskAttachmentDelete
+from app.core.decorators import db_error_handler
 
 # Create a task attachment
+@db_error_handler
 async def create_attachment(conn, task_id: int, attachment: TaskAttachmentCreate):
     # Validate task exists
     task = await conn.fetchrow("SELECT task_id FROM tasks WHERE task_id=$1", task_id)
@@ -28,6 +30,7 @@ async def create_attachment(conn, task_id: int, attachment: TaskAttachmentCreate
     return dict(row)
 
 # Get all attachments for a task
+@db_error_handler
 async def get_attachments_by_task(conn, task_id: int):
     query = """
         SELECT * FROM task_attachments
@@ -35,10 +38,13 @@ async def get_attachments_by_task(conn, task_id: int):
         ORDER BY uploaded_at DESC
     """
     rows = await conn.fetch(query, task_id)
-    return [dict(r) for r in rows]
+    if not rows:
+        raise ValueError(f"Task with id {task_id} does not exist")
+    return [dict(r) for r in rows]  
 
 
 # Delete a task attachment
+@db_error_handler
 async def delete_attachment(conn, attachment: TaskAttachmentDelete):
     query = """
         DELETE FROM task_attachments
