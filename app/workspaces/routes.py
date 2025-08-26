@@ -4,7 +4,7 @@ from datetime import date
 from ..deps import get_db_connection
 import asyncpg
 from ..workspaces.schemas import WorkspaceCreation, GetWorkspaceInfo, GetWorkspaces,UserDetail
-from .crud import add_workspace_to_db, get_all_user_workspaces,  workspace_add_member, workspace_role_update, kick_member, get_user_info,get_workspace_from_db
+from .crud import add_workspace_to_db, get_all_user_workspaces,  workspace_add_member, workspace_role_update, kick_member, get_user_info,get_workspace_from_db, insert_members_read_status
 import json
 router = APIRouter()
     
@@ -29,8 +29,21 @@ async def add_workspace_member(email:str, workspace_id: int, conn: asyncpg.Conne
     try: 
         user = await get_user_info(email, conn)
         user_dict = dict(user)
+
+        member = {
+            "workspace_id" : workspace_id,
+            "user_id" : user_dict["user_id"],
+            "role" : 'member',
+            "nickname" : user_dict["first_name"],
+        }
+
+        member_read_status = {
+            "workspace_id": workspace_id,
+            "user_id" : user_dict["user_id"]
+        }
         
-        res = await workspace_add_member(user_dict["user_id"], workspace_id, user_dict["first_name"],  conn)
+        await insert_members_read_status(member_read_status, conn)
+        res = await workspace_add_member(member,  conn)
         
         return res 
     except Exception as e:

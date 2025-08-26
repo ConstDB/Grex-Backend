@@ -1,5 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, AwareDatetime
 from typing import Optional
+from datetime import datetime
 
 
 class UserRegisterSchema(BaseModel):
@@ -16,15 +17,15 @@ class UserLoginSchema(BaseModel):
 
 
 class UserBasic(BaseModel):
-    user_id: int # change to str later
-    first_name: str
-    last_name: str
-    email: str
+    user_id: int
     profile_picture: Optional[str] = None
     status: Optional[str] = None
 
 class UserDetail(BaseModel):
-    user_id: int # change to str later
+    user_id: int 
+    role : str
+    nickname :str
+    joined_at : AwareDatetime
     first_name: str
     last_name: str
     email: str
