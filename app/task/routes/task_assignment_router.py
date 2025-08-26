@@ -6,7 +6,7 @@ import asyncpg
 router = APIRouter()
 
 # Router for assigning users onto task
-@router.post("/{task_id}/{user_id}")
+@router.post("/task/{task_id}/assignment/{user_id}")
 async def create_taskassignment(
     task_id: int, 
     user_id: int, 
@@ -23,7 +23,7 @@ async def create_taskassignment(
     }
 
 # Router for getting all assigned users from a task
-@router.get("/{task_id}")
+@router.get("/task/{task_id}/assignment")
 async def get_taskassignment(task_id: int, conn: asyncpg.Connection = Depends(get_db_connection)):
     taskassignment =  await task_assignment_crud.get_taskassignment(conn, task_id)
     if not taskassignment:
@@ -34,7 +34,7 @@ async def get_taskassignment(task_id: int, conn: asyncpg.Connection = Depends(ge
            }
 
 # Router for removing assigned users from task
-@router.delete("/{task_id}/{user_id}")
+@router.delete("/task/{task_id}/assignment/{user_id}")
 async def delete_taskassignment(task_id: int, user_id: int, conn: asyncpg.Connection = Depends (get_db_connection)):
     remove = await task_assignment_crud.delete_taskassignment(conn, task_id, user_id)
     if not remove:

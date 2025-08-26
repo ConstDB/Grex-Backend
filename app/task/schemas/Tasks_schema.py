@@ -2,7 +2,8 @@
 
 from pydantic import BaseModel
 from typing import Optional, Literal, List
-from datetime import datetime
+from datetime import datetime, timezone, date
+
 
 class TaskBase(BaseModel):
     title: str
@@ -12,6 +13,7 @@ class TaskBase(BaseModel):
     status: Literal["pending", "done", "overdue"] = "pending"
     priority_level: Literal["low", "medium", "high"] = "low"
     created_by: int
+    created_at: datetime
 
 class TaskCreate(TaskBase):
     pass
@@ -20,7 +22,7 @@ class TaskPatch(BaseModel):
     title: Optional[str] = None
     subject: Optional[str] = None
     description: Optional[str] = None
-    deadline: Optional[datetime] = None
+    deadline: Optional[date] = None
     status: Literal["pending", "done", "overdue"] = "pending"
     priority_level: Optional[Literal["low", "medium", "high"]] = None
     marked_done_at: Optional[datetime] = None
@@ -63,3 +65,16 @@ class TaskOut(TaskBase):
     comments: List[TaskCommentOut] = []
     assignments: List[TaskAssignmentOut] = []
     attachments: List[TaskAttachmentOut] = []
+
+class TaskAllOut(BaseModel):
+    task_id: int
+    workspace_id: int
+    subject: str
+    title: str
+    description: str
+    deadline: datetime
+    status: Literal["pending", "done", "overdue"] = "pending"
+    priority_level: Optional[Literal["low", "medium", "high"]] = None
+    created_by: int
+    created_at: datetime
+    marked_done_at: Optional[datetime] = None
