@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS workspaces (
     description TEXT,
     project_nature TEXT,
     start_date DATE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     due_date DATE,
     created_by INTEGER REFERENCES users(user_id) ON DELETE CASCADE, 
     workspace_profile_url TEXT 
@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS workspace_members (
     user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
     role VARCHAR(20) CHECK (role IN ('leader', 'member')),
     nickname VARCHAR(100),
-    joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    joined_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (workspace_id, user_id)
     
 );
@@ -54,8 +54,8 @@ CREATE TABLE IF NOT EXISTS tasks (
     status VARCHAR(20) CHECK (status IN ('pending', 'done', 'overdue')),
     priority_level VARCHAR(20),
     created_by INTEGER REFERENCES users(user_id) ON DELETE SET NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    marked_done_at TIMESTAMP
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    marked_done_at TIMESTAMPTZ
 );
 
 -- =========================
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS subtasks (
     task_id INTEGER REFERENCES tasks(task_id) ON DELETE CASCADE,
     description TEXT NOT NULL,
     is_done BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
 -- =========================
@@ -85,7 +85,7 @@ CREATE TABLE IF NOT EXISTS task_comments (
     comment_id SERIAL PRIMARY KEY,
     task_id INTEGER REFERENCES tasks(task_id) ON DELETE CASCADE,
     content TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     sender_id INTEGER REFERENCES users(user_id) ON DELETE SET NULL
 );
 
@@ -96,7 +96,7 @@ CREATE TABLE IF NOT EXISTS task_logs (
     task_log_id SERIAL PRIMARY KEY,
     workspace_id INTEGER REFERENCES workspaces(workspace_id) ON DELETE CASCADE,
     context TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
 -- =========================
@@ -109,7 +109,7 @@ CREATE TABLE IF NOT EXISTS task_attachments (
     file_url TEXT NOT NULL,
     file_type VARCHAR(20) CHECK (file_type IN ('image', 'pdf', 'docs')),
     file_size_mb DECIMAL(10,2),
-    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    uploaded_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
 -- =========================
@@ -122,7 +122,7 @@ CREATE TABLE IF NOT EXISTS notifications (
     content TEXT NOT NULL,
     type VARCHAR(50),
     is_read BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
 -- =========================
@@ -134,7 +134,7 @@ CREATE TABLE IF NOT EXISTS messages (
     sender_id INTEGER REFERENCES users(user_id) ON DELETE SET NULL,
     message_type VARCHAR(20) CHECK (message_type IN ('text', 'image', 'file', 'poll')),
     reply_to INTEGER REFERENCES messages(message_id) ON DELETE SET NULL,
-    sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    sent_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
 -- =========================
@@ -152,9 +152,8 @@ CREATE TABLE IF NOT EXISTS text_messages (
 CREATE TABLE IF NOT EXISTS message_read_status (
     workspace_id INTEGER REFERENCES workspaces(workspace_id) ON DELETE CASCADE,
     user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
-    message_id INTEGER REFERENCES messages(message_id) ON DELETE CASCADE,
-    last_read_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (workspace_id, user_id, message_id)
+    last_read_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (workspace_id, user_id)
 );
 
 -- =========================
@@ -166,7 +165,7 @@ CREATE TABLE IF NOT EXISTS message_attachments (
     file_url TEXT NOT NULL,
     file_type VARCHAR(20) CHECK (file_type IN ('image', 'video', 'file')),
     file_size_mb DECIMAL(10,2),
-    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    uploaded_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
 -- =========================
@@ -176,7 +175,7 @@ CREATE TABLE IF NOT EXISTS pinned_messages (
     pin_id SERIAL PRIMARY KEY,
     message_id INTEGER REFERENCES messages(message_id) ON DELETE CASCADE,
     pinned_by INTEGER REFERENCES users(user_id) ON DELETE SET NULL,
-    pinned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    pinned_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     workspace_id INTEGER REFERENCES workspaces(workspace_id) ON DELETE CASCADE
 );
 
@@ -188,7 +187,7 @@ CREATE TABLE IF NOT EXISTS polls (
     message_id INTEGER REFERENCES messages(message_id) ON DELETE CASCADE,
     question TEXT NOT NULL,
     created_by INTEGER REFERENCES users(user_id) ON DELETE SET NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
 -- =========================
@@ -208,7 +207,7 @@ CREATE TABLE IF NOT EXISTS poll_votes (
     poll_id INTEGER REFERENCES polls(poll_id) ON DELETE CASCADE,
     option_id INTEGER REFERENCES poll_options(option_id) ON DELETE CASCADE,
     voted_by INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
-    voted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    voted_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
 -- =========================
@@ -220,7 +219,7 @@ CREATE TABLE IF NOT EXISTS weekly_reports (
     week_start DATE NOT NULL,
     week_end DATE NOT NULL,
     summary_content TEXT NOT NULL,
-    generated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    generated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
 -- =========================
@@ -231,5 +230,5 @@ CREATE TABLE IF NOT EXISTS ai_reports (
     workspace_id INTEGER REFERENCES workspaces(workspace_id) ON DELETE CASCADE,
     report_type VARCHAR(20) CHECK (report_type IN ('final')),
     content TEXT NOT NULL,
-    generated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    generated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
