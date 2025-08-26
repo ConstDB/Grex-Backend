@@ -152,9 +152,8 @@ CREATE TABLE IF NOT EXISTS text_messages (
 CREATE TABLE IF NOT EXISTS message_read_status (
     workspace_id INTEGER REFERENCES workspaces(workspace_id) ON DELETE CASCADE,
     user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
-    message_id INTEGER REFERENCES messages(message_id) ON DELETE CASCADE,
     last_read_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (workspace_id, user_id, message_id)
+    PRIMARY KEY (workspace_id, user_id)
 );
 
 -- =========================

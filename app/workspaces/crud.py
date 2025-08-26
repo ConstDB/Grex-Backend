@@ -1,6 +1,7 @@
 import asyncpg
 from fastapi import HTTPException, Depends
 from ..deps import get_db_connection
+from ..utils.query_builder import insert_query
 from ..db_instance import db
 
 async def add_workspace_to_db(workspace:dict, conn: asyncpg.Connection):
@@ -13,6 +14,7 @@ async def add_workspace_to_db(workspace:dict, conn: asyncpg.Connection):
         return res
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Something went wrong -> {e}")
+
     
 async def get_user_info(email:str, conn: asyncpg.Connection):
     try:
@@ -42,6 +44,11 @@ async def workspace_trigger():
                     BEGIN 
                         INSERT INTO workspace_members (user_id, workspace_id, nickname, role)
                         VALUES(NEW.created_by, NEW.workspace_id, 'Leader','leader');
+
+                        INSERT INTO message_read_status (workspace_id, user_id)
+                        VALUES (NEW.workspace_id, NEW.created_by)
+                        ON CONFLICT (workspace_id, user_id) DO NOTHING;
+
                         RETURN NEW;
                     END;
                     $$ LANGUAGE plpgsql;
@@ -75,18 +82,13 @@ async def get_all_user_workspaces(user_id: int, conn:asyncpg.Connection):
             w.due_date,
             w.created_by,
             w.workspace_profile_url, 
-            w.created_at,
-            w.description,
             COALESCE(            
                 json_agg(
                     json_build_object(
                         'user_id', u.user_id, 
-                        'first_name', u.first_name,
-                        'last_name', u.last_name,
-                        'email', u.email,
                         'profile_picture', u.profile_picture,
-                        'status', u.status,
-                        'phone_number', u.phone_number                    )
+                        'status', u.status                 
+                        )
                 ) FILTER (WHERE u.user_id IS NOT NULL),
                 '[]'                   
             ) AS members
@@ -103,13 +105,11 @@ async def get_all_user_workspaces(user_id: int, conn:asyncpg.Connection):
             GROUP BY
                 w.workspace_id,
                 w.name,
-                w.description,
                 w.project_nature,
                 w.start_date,
                 w.due_date,
                 w.created_by,
-                w.created_at,
-                w.description;
+                w.workspace_profile_url;
         """            
         res = await conn.fetch(query, user_id) 
         
@@ -125,14 +125,20 @@ async def get_workspace_from_db(user_id:int, workspace_id: int, conn: asyncpg.Co
                 w.workspace_id,
                 w.name,
                 w.project_nature,
+                w.description,
                 w.start_date,
                 w.due_date,
-                w.created_by,
-                w.workspace_profile_url, 
+                w.workspace_profile_url,
+                w.created_by, 
+                w.created_at,
+                
                 COALESCE(            
                     json_agg(
                         json_build_object(
                             'user_id', u.user_id, 
+                            'role', wm.role,
+                            'nickname', wm.nickname,
+                            'joined_at', wm.joined_at,
                             'first_name', u.first_name,
                             'last_name', u.last_name,
                             'email', u.email,
@@ -156,13 +162,13 @@ async def get_workspace_from_db(user_id:int, workspace_id: int, conn: asyncpg.Co
                 GROUP BY
                     w.workspace_id,
                     w.name,
-                    w.description,
                     w.project_nature,
+                    w.description,
                     w.start_date,
                     w.due_date,
-                    w.created_by,
-                    w.created_at,    
-                    w.workspace_profile_url;
+                    w.workspace_profile_url,
+                    w.created_by, 
+                    w.created_at;
         """
            
         res = await conn.fetchrow(query, workspace_id, user_id )
@@ -170,21 +176,27 @@ async def get_workspace_from_db(user_id:int, workspace_id: int, conn: asyncpg.Co
     except Exception as e: 
         raise HTTPException(status_code=500, detail=f"Something went wrong -> {e}")    
 
-async def workspace_add_member(workspace_id: int, user_id:int,nickname:str, conn: asyncpg.Connection = Depends(get_db_connection)):
-    try: 
-        
-        role = 'member'
-        
+async def workspace_add_member(payload:dict, conn: asyncpg.Connection = Depends(get_db_connection)):
+    try:
         query = """
                 INSERT INTO workspace_members (workspace_id, user_id, role, nickname)
                 VALUES ($1, $2 , $3, $4)                  
                 """
-        res = await conn.execute(query, workspace_id, user_id, role, nickname )
+        res = await conn.execute(query, *payload.values() )
         
         return res 
     except Exception as e:
             raise HTTPException(status_code=500, detail=f"Process Failed -> {e}")
-        
+
+async def insert_members_read_status(payload:dict, conn: asyncpg.Connection):
+    try:
+        query = insert_query(payload, "message_read_status")
+
+        res = await conn.fetchrow(query, *payload.values())
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to add read status on this workspace: {e}")
+
 async def workspace_role_update(workspace_id: int, user_id: int, role:str, conn: asyncpg.Connection): 
     try:
         query = """
