@@ -31,7 +31,6 @@ class TaskDelete(BaseModel):
     task_id: int
     message: Optional[str] = "Task deleted successfully!"
 
-
 class SubTaskOut(BaseModel):
     subtask_id: int
     task_id: int
@@ -72,7 +71,7 @@ class TaskAllOut(BaseModel):
     subject: str
     title: str
     description: str
-    deadline: datetime
+    deadline: Optional[date]
     status: Literal["pending", "done", "overdue"] = "pending"
     priority_level: Optional[Literal["low", "medium", "high"]] = None
     created_by: int

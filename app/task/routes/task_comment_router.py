@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from ...deps import get_db_connection
+from typing import List
 from app.task.crud import task_comment_crud
-from app.task.schemas.TaskComment_schema import TaskCommentCreate, TaskCommentUpdate, TaskCommentDelete
+from app.task.schemas.TaskComment_schema import TaskCommentCreate, TaskCommentUpdate, TaskCommentOut
 import asyncpg
 
 router = APIRouter()
@@ -15,19 +16,20 @@ async def create_taskcomment(task_id: int, taskcomment: TaskCommentCreate, conn:
     return{"status": "success", "data": created}
 
 # Router for getting comments in a task
-@router.get("/task/{task_id}/comments/")
-async def get_taskcomment(task_id: int, conn: asyncpg.Connection = Depends (get_db_connection)):
-    get = await task_comment_crud.get_taskcomment(conn, task_id)
-    if not get:
-        raise HTTPException(status_code=404, detail="No comments yet")
-    return{"status": "success", "data": get}
+@router.get("/task/{task_id}/comments/", response_model=List[TaskCommentOut])
+async def get_taskcomment(task_id: int, conn: asyncpg.Connection = Depends(get_db_connection)):
+    rows = await task_comment_crud.get_taskcomment(conn, task_id)
+    if not rows:
+        raise HTTPException(status_code=404, detail="No comments yet or invalid task_id")
+    # Convert dict rows to Pydantic models
+    return [TaskCommentOut(**r) for r in rows]
 
 # Router for updating comment contents
 @router.put("/task/{task_id}/comments/{comment_id}")
 async def update_taskcomment(task_id: int, comment_id: int, update_taskcomment: TaskCommentUpdate, conn: asyncpg.Connection = Depends(get_db_connection)):
     put = await task_comment_crud.update_taskcomment(conn, task_id, comment_id, update_taskcomment)
     if not put:
-        raise HTTPException(status_code=404, detail="Comment not found")
+        raise HTTPException(status_code=404, detail="Comment not found invalid task_id")
     return put
 
  # Router for removing comments
