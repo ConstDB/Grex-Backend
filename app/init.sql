@@ -45,6 +45,7 @@ CREATE TABLE IF NOT EXISTS workspace_members (
 -- =========================
 CREATE TABLE IF NOT EXISTS tasks (
     task_id SERIAL PRIMARY KEY,
+    
     workspace_id INTEGER REFERENCES workspaces(workspace_id) ON DELETE CASCADE,
     subject VARCHAR(200),
     title VARCHAR(200) NOT NULL,
