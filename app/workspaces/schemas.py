@@ -16,7 +16,6 @@ class GetWorkspaces (BaseModel):
     
     workspace_id: int
     name: str
-    description: Optional[str] = None
     project_nature: Optional[str] = None
     start_date: Optional[date]=None
     due_date: Optional[date]=None
@@ -28,14 +27,13 @@ class GetWorkspaceInfo (BaseModel):
     
     workspace_id: int
     name: str
-    description: Optional[str] = None
     project_nature: Optional[str] = None
+    description: Optional[str] = None
     start_date: Optional[date]=None
     due_date: Optional[date]=None
-    created_by: int 
     workspace_profile_url: Optional[str] = None
+    created_by: int 
     created_at: datetime
-    description: Optional[str] = None
     members: List[UserDetail]
     
 class WorkspaceAddMember(BaseModel):
