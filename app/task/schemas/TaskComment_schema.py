@@ -20,3 +20,4 @@ class TaskCommentOut(TaskCommentBase):
     task_id: int
     created_at: datetime 
     sender_id: int
+    profile_picture: Optional[str] = None
