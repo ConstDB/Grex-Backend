@@ -20,7 +20,6 @@ async def issue_token(form_data: OAuth2PasswordRequestForm = Depends()):
     if form_data.username != "test" and form_data.password != "password":
         raise HTTPException(status_code=401, detail=f"Wrong password or Username")
 
-    
     access_payload = create_access_token(form_data.username) # get short-lived token from JWT
     refresh_payload = create_refresh_token(form_data.username)
 
@@ -122,6 +121,7 @@ async def login(user: UserLoginSchema, conn: asyncpg.Connection = Depends(get_db
 @router.post("/auth/refresh")
 async def refresh_token(email:EmailObject, conn: asyncpg.Connection = Depends(get_db_connection)):
     try:
+
         email_dict = email.model_dump()
         
         res = await get_user_from_db(email=email_dict["email"], conn=conn, fetch="refresh_token, revoked")

@@ -21,7 +21,6 @@ async def Testing():
 async def get_user_profile(user_id:int, token: str = Depends(get_current_user)):
     try:
         return "Hello"
-
     except Exception as e:
         raise HTTPException(status_code=500, detail={e})
 
@@ -34,3 +33,4 @@ async def search_users(name:str, conn: asyncpg.Connection = Depends(get_db_conne
         return users
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to search for users -> {e}")
+
