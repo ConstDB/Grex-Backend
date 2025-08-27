@@ -13,9 +13,6 @@ class SubTasksPatch(BaseModel):
     description: Optional[str] = None
     is_done: Optional[bool] = None  
 
-class SubTasksDelete(BaseModel):
-    subtask_id: int
-
 class SubTasksOut(BaseModel):
     subtask_id: int
     task_id: int

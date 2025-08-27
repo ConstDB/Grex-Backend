@@ -1,4 +1,4 @@
-from app.task.schemas.SubTasks_schema import SubTasksCreate, SubTasksPatch, SubTasksDelete
+from app.task.schemas.SubTasks_schema import SubTasksCreate, SubTasksPatch
 from datetime import datetime
 from app.utils.decorators import db_error_handler
 
@@ -70,7 +70,7 @@ async def patch_subtask(conn, task_id: int, subtask_id: int, subtask_update: Sub
 
 # Delete a subtask
 @db_error_handler
-async def delete_subtask(conn, task_id:int, subtask_id: int, subtask_delete: SubTasksDelete):
+async def delete_subtask(conn, task_id:int, subtask_id: int):
     query = "DELETE FROM subtasks WHERE subtask_id=$1 AND task_id=$2 RETURNING *;"
     row = await conn.fetchrow(query, subtask_id, task_id)
     return dict(row) if row else None

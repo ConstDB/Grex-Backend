@@ -34,15 +34,15 @@ class TaskDelete(BaseModel):
 class TaskAllOut(BaseModel):
     task_id: int
     workspace_id: int
-    subject: str
     title: str
+    subject: str
     description: str
     deadline: Optional[date]
     status: Literal["pending", "done", "overdue"] = "pending"
     priority_level: Optional[Literal["low", "medium", "high"]] = None
     created_by: int
     created_at: datetime
-    marked_done_at: datetime
+    marked_done_at: Optional[datetime]
 
 # class SubTaskOut(BaseModel):
 #     subtask_id: int
