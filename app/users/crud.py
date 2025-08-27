@@ -49,3 +49,18 @@ async def revoke_user_token_on_db(user_id:int, payload:dict, conn: asyncpg.Conne
         return {"message": "Successful Logout"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Something went wrong on CRUD -> {e}")
+
+async def get_users_by_name(name: str, conn: asyncpg.Connection):
+    try:
+        query = """
+            SELECT first_name, last_name, email, profile_picture
+            FROM users
+            WHERE first_name ILIKE '%' || $1 || '%'
+                OR last_name ILIKE '%' || $1 || '%'
+            LIMIT 10;
+        """
+
+        res = await conn.fetch(query, name)
+        return res
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to search user on DB -> {e}")

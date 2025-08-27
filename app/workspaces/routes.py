@@ -68,7 +68,6 @@ async def get_all_workspaces(user_id:int, conn: asyncpg.Connection = Depends(get
     except Exception as e:
          raise HTTPException(status_code=500, detail=f"Process Failed -> {e}")
      
-  
 
 @router.get("/{workspace_id}/{user_id}")
 async def get_workspace_info(user_id:int, workspace_id:int, conn: asyncpg.Connection = Depends(get_db_connection)): 
