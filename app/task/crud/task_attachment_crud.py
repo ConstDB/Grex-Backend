@@ -3,6 +3,7 @@
 from datetime import datetime
 from app.task.schemas.TaskAttachment_schema import TaskAttachmentCreate, TaskAttachmentDelete
 from app.utils.decorators import db_error_handler
+from app.utils.task_logs import log_task_action
 
 # Create a task attachment
 @db_error_handler
@@ -27,6 +28,28 @@ async def create_attachment(conn, task_id: int, attachment: TaskAttachmentCreate
         attachment.file_size_mb,
         datetime.now()
     )
+    updated_fields = []
+    if attachment.uploaded_by is not None:
+        updated_fields.append(f"uploaded_by='{attachment.uploaded_by}'")
+    if attachment.file_url is not None:
+        updated_fields.append(f"file_url='{attachment.file_url}'")
+    if attachment.file_type is not None:
+        updated_fields.append(f"file_type='{attachment.file_type}'")
+    if attachment.file_size_mb is not None:
+        updated_fields.append(f"file_size_mb={attachment.file_size_mb}")
+
+    # Always include uploaded_at since it's generated
+    updated_fields.append(f"uploaded_at={row['uploaded_at'].isoformat()}")
+
+    # Build log content
+    content = (
+        f"User {attachment.uploaded_by} uploaded an attachment for task_id {task_id}: "
+        f"{', '.join(updated_fields)}"
+    )
+
+    # Call your logging helper
+    await log_task_action(conn, task_id, content)
+
     return dict(row)
 
 # Get all attachments for a task
