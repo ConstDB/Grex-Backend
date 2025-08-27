@@ -1,7 +1,8 @@
-from app.task.schemas.TaskComment_schema import TaskCommentCreate, TaskCommentDelete, TaskCommentUpdate, TaskCommentOut
+from app.task.schemas.TaskComment_schema import TaskCommentCreate, TaskCommentUpdate, TaskCommentOut
 from datetime import datetime
 from app.utils.decorators import db_error_handler
 from datetime import datetime
+from app.utils.task_logs import log_task_action
 
 # Comment on a task
 @db_error_handler
@@ -12,12 +13,12 @@ async def create_taskcomment(conn, task_id: int, taskcomment: TaskCommentCreate)
             VALUES ($1, $2, $3, $4)
             RETURNING comment_id, task_id, content, created_at, sender_id;
         """
-    row = await conn.fetchrow(query,
-                              task_id,
-                              taskcomment.content,
-                              created_at,
-                              taskcomment.sender_id,
-                              )
+    row = await conn.fetchrow(query, task_id, taskcomment.content, taskcomment.created_at, taskcomment.sender_id,)
+    content = f"User {taskcomment.sender_id} commented on task {task_id}: '{taskcomment.content}'"
+    task = await conn.fetchrow("SELECT workspace_id FROM tasks WHERE task_id = $1", task_id)
+    if task:
+        await log_task_action(conn, task["workspace_id"], content)
+
     return dict(row)
 
 # View comments in a task
@@ -31,7 +32,7 @@ async def get_taskcomment(conn, task_id: int):
                 tc.sender_id,
                 tc.created_at,
                 u.profile_picture,
-                u.first_name AS sender_name
+                (u.first_name || ' ' || u.last_name) AS sender_name
             FROM task_comments tc
             LEFT JOIN users u ON u.user_id = tc.sender_id
             WHERE tc.task_id = $1

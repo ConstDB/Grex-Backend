@@ -4,40 +4,47 @@ from app.task.schemas.Tasks_schema import TaskCreate, TaskPatch
 from fastapi import HTTPException
 from datetime import datetime, timezone
 from app.utils.decorators import db_error_handler
+from app.utils.task_logs import log_task_action
 
 now = datetime.now(timezone.utc)
 
 # Create task in workspace
 @db_error_handler
 async def create_task(conn, workspace_id: int, task: TaskCreate):
-        status = task.status or "pending"
-        priority = task.priority_level or "low"
+    status = task.status or "pending"
+    priority = task.priority_level or "low"
 
-        valid_status = {"pending", "done", "overdue"}
-        valid_priority = {"low", "medium", "high"}
+    valid_status = {"pending", "done", "overdue"}
+    valid_priority = {"low", "medium", "high"}
 
-        if status not in valid_status:
-            raise ValueError(f"Invalid status: {status}. Must be one of {valid_status}")
-        if priority not in valid_priority:
-            raise ValueError(f"Invalid priority: {priority}. Must be one of {valid_priority}")
+    if status not in valid_status:
+        raise ValueError(f"Invalid status: {status}. Must be one of {valid_status}")
+    if priority not in valid_priority:
+        raise ValueError(f"Invalid priority: {priority}. Must be one of {valid_priority}")
 
-        user_exists = await conn.fetchrow(
-            "SELECT user_id FROM users WHERE user_id = $1", task.created_by
-        )
-        if not user_exists:
-            raise HTTPException(
-                status_code=404,
-                detail=f"User with id {task.created_by} does not exist"
-            )
+    user_exists = await conn.fetchrow(
+        "SELECT user_id FROM users WHERE user_id = $1", task.created_by
+    )
+    if not user_exists:
+        raise HTTPException(status_code=404, detail=f"User with id {task.created_by} does not exist")
 
-        query = """
-            INSERT INTO tasks 
-            (workspace_id, title, subject, description, deadline, status, priority_level, created_by)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-            RETURNING task_id, workspace_id, title, subject, description, deadline, status, priority_level, created_by, created_at;
-        """
-        row = await conn.fetchrow(query, workspace_id, task.title, task.subject, task.description, task.deadline, status, priority, task.created_by)
-        return dict(row)
+    query = """
+        INSERT INTO tasks 
+        (workspace_id, title, subject, description, deadline, status, priority_level, created_by)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        RETURNING task_id, workspace_id, title, subject, description, deadline, status, priority_level, created_by, created_at;
+    """
+    row = await conn.fetchrow(query, workspace_id, task.title, task.subject, task.description, task.deadline, status, priority, task.created_by)
+    task_id = row['task_id']
+
+    # Log the creation
+    content = (
+        f"Leader {task.created_by} created task '{task.title}' "
+        f"(task_id: {task_id}) with description '{task.description}', deadline: {task.deadline.isoformat()}."
+    )
+    await log_task_action(conn, workspace_id, content)
+
+    return dict(row)
 
     
 # async def get_task(conn, workspace_id: int, task_id: int):
@@ -170,6 +177,23 @@ async def patch_task(conn, task_id: int, workspace_id: int, patch_task: TaskPatc
     if not updates:
         return None
     
+    updated_fields = []
+    
+    if patch_task.title is not None:
+        updated_fields.append(f"title='{patch_task.title}'")
+    if patch_task.subject is not None:
+        updated_fields.append(f"subject='{patch_task.subject}'")
+    if patch_task.description is not None:
+        updated_fields.append(f"description='{patch_task.description}'")
+    if patch_task.deadline is not None:
+        updated_fields.append(f"deadline={patch_task.deadline.isoformat()}")
+    if patch_task.status is not None:
+        updated_fields.append(f"status='{patch_task.status}'")
+    if patch_task.priority_level is not None:
+        updated_fields.append(f"priority_level='{patch_task.priority_level}'")
+    if patch_task.marked_done_at is not None:
+        updated_fields.append(f"marked_done_at={patch_task.marked_done_at.isoformat()}")
+    
     query = f"""
             UPDATE tasks
                 SET {", ".join(updates)}
@@ -179,7 +203,16 @@ async def patch_task(conn, task_id: int, workspace_id: int, patch_task: TaskPatc
     values.extend([task_id, workspace_id])
 
     row = await conn.fetchrow(query, *values)
-    return dict(row) if row else None
+    
+    if row:
+        # Log the patch action
+        content = (
+            f"Leader {patch_task.updated_by} patched task_id {task_id}: "
+            + ", ".join(updated_fields)
+        )
+        await log_task_action(conn, workspace_id, content)
+        return dict(row)
+    return None
 
 # Delete task in workspace
 @db_error_handler

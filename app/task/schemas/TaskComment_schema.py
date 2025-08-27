@@ -4,6 +4,7 @@ from datetime import datetime
 
 class TaskCommentBase(BaseModel):
     content: str
+    created_at: datetime
     sender_id: int
 
 class TaskCommentCreate(TaskCommentBase):
