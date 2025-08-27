@@ -4,8 +4,8 @@ from app.task.schemas.Tasks_schema import TaskCreate, TaskPatch
 from fastapi import HTTPException
 from datetime import datetime, timezone
 from app.utils.decorators import db_error_handler
-import asyncpg
 
+now = datetime.now(timezone.utc)
 
 # Create task in workspace
 @db_error_handler
@@ -36,7 +36,7 @@ async def create_task(conn, workspace_id: int, task: TaskCreate):
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
             RETURNING task_id, workspace_id, title, subject, description, deadline, status, priority_level, created_by, created_at;
         """
-        row = await conn.fetchrow(query, workspace_id, task.title, task.subject, task.description, task.deadline, status, priority, task.created_by,)
+        row = await conn.fetchrow(query, workspace_id, task.title, task.subject, task.description, task.deadline, status, priority, task.created_by)
         return dict(row)
 
     

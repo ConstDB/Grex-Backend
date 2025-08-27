@@ -1,12 +1,27 @@
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse
-from fastapi.exceptions import RequestValidationError
+from fastapi.exceptions import RequestValidationError, ResponseValidationError
+from pydantic import ValidationError
 import asyncpg
 import logging
 
 logger = logging.getLogger(__name__)
 
 def register_exception_handlers(app: FastAPI):
+
+    @app.exception_handler(ValidationError)
+    async def response_validation_error_handler(request: Request, exc: ResponseValidationError):
+        logger.error(f"[RESPONSE VALIDATION ERROR] {exc} | path={request.url}")
+        return JSONResponse(
+            status_code=500,  # usually 500 since it's server-side mismatch
+            content={
+                "error": "Invalid response data",
+                "path": str(request.url),
+                "method": request.method,
+                "detail": str(exc),
+        },
+    )
+
     # Request validation (e.g., wrong/missing fields)
     @app.exception_handler(RequestValidationError)
     async def validation_error_handler(request: Request, exc: RequestValidationError):
