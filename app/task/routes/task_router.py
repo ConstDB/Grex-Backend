@@ -6,7 +6,7 @@ import asyncpg
 from ...deps import get_db_connection  
 from app.task.schemas.Tasks_schema import TaskCreate, TaskPatch, TaskAllOut
 from app.task.crud import task_crud
-from app.core.decorators import db_error_handler
+from app.utils.decorators import db_error_handler
 
 router = APIRouter()
 

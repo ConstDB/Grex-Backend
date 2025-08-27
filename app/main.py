@@ -10,7 +10,7 @@ import os
 from fastapi import FastAPI
 import logging
 from fastapi import FastAPI
-from app.core.error_handlers import register_exception_handlers
+from app.utils.error_handlers import register_exception_handlers
 
 app = FastAPI()
 
