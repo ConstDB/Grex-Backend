@@ -7,6 +7,16 @@ from .db_instance import db
 from .api.api_router import router
 from .config.settings import settings as st
 import os
+from fastapi import FastAPI
+import logging
+from fastapi import FastAPI
+from app.utils.error_handlers import register_exception_handlers
+
+app = FastAPI()
+
+# Register global handlers
+register_exception_handlers(app)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

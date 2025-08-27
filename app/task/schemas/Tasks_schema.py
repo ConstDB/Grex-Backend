@@ -2,7 +2,8 @@
 
 from pydantic import BaseModel
 from typing import Optional, Literal, List
-from datetime import datetime
+from datetime import datetime, date
+
 
 class TaskBase(BaseModel):
     title: str
@@ -12,6 +13,7 @@ class TaskBase(BaseModel):
     status: Literal["pending", "done", "overdue"] = "pending"
     priority_level: Literal["low", "medium", "high"] = "low"
     created_by: int
+    created_at: datetime
 
 class TaskCreate(TaskBase):
     pass
@@ -20,7 +22,7 @@ class TaskPatch(BaseModel):
     title: Optional[str] = None
     subject: Optional[str] = None
     description: Optional[str] = None
-    deadline: Optional[datetime] = None
+    deadline: Optional[date] = None
     status: Literal["pending", "done", "overdue"] = "pending"
     priority_level: Optional[Literal["low", "medium", "high"]] = None
     marked_done_at: Optional[datetime] = None
@@ -29,37 +31,50 @@ class TaskDelete(BaseModel):
     task_id: int
     message: Optional[str] = "Task deleted successfully!"
 
-
-class SubTaskOut(BaseModel):
-    subtask_id: int
+class TaskAllOut(BaseModel):
     task_id: int
+    workspace_id: int
+    subject: str
+    title: str
     description: str
-    is_done: bool
+    deadline: Optional[date]
+    status: Literal["pending", "done", "overdue"] = "pending"
+    priority_level: Optional[Literal["low", "medium", "high"]] = None
+    created_by: int
     created_at: datetime
+    marked_done_at: datetime
 
-class TaskCommentOut(BaseModel):
-    comment_id: int
-    task_id: int
-    content: str
-    created_at: datetime
-    sender_id: int | None = None
+# class SubTaskOut(BaseModel):
+#     subtask_id: int
+#     task_id: int
+#     description: str
+#     is_done: bool
+#     created_at: datetime
 
-class TaskAssignmentOut(BaseModel):
-    user_id: int
-    task_id: int
+# class TaskCommentOut(BaseModel):
+#     comment_id: int
+#     task_id: int
+#     content: str
+#     created_at: datetime
+#     sender_id: int | None = None
 
-class TaskAttachmentOut(BaseModel):
-    attachment_id: int
-    file_url: str
-    uploaded_at: datetime
+# class TaskAssignmentOut(BaseModel):
+#     user_id: int
+#     task_id: int
 
-class TaskOut(TaskBase):
-    task_id: int
-    created_at: datetime
-    marked_done_at: Optional[datetime] = None
+# class TaskAttachmentOut(BaseModel):
+#     attachment_id: int
+#     file_url: str
+#     uploaded_at: datetime
 
-    # Subqueries
-    subtasks: List[SubTaskOut] = []
-    comments: List[TaskCommentOut] = []
-    assignments: List[TaskAssignmentOut] = []
-    attachments: List[TaskAttachmentOut] = []
+# class TaskOut(TaskBase):
+#     task_id: int
+#     created_at: datetime
+#     marked_done_at: Optional[datetime] = None
+
+#     # Subqueries
+#     subtasks: List[SubTaskOut] = []
+#     comments: List[TaskCommentOut] = []
+#     assignments: List[TaskAssignmentOut] = []
+#     attachments: List[TaskAttachmentOut] = []
+
