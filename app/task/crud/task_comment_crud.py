@@ -1,4 +1,4 @@
-from app.task.schemas.TaskComment_schema import TaskCommentCreate, TaskCommentDelete, TaskCommentUpdate
+from app.task.schemas.TaskComment_schema import TaskCommentCreate, TaskCommentDelete, TaskCommentUpdate, TaskCommentOut
 from datetime import datetime
 from app.utils.decorators import db_error_handler
 from datetime import datetime
