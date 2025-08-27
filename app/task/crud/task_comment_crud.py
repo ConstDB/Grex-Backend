@@ -24,18 +24,19 @@ async def create_taskcomment(conn, task_id: int, taskcomment: TaskCommentCreate)
 @db_error_handler
 async def get_taskcomment(conn, task_id: int):
     query = """
-        SELECT
-            tc.comment_id,
-            tc.task_id,
-            tc.content,
-            tc.sender_id,
-            tc.created_at,
-            u.profile_picture
-        FROM task_comments tc
-        LEFT JOIN users u ON u.user_id = tc.sender_id
-        WHERE tc.task_id = $1
-        ORDER BY tc.created_at ASC;
-    """
+            SELECT
+                tc.comment_id,
+                tc.task_id,
+                tc.content,
+                tc.sender_id,
+                tc.created_at,
+                u.profile_picture,
+                u.first_name AS sender_name
+            FROM task_comments tc
+            LEFT JOIN users u ON u.user_id = tc.sender_id
+            WHERE tc.task_id = $1
+            ORDER BY tc.created_at ASC;
+        """
     rows = await conn.fetch(query, task_id)
     return [dict(r) for r in rows]
 
