@@ -1,9 +1,11 @@
 from app.task.schemas.SubTasks_schema import SubTasksCreate, SubTasksPatch, SubTasksDelete
 from datetime import datetime
+from app.utils.decorators import db_error_handler
 
 now = datetime.now()    
 
 # Create a subtask
+@db_error_handler
 async def create_subtask(conn, task_id: int, subtask: SubTasksCreate):
     query = """
             INSERT INTO subtasks (task_id, description, is_done, created_at)
@@ -14,16 +16,18 @@ async def create_subtask(conn, task_id: int, subtask: SubTasksCreate):
     return dict(row)
 
 # Get specific subtask by subtask_id
-async def get_subtask(conn, task_id: int, subtask_id: int):
-    query = """
-            SELECT *
-            FROM subtasks
-            WHERE task_id = $1 AND subtask_id = $2
-        """
-    row = await conn.fetchrow(query, task_id, subtask_id)
-    return dict(row) if row else None
+# async def get_subtask(conn, task_id: int, subtask_id: int):
+#     query = """
+#             SELECT *
+#             FROM subtasks
+#             WHERE task_id = $1 AND subtask_id = $2
+#         """
+#     row = await conn.fetchrow(query, task_id, subtask_id)
+#     return dict(row) if row else None
+
 
 # get all subtask from specific task
+@db_error_handler
 async def get_subtasks_by_task(conn, task_id: int):
     query = """
             SELECT *
@@ -34,6 +38,7 @@ async def get_subtasks_by_task(conn, task_id: int):
     return [dict(r) for r in rows]
 
 # Patch task in workspace
+@db_error_handler
 async def patch_subtask(conn, task_id: int, subtask_id: int, subtask_update: SubTasksPatch):
     updates = []
     values = []
@@ -64,6 +69,7 @@ async def patch_subtask(conn, task_id: int, subtask_id: int, subtask_update: Sub
     return dict(row) if row else None
 
 # Delete a subtask
+@db_error_handler
 async def delete_subtask(conn, task_id:int, subtask_id: int, subtask_delete: SubTasksDelete):
     query = "DELETE FROM subtasks WHERE subtask_id=$1 AND task_id=$2 RETURNING *;"
     row = await conn.fetchrow(query, subtask_id, task_id)

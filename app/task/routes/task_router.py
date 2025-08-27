@@ -4,13 +4,14 @@ from fastapi import APIRouter, Depends, HTTPException
 from typing import List
 import asyncpg
 from ...deps import get_db_connection  
-from app.task.schemas.Tasks_schema import TaskCreate, TaskOut, TaskPatch, TaskDelete
+from app.task.schemas.Tasks_schema import TaskCreate, TaskPatch, TaskAllOut
 from app.task.crud import task_crud
+from app.utils.decorators import db_error_handler
 
 router = APIRouter()
 
 # Create a Task
-@router.post("/{workspace_id}", response_model=TaskOut)
+@router.post("/{workspace_id}", response_model=TaskAllOut)
 async def create_task(   
     workspace_id: int,
     task_in: TaskCreate,
@@ -19,7 +20,7 @@ async def create_task(
     return await task_crud.create_task(conn=conn, workspace_id=workspace_id, task=task_in)
 
 # Get specific Task
-@router.get("/{workspace_id}/{task_id}", response_model=TaskOut) 
+@router.get("/{workspace_id}/{task_id}", response_model=TaskAllOut) 
 async def get_task(workspace_id: int, task_id: int, conn: asyncpg.Connection = Depends(get_db_connection)):
     task = await task_crud.get_task(conn=conn, workspace_id=workspace_id, task_id=task_id)
     if not task:
@@ -27,7 +28,7 @@ async def get_task(workspace_id: int, task_id: int, conn: asyncpg.Connection = D
     return task
 
 # Get all Tasks in a Workspace
-@router.get("/{workspace_id}", response_model=List[TaskOut]) 
+@router.get("/{workspace_id}", response_model=List[TaskAllOut]) 
 async def get_all_tasks(workspace_id: int, conn: asyncpg.Connection = Depends(get_db_connection)):
     get = await task_crud.get_tasks_by_workspace(conn=conn, workspace_id=workspace_id)
     if not get:
@@ -35,7 +36,7 @@ async def get_all_tasks(workspace_id: int, conn: asyncpg.Connection = Depends(ge
     return get
 
 # Update a task
-@router.patch("/{workspace_id}/{task_id}", response_model=TaskOut)
+@router.patch("/{workspace_id}/{task_id}")
 async def patch_task(
     workspace_id: int,
     task_id: int,
