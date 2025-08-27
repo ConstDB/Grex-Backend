@@ -2,7 +2,7 @@
 
 from pydantic import BaseModel
 from typing import Optional, Literal, List
-from datetime import datetime, timezone, date
+from datetime import datetime, date
 
 
 class TaskBase(BaseModel):
@@ -31,40 +31,6 @@ class TaskDelete(BaseModel):
     task_id: int
     message: Optional[str] = "Task deleted successfully!"
 
-class SubTaskOut(BaseModel):
-    subtask_id: int
-    task_id: int
-    description: str
-    is_done: bool
-    created_at: datetime
-
-class TaskCommentOut(BaseModel):
-    comment_id: int
-    task_id: int
-    content: str
-    created_at: datetime
-    sender_id: int | None = None
-
-class TaskAssignmentOut(BaseModel):
-    user_id: int
-    task_id: int
-
-class TaskAttachmentOut(BaseModel):
-    attachment_id: int
-    file_url: str
-    uploaded_at: datetime
-
-class TaskOut(TaskBase):
-    task_id: int
-    created_at: datetime
-    marked_done_at: Optional[datetime] = None
-
-    # Subqueries
-    subtasks: List[SubTaskOut] = []
-    comments: List[TaskCommentOut] = []
-    assignments: List[TaskAssignmentOut] = []
-    attachments: List[TaskAttachmentOut] = []
-
 class TaskAllOut(BaseModel):
     task_id: int
     workspace_id: int
@@ -76,4 +42,39 @@ class TaskAllOut(BaseModel):
     priority_level: Optional[Literal["low", "medium", "high"]] = None
     created_by: int
     created_at: datetime
-    marked_done_at: Optional[datetime] = None
+    marked_done_at: datetime
+
+# class SubTaskOut(BaseModel):
+#     subtask_id: int
+#     task_id: int
+#     description: str
+#     is_done: bool
+#     created_at: datetime
+
+# class TaskCommentOut(BaseModel):
+#     comment_id: int
+#     task_id: int
+#     content: str
+#     created_at: datetime
+#     sender_id: int | None = None
+
+# class TaskAssignmentOut(BaseModel):
+#     user_id: int
+#     task_id: int
+
+# class TaskAttachmentOut(BaseModel):
+#     attachment_id: int
+#     file_url: str
+#     uploaded_at: datetime
+
+# class TaskOut(TaskBase):
+#     task_id: int
+#     created_at: datetime
+#     marked_done_at: Optional[datetime] = None
+
+#     # Subqueries
+#     subtasks: List[SubTaskOut] = []
+#     comments: List[TaskCommentOut] = []
+#     assignments: List[TaskAssignmentOut] = []
+#     attachments: List[TaskAttachmentOut] = []
+
