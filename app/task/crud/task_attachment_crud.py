@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from app.task.schemas.TaskAttachment_schema import TaskAttachmentCreate, TaskAttachmentDelete
-from app.core.decorators import db_error_handler
+from app.utils.decorators import db_error_handler
 
 # Create a task attachment
 @db_error_handler
