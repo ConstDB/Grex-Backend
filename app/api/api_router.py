@@ -15,7 +15,7 @@ from ..workspaces.routes import router as workspaces_router
 router = APIRouter()
 
 
-router.include_router(messages_router, prefix="/messages", tags=["Messages"])
+router.include_router(messages_router, tags=["Messages"])
 router.include_router(notification_router, prefix="/notification", tags=["Notification"])
 router.include_router(summaries_router, prefix="/summaries", tags=["Summaries"])
 router.include_router(task_router, prefix="/tasks", tags=["Task"])
@@ -25,4 +25,5 @@ router.include_router(sub_task_router, tags=["SubTask"])
 router.include_router(task_assignment_router, tags=["TaskAssignment"])
 router.include_router(auth_router, tags=["Authentication"])
 router.include_router(users_router, tags=["Users"])
-router.include_router(workspaces_router, prefix="/workspaces", tags=["Workspaces"])
+router.include_router(workspaces_router, prefix="/workspace", tags=["Workspaces"])
+

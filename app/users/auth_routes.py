@@ -1,22 +1,18 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
+from .schemas import UserLoginSchema, UserRegisterSchema,  RefreshToken, EmailObject
 from fastapi.responses import JSONResponse
-from .schemas import UserLoginSchema, UserRegisterSchema, UserInformation, RefreshToken, EmailObject
 from .auth import verify_password, get_password_hash, create_access_token, create_refresh_token, token_response, oauth, decode_refresh_token
 from authlib.integrations.starlette_client import OAuth
 from fastapi.security import OAuth2PasswordRequestForm
 from ..db.database import Database
 from ..deps import get_db_connection
 from .crud import add_user_to_db, get_user_from_db, update_refresh_token_on_db, revoke_user_token_on_db
-import logging
+from ..utils.logger import logger
 import asyncpg
 from ..config.settings import settings as st
 import os
 
 router = APIRouter()
-
-
-
-logger = logging.getLogger("uvicorn")
 
 @router.post("/auth/token")
 async def issue_token(form_data: OAuth2PasswordRequestForm = Depends()):
@@ -24,7 +20,6 @@ async def issue_token(form_data: OAuth2PasswordRequestForm = Depends()):
     if form_data.username != "test" and form_data.password != "password":
         raise HTTPException(status_code=401, detail=f"Wrong password or Username")
 
-    
     access_payload = create_access_token(form_data.username) # get short-lived token from JWT
     refresh_payload = create_refresh_token(form_data.username)
 
@@ -133,8 +128,7 @@ async def refresh_token(email:EmailObject, conn: asyncpg.Connection = Depends(ge
         refresh_token = decode_refresh_token(res["refresh_token"])
     
         if res["revoked"] == True:
-            raise HTTPException(status_code=401, detail=f"token either revoked")
-
+            raise HTTPException(status_code=401, detail=f"Refresh token revoked")
 
         new_access_token = create_access_token(refresh_token["sub"])
 
