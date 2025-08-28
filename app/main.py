@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi.middleware.cors import CORSMiddleware
 from .workspaces.crud import workspace_trigger
-import logging
+from .utils.logger import logger
 from .db_instance import db
 from .api.api_router import router
 from .config.settings import settings as st
@@ -21,7 +21,6 @@ register_exception_handlers(app)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger = logging.getLogger("uvicorn")
 
     await db.initialize_connection()
     await workspace_trigger()
@@ -51,7 +50,6 @@ app.add_middleware(
 )
 
 app.include_router(router)
-app.include_router(task_router)
 
 @app.get("/")
 async def dummy_server():

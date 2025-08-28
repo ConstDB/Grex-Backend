@@ -1,5 +1,5 @@
-from .routes import router
-from fastapi import WebSocket, WebSocketDisconnect
+
+from fastapi import WebSocket, WebSocketDisconnect, APIRouter
 from ..websocket_manager import ConnectionManager
 from .crud import insert_messages_to_db, insert_text_messages_to_db
 from ..db_instance import db
@@ -7,7 +7,7 @@ from ..utils.logger import logger
 from datetime import datetime
 import json
 
-
+router = APIRouter()
 manager = ConnectionManager()
 
 
