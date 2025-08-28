@@ -16,11 +16,17 @@ async def create_taskassignment(conn, task_id, user_id):
 
 # Get assigned users from a task
 @db_error_handler
-async def get_taskassignment(conn, task_id):
+async def get_taskassignment(conn, task_id: int):
     query = """
-            SELECT *
-            FROM task_assignments
-            WHERE task_id = $1 
+            SELECT 
+                ta.task_id,
+                ta.user_id,
+                u.profile_picture AS avatar,
+                (u.first_name || ' ' || u.last_name) AS name
+            FROM task_assignments ta
+            LEFT JOIN users u ON u.user_id = ta.user_id
+            WHERE ta.task_id = $1 
+            ORDER BY ta.task_id ASC;
         """
     rows = await conn.fetch(query, task_id)
     return [dict(row) for row in rows] if rows else None
@@ -28,6 +34,7 @@ async def get_taskassignment(conn, task_id):
 # Unassign users from task
 @db_error_handler
 async def delete_taskassignment(conn, task_id:int, user_id:int):
+
     query = "DELETE FROM task_assignments WHERE task_id=$1 AND user_id=$2 RETURNING *;"
     row = await conn.fetchrow(query, task_id, user_id)
     return dict(row) if row else None
