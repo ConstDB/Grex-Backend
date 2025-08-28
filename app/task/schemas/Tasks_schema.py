@@ -23,7 +23,7 @@ class TaskPatch(BaseModel):
     subject: Optional[str] = None
     description: Optional[str] = None
     deadline: Optional[date] = None
-    status: Literal["pending", "done", "overdue"] = "pending"
+    status: Optional[Literal["pending", "in_progress", "completed"]] = None
     priority_level: Optional[Literal["low", "medium", "high"]] = None
     marked_done_at: Optional[datetime] = None
 

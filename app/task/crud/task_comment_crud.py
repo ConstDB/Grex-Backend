@@ -14,12 +14,7 @@ async def create_taskcomment(conn, task_id: int, taskcomment: TaskCommentCreate)
             RETURNING comment_id, task_id, content, created_at, sender_id;
         """
     row = await conn.fetchrow(query, task_id, taskcomment.content, taskcomment.created_at, taskcomment.sender_id,)
-    content = f"User {taskcomment.sender_id} commented on task {task_id}: '{taskcomment.content}'"
-    task = await conn.fetchrow("SELECT workspace_id FROM tasks WHERE task_id = $1", task_id)
-    if task:
-        await log_task_action(conn, task["workspace_id"], content)
-
-    return dict(row)
+    return dict(row) if row else None
 
 # View comments in a task
 @db_error_handler

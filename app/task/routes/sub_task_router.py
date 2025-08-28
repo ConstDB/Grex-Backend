@@ -33,6 +33,7 @@ async def create_subtask(
 #         raise HTTPException(status_code=404, detail="Subtask not found")
 #     return{"status": "success", "data": subtask}
 
+
 # Router for getting all subtask in task_id
 @router.get("/task/{task_id}/subtask")
 async def get_subtasks_by_task(task_id: int, conn: asyncpg.Connection = Depends(get_db_connection)):
@@ -40,14 +41,14 @@ async def get_subtasks_by_task(task_id: int, conn: asyncpg.Connection = Depends(
     return{"status": "success", "data": subtask}
 
 # Router for patching a subtask
-@router.patch("/task/{task_id}/subtask/{subtask_id}")
+@router.put("/task/{task_id}/subtask/{subtask_id}")
 async def subtask_patch(
     task_id: int,
     subtask_id: int,
     subtask_patch: SubTasksPatch,
     conn: asyncpg.Connection = Depends(get_db_connection)
 ):
-    updated = await sub_task_crud.patch_subtask(conn, task_id, subtask_id, subtask_patch)
+    updated = await sub_task_crud.update_subtask_status(conn, task_id, subtask_id, subtask_patch)
     if not updated:
         raise HTTPException(status_code=404, detail="Subtask not found")
     return updated
