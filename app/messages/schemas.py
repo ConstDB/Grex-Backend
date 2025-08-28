@@ -24,3 +24,6 @@ class MessageUpdate(BaseModel):
     Message_type: Optional[Literal["text", "image", "file", "poll"]] = None
 
 
+class MessageReadStatus(BaseModel):
+    last_read_at: datetime
+

@@ -39,3 +39,12 @@ async def get_few_messages_from_db(workspace_id: int, timestamp: datetime, conn:
         return res
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get messages from DB -> {e}")
+
+
+async def update_last_read_timestamp(workspace_id: int, user_id: int, payload:dict, conn: asyncpg.Connection):
+    try:
+        query = update_query("workspace_id", "user_id", model=payload, table="message_read_status")
+
+        return await conn.execute(query, *payload.values(), workspace_id, user_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to update timestamp -> {e}")
