@@ -3,8 +3,8 @@
 from app.task.schemas.Tasks_schema import TaskCreate, TaskPatch
 from fastapi import HTTPException
 from datetime import datetime, timezone
-from app.core.decorators import db_error_handler
-import asyncpg
+from app.utils.decorators import db_error_handler
+
 
 now = datetime.now(timezone.utc)
 

@@ -20,17 +20,6 @@ async def issue_token(form_data: OAuth2PasswordRequestForm = Depends()):
     if form_data.username != "test" and form_data.password != "password":
         raise HTTPException(status_code=401, detail=f"Wrong password or Username")
 
-    
-    access_payload = create_access_token(form_data.username) # get short-lived token from JWT
-    refresh_payload = create_refresh_token(form_data.username)
-
-@router.post("/auth/token")
-async def issue_token(form_data: OAuth2PasswordRequestForm = Depends()):
-    
-    if form_data.username != "test" and form_data.password != "password":
-        raise HTTPException(status_code=401, detail=f"Wrong password or Username")
-
-    
     access_payload = create_access_token(form_data.username) # get short-lived token from JWT
     refresh_payload = create_refresh_token(form_data.username)
 

@@ -1,5 +1,5 @@
 # app/api/task/crud/task_crud.py
-from app.core.decorators import db_error_handler
+from app.utils.decorators import db_error_handler
 from datetime import date, datetime
 
 # Assigning users to a specific task
