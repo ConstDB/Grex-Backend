@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS workspaces (
     due_date DATE,
     created_by INTEGER REFERENCES users(user_id) ON DELETE CASCADE, 
     workspace_profile_url TEXT 
+
 );
 
 -- =========================

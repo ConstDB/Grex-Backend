@@ -3,13 +3,11 @@ import websockets
 import json
 
 async def test_ws():
-    uri = "ws://127.0.0.1:8000/workspace/2/1"
+    uri = "ws://127.0.0.1:8000/workspace/1/4"
     async with websockets.connect(uri) as ws:
         await ws.send(json.dumps({
             "type":"text",
-            "content": """
-                po
-            """,
+            "content": "wassup",
             "reply_to": None
 
         }))
