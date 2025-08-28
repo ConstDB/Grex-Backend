@@ -1,6 +1,6 @@
 from app.task.schemas.SubTasks_schema import SubTasksCreate, SubTasksPatch, SubTasksDelete
 from datetime import datetime
-from app.core.decorators import db_error_handler
+from app.utils.decorators import db_error_handler
 
 now = datetime.now()    
 

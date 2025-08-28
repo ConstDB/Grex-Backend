@@ -9,7 +9,6 @@ async def test_ws():
             "type":"text",
             "content": "ggggg",
             "reply_to": 3
-
         }))
 
         response =  await ws.recv()
@@ -23,3 +22,4 @@ asyncio.run(test_ws())
 #         print("✅ received:", msg)
 
 # asyncio.run(test_ws())
+

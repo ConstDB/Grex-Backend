@@ -26,4 +26,3 @@ class MessageUpdate(BaseModel):
 
 class MessageReadStatus(BaseModel):
     last_read_at: datetime
-

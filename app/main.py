@@ -11,7 +11,7 @@ import os
 from fastapi import FastAPI
 import logging
 from fastapi import FastAPI
-from app.core.error_handlers import register_exception_handlers
+from app.utils.error_handlers import register_exception_handlers
 
 app = FastAPI()
 
@@ -33,7 +33,7 @@ app = FastAPI(lifespan=lifespan)
 # origins = [
 #   "http://localhost:5173",
 #   "http://192.168.195.26:5173"
-# ]
+
  
 app.add_middleware(
   CORSMiddleware,
@@ -50,6 +50,7 @@ app.add_middleware(
 )
 
 app.include_router(router)
+
 
 @app.get("/")
 async def dummy_server():

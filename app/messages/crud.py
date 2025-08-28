@@ -40,7 +40,6 @@ async def get_few_messages_from_db(workspace_id: int, timestamp: datetime, conn:
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get messages from DB -> {e}")
 
-
 async def update_last_read_timestamp(workspace_id: int, user_id: int, conn: asyncpg.Connection):
     try:
         payload = {"last_read_at": datetime.now(timezone.utc)}
@@ -56,3 +55,4 @@ async def get_last_read_timestamp(workspace_id: int, user_id: int, conn: asyncpg
         return await conn.fetchrow(query, workspace_id, user_id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch user's last_read_at timestamp -> {e}")
+

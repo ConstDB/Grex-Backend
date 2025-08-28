@@ -7,13 +7,11 @@ import asyncpg
 from datetime import datetime
 
 
-
 router = APIRouter()
 
 @router.get("/testing")
 async def Testing():
     return "hello this is messaging route"
-
 
 @router.get("/workspace/{workspace_id}/messages")
 async def get_messages(workspace_id: int, timestamp:datetime, conn: asyncpg.Connection = Depends(get_db_connection)):
@@ -37,3 +35,4 @@ async def get_last_read_at(workspace_id:int, user_id:int, conn: asyncpg.Connecti
         return await get_last_read_timestamp(workspace_id, user_id, conn)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch timestamp -> {e}")
+
