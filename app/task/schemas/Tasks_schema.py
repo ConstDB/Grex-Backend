@@ -42,7 +42,7 @@ class TaskAllOut(BaseModel):
     priority_level: Optional[Literal["low", "medium", "high"]] = None
     created_by: int
     created_at: datetime
-    marked_done_at: datetime
+    # marked_done_at: datetime
 
 # class SubTaskOut(BaseModel):
 #     subtask_id: int

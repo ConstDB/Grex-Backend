@@ -3,7 +3,7 @@ import asyncpg
 from asyncpg.exceptions import UniqueViolationError
 from ..utils.query_builder import insert_query, get_query, update_query
 from ..utils.logger import logger
-from datetime import datetime
+from datetime import datetime, timezone
 
 async def insert_messages_to_db(message_data: dict, conn:asyncpg.Connection):
     try:
@@ -39,3 +39,20 @@ async def get_few_messages_from_db(workspace_id: int, timestamp: datetime, conn:
         return res
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get messages from DB -> {e}")
+
+async def update_last_read_timestamp(workspace_id: int, user_id: int, conn: asyncpg.Connection):
+    try:
+        payload = {"last_read_at": datetime.now(timezone.utc)}
+        query = update_query("workspace_id", "user_id", model=payload, table="message_read_status")
+
+        return await conn.execute(query, *payload.values(), workspace_id, user_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to update timestamp -> {e}")
+
+async def get_last_read_timestamp(workspace_id: int, user_id: int, conn: asyncpg.Connection):
+    try:
+        query = get_query("workspace_id", "user_id", fetch="last_read_at", table="message_read_status")
+        return await conn.fetchrow(query, workspace_id, user_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch user's last_read_at timestamp -> {e}")
+

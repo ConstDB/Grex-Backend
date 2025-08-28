@@ -32,5 +32,14 @@ async def search_users(name:str, conn: asyncpg.Connection = Depends(get_db_conne
             raise HTTPException(status_code=404, detail=f"There's no users found with name {name}.")
         return users
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to search for users -> {e}")
+        raise HTTPException(status_code=500, detail={e})
 
+@router.get("/users/search")
+async def search_users(name:str, conn: asyncpg.Connection = Depends(get_db_connection)):
+    try:
+        users = await get_users_by_name(name, conn)
+        if users is None:
+            raise HTTPException(status_code=404, detail=f"There's no users found with name {name}.")
+        return users
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to search for users -> {e}")
