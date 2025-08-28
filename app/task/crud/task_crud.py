@@ -46,7 +46,7 @@ async def create_task(conn, workspace_id: int, task: TaskCreate):
 
     return dict(row)
 
-    
+# COMMENT BELOW IS FOR GETTING ALL SUB RELATED TASK WITHIN TASK    
 # async def get_task(conn, workspace_id: int, task_id: int):
 #     try:
 #         # Get main task
@@ -113,6 +113,7 @@ async def get_tasks_by_workspace(conn, workspace_id: int):
     rows = await conn.fetch(query, workspace_id)
     return [dict(row.items()) for row in rows] if rows else []
 
+    # COMMENT BELOW IS FOR GETTING ALL SUB RELATED TASK WITHIN TASK
     # results = []
     # for task in rows: 
     #     task_id = task["task_id"]
@@ -133,91 +134,83 @@ async def get_tasks_by_workspace(conn, workspace_id: int):
     # return results
 
 # Patch task in workspace
+
 @db_error_handler
-async def patch_task(conn, task_id: int, workspace_id: int, patch_task: TaskPatch):
-    updates = []
-    values = []
-    idx = 1
-     
-    if patch_task.title is not None:
-        updates.append(f"title = ${idx}")
-        values.append(patch_task.title)
-        idx += 1
+async def patch_task(
+    conn,
+    workspace_id: int,
+    task_id: int,
+    patch_task: TaskPatch
+):
+    # Build dict only from explicitly provided fields
+    update_data = patch_task.model_dump(exclude_unset=True)
 
-    if patch_task.subject is not None:
-        updates.append(f"subject = ${idx}")
-        values.append(patch_task.subject)
-        idx += 1
+    if not update_data:
+        return {"status": "no changes"}
 
-    if patch_task.description is not None:
-        updates.append(f"description = ${idx}")
-        values.append(patch_task.description)
-        idx += 1
+    # Extract updated_by separately so it's not included in SQL
+    updated_by = update_data.pop("updated_by", None)
 
-    if patch_task.deadline is not None:
-        updates.append(f"deadline = ${idx}")
-        values.append(patch_task.deadline)
-        idx += 1
+    if not update_data:
+        return {"status": "no changes"}
 
-    if patch_task.status is not None:
-        updates.append(f"status = ${idx}")
-        values.append(patch_task.status)
-        idx += 1
+    # Fetch current task row before updating (for comparison)
+    current_task = await conn.fetchrow(
+        "SELECT * FROM tasks WHERE task_id=$1 AND workspace_id=$2",
+        task_id, workspace_id
+    )
 
-    if patch_task.priority_level is not None:
-        updates.append(f"priority_level = ${idx}")
-        values.append(patch_task.priority_level)
-        idx += 1
-
-    if patch_task.marked_done_at is not None:
-        updates.append(f"marked_done_at = ${idx}")
-        values.append(patch_task.marked_done_at)
-        idx += 1
-
-    if not updates:
+    if not current_task:
         return None
-    
-    updated_fields = []
-    
-    if patch_task.title is not None:
-        updated_fields.append(f"title='{patch_task.title}'")
-    if patch_task.subject is not None:
-        updated_fields.append(f"subject='{patch_task.subject}'")
-    if patch_task.description is not None:
-        updated_fields.append(f"description='{patch_task.description}'")
-    if patch_task.deadline is not None:
-        updated_fields.append(f"deadline={patch_task.deadline.isoformat()}")
-    if patch_task.status is not None:
-        updated_fields.append(f"status='{patch_task.status}'")
-    if patch_task.priority_level is not None:
-        updated_fields.append(f"priority_level='{patch_task.priority_level}'")
-    if patch_task.marked_done_at is not None:
-        updated_fields.append(f"marked_done_at={patch_task.marked_done_at.isoformat()}")
-    
-    query = f"""
-            UPDATE tasks
-                SET {", ".join(updates)}
-            WHERE task_id = ${idx} AND workspace_id = ${idx+1}
-            RETURNING *;
-            """
-    values.extend([task_id, workspace_id])
 
-    row = await conn.fetchrow(query, *values)
-    
-    if row:
-        # Log the patch action
-        content = (
-            f"Leader {patch_task.updated_by} patched task_id {task_id}: "
-            + ", ".join(updated_fields)
-        )
-        await log_task_action(conn, workspace_id, content)
-        return dict(row)
-    return None
+    # Determine which fields are actually changing
+    changed_fields = {
+        field: value
+        for field, value in update_data.items()
+        if value != current_task[field]
+    }
+
+    if not changed_fields:
+        return {"status": "no actual changes"}
+
+    # Build SQL update only with changed fields
+    set_clause = ", ".join([f"{key} = ${i+1}" for i, key in enumerate(changed_fields.keys())])
+    values = list(changed_fields.values())
+
+    query = f"""
+        UPDATE tasks
+        SET {set_clause}
+        WHERE task_id = ${len(values)+1} AND workspace_id = ${len(values)+2}
+        RETURNING *;
+    """
+    row = await conn.fetchrow(query, *values, task_id, workspace_id)
+
+    if not row:
+        return None
+
+    # Log only changed fields
+    changes = ", ".join(
+        f"{field} changed from '{current_task[field]}' to '{value}'"
+        for field, value in changed_fields.items()
+    )
+
+    content = f"Leader {updated_by} patched task_id {task_id}. Changes: {changes}"
+    await log_task_action(conn, workspace_id, content)
+
+    return dict(row)
+
 
 # Delete task in workspace
 @db_error_handler
 async def delete_task(conn, workspace_id: int, task_id: int):
     query = "DELETE FROM tasks WHERE task_id=$1 AND workspace_id=$2 RETURNING *;"
     row = await conn.fetchrow(query, task_id, workspace_id)
-    return dict(row) if row else None
+
+    if not row:
+        return None  # task not found
     
+    content = (
+        f"A workspace Leader deleted task_id: {row['task_id']}"
+    )
+    await log_task_action(conn, workspace_id, content)
+    return dict(row)
