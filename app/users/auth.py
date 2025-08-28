@@ -9,8 +9,6 @@ import jwt
 import os
 import time
 
-logger = logging.getLogger("uvicorn")
-
 
 load_dotenv()
 

@@ -10,7 +10,7 @@ from ..task.routes.task_assignment_router import router as task_assignment_route
 from ..users.user_routes import router as users_router
 from ..users.auth_routes import router as auth_router
 from ..workspaces.routes import router as workspaces_router
-
+from ..messages.websocket import router as websocket_router
 
 router = APIRouter()
 
@@ -26,4 +26,5 @@ router.include_router(task_assignment_router, tags=["TaskAssignment"])
 router.include_router(auth_router, tags=["Authentication"])
 router.include_router(users_router, tags=["Users"])
 router.include_router(workspaces_router, prefix="/workspace", tags=["Workspaces"])
+router.include_router(websocket_router)
 
