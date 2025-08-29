@@ -89,6 +89,9 @@ async def get_all_user_workspaces(user_id: int, conn:asyncpg.Connection):
                         'profile_picture', u.profile_picture,
                         'status', u.status                 
                         )
+                        'status', u.status,
+                        'phone_number', u.phone_number,      
+                        'nickname', wm.nickname
                 ) FILTER (WHERE u.user_id IS NOT NULL),
                 '[]'                   
             ) AS members
@@ -132,6 +135,9 @@ async def get_workspace_from_db(user_id:int, workspace_id: int, conn: asyncpg.Co
                 w.created_by, 
                 w.created_at,
                 
+                w.created_by,
+                w.workspace_profile_url, 
+        
                 COALESCE(            
                     json_agg(
                         json_build_object(
@@ -141,9 +147,11 @@ async def get_workspace_from_db(user_id:int, workspace_id: int, conn: asyncpg.Co
                             'joined_at', wm.joined_at,
                             'first_name', u.first_name,
                             'last_name', u.last_name,
+                             'nickname', wm.nickname,
                             'email', u.email,
                             'profile_picture', u.profile_picture,
-                            'status', u.status 
+                            'status', u.status
+                              
                         )
                     ) FILTER (WHERE u.user_id IS NOT NULL),
                     '[]'                   
@@ -157,6 +165,7 @@ async def get_workspace_from_db(user_id:int, workspace_id: int, conn: asyncpg.Co
                     FROM workspace_members wm2
                     WHERE wm2.workspace_id = w.workspace_id
                         AND wm2.user_id = $2
+                        
                 ) 
                 
                 GROUP BY
@@ -225,6 +234,22 @@ async def kick_member(workspace_id: int, user_id: int, conn: asyncpg.Connection)
         return res 
     except Exception as e:
             raise HTTPException(status_code=500, detail=f"Process Failed -> {e}")
+        
+async def change_nickname(workspace_id:int, user_id: int, name: str, conn: asyncpg.Connection):
+
+    try: 
+        query = """ UPDATE workspace_members
+        SET nickname = $3
+        WHERE workspace_id = $1 AND user_id = $2 
+        RETURNING*;
+        
+        """
+        
+        res = await conn.fetchrow(query, workspace_id, user_id,name)
+        
+        return res
+    except Exception as e: 
+            raise HTTPException(status_code=500, detail=f"Process Failes -> {e}")
 
 async def search_member_by_name(name:str, workspace_id: int, conn: asyncpg.Connection):
     try:
