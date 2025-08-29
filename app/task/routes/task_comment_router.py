@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from ...deps import get_db_connection
 from ...users.auth import get_current_user
 from typing import List
-from app.task.crud import task_comment_crud
-from app.task.schemas.TaskComment_schema import TaskCommentCreate, TaskCommentUpdate, TaskCommentOut
+from ...task.crud import task_comment_crud
+from ...task.schemas.TaskComment_schema import TaskCommentCreate, TaskCommentUpdate, TaskCommentOut
 import asyncpg
 
 router = APIRouter()

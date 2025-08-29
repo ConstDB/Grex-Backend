@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from ...deps import get_db_connection
 from ...users.auth import get_current_user
-from app.task.crud import sub_task_crud
-from app.task.schemas.SubTasks_schema import SubTasksCreate, SubTasksPatch
+from ...task.crud import sub_task_crud
+from ...task.schemas.SubTasks_schema import SubTasksCreate, SubTasksPatch
 import asyncpg
 
 router = APIRouter()

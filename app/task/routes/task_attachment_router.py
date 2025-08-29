@@ -3,8 +3,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from ...deps import get_db_connection  
 from ...users.auth import get_current_user
-from app.task.schemas.TaskAttachment_schema import TaskAttachmentCreate, TaskAttachmentDelete
-from app.task.crud.task_attachment_crud import create_attachment, get_attachments_by_task, delete_attachment
+from ...task.schemas.TaskAttachment_schema import TaskAttachmentCreate, TaskAttachmentDelete
+from ...task.crud.task_attachment_crud import create_attachment, get_attachments_by_task, delete_attachment
 
 router = APIRouter()
 

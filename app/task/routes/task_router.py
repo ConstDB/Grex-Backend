@@ -6,9 +6,9 @@ from typing import List
 import asyncpg
 from ...deps import get_db_connection  
 from ...users.auth import get_current_user
-from app.task.schemas.Tasks_schema import TaskCreate, TaskPatch, TaskAllOut
-from app.task.crud import task_crud
-from app.utils.decorators import db_error_handler
+from ...task.schemas.Tasks_schema import TaskCreate, TaskPatch, TaskAllOut
+from ...task.crud import task_crud
+from ...utils.decorators import db_error_handler
 
 router = APIRouter()
 
