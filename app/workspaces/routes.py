@@ -5,7 +5,6 @@ from ..deps import get_db_connection
 import asyncpg
 from ..workspaces.schemas import WorkspaceCreation, GetWorkspaceInfo, GetWorkspaces,UserDetail
 from .crud import add_workspace_to_db, get_all_user_workspaces,  workspace_add_member, workspace_role_update, kick_member, get_user_info, get_workspace_from_db, insert_members_read_status, search_member_by_name
-from .crud import add_workspace_to_db, get_all_user_workspaces,  workspace_add_member, workspace_role_update, kick_member, get_user_info,get_workspace_from_db,  change_nickname
 import json
 router = APIRouter()
     
