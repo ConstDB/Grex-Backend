@@ -4,7 +4,7 @@ from datetime import date
 from ..deps import get_db_connection
 import asyncpg
 from ..workspaces.schemas import WorkspaceCreation, GetWorkspaceInfo, GetWorkspaces,UserDetail
-from .crud import add_workspace_to_db, get_all_user_workspaces,  workspace_add_member, workspace_role_update, kick_member, get_user_info, get_workspace_from_db, insert_members_read_status, search_member_by_name
+from .crud import add_workspace_to_db, get_all_user_workspaces,  workspace_add_member, workspace_role_update, kick_member, get_user_info, get_workspace_from_db, insert_members_read_status, search_member_by_name,change_nickname
 import json
 router = APIRouter()
     
@@ -113,7 +113,7 @@ async def workspace_kick_member(workspace_id: int, user_id:int, conn: asyncpg.Co
          raise HTTPException(status_code=500, detail=f"Process Failed -> {e}")
         
 @router.patch("/workspace{workspace_id}/members")
-async def update_user_role_and_nickname(workspace_id:int,  user_id:int, name:str,  conn: asyncpg.Connection = Depends(get_db_connection)):
+async def update_user_nickname(workspace_id:int,  user_id:int, name:str,  conn: asyncpg.Connection = Depends(get_db_connection)):
     try: 
          
         res = await change_nickname( workspace_id, user_id, name , conn)

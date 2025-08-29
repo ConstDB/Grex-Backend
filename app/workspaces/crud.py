@@ -89,9 +89,9 @@ async def get_all_user_workspaces(user_id: int, conn:asyncpg.Connection):
                         'profile_picture', u.profile_picture,
                         'status', u.status                 
                         )
-                        'status', u.status,
                         'phone_number', u.phone_number,      
                         'nickname', wm.nickname
+                        
                 ) FILTER (WHERE u.user_id IS NOT NULL),
                 '[]'                   
             ) AS members
@@ -143,7 +143,6 @@ async def get_workspace_from_db(user_id:int, workspace_id: int, conn: asyncpg.Co
                         json_build_object(
                             'user_id', u.user_id, 
                             'role', wm.role,
-                            'nickname', wm.nickname,
                             'joined_at', wm.joined_at,
                             'first_name', u.first_name,
                             'last_name', u.last_name,
@@ -257,9 +256,11 @@ async def search_member_by_name(name:str, workspace_id: int, conn: asyncpg.Conne
             SELECT
                 u.user_id,
                 u.first_name,
-                u.last_name, 
+                u.last_name,
+                wm.nickname, 
                 u.email, 
                 u.profile_picture
+                
             FROM users u
             LEFT JOIN workspace_members wm ON u.user_id = wm.user_id AND wm.workspace_id = $2
             WHERE ((u.first_name || ' ' || u.last_name) ILIKE '%' || $1 || '%')
