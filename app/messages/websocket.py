@@ -1,6 +1,7 @@
 
-from fastapi import WebSocket, WebSocketDisconnect, APIRouter
+from fastapi import WebSocket, WebSocketDisconnect, APIRouter, Depends
 from ..websocket_manager import ConnectionManager
+from ..users.auth import get_current_user
 from .crud import insert_messages_to_db, insert_text_messages_to_db
 from ..db_instance import db
 from ..utils.logger import logger
@@ -12,7 +13,7 @@ manager = ConnectionManager()
 
 
 @router.websocket("/workspace/{workspace_id}/{user_id}")
-async def websocket_message_endpoint(websocket: WebSocket, workspace_id: int, user_id: int):
+async def websocket_message_endpoint(websocket: WebSocket, workspace_id: int, user_id: int, token:str = Depends(get_current_user)):
     await manager.connect(workspace_id, websocket)
 
     try:
