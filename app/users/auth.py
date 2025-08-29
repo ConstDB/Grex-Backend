@@ -8,6 +8,7 @@ from ..utils.logger import logger
 import jwt
 import os
 import time
+import logging
 
 logger = logging.getLogger("uvicorn")
 
