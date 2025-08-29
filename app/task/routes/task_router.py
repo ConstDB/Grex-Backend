@@ -12,7 +12,7 @@ from app.utils.decorators import db_error_handler
 router = APIRouter()
 
 # Create a Task
-@router.post("/{workspace_id}", response_model=TaskAllOut)
+@router.post("/{workspace_id}", response_model=TaskCreate)
 async def create_task(   
     workspace_id: int,
     task_in: TaskCreate,
