@@ -25,7 +25,8 @@ async def get_category(conn, workspace_id: int):
     rows = await conn.fetch(query, workspace_id)
     return [dict(r) for r in rows]
 
-
+# Update category
+@db_error_handler
 async def update_category(conn, workspace_id: int, category_id: int, update_category:CategoryUpdate):
     query = f"UPDATE categories SET name = COALESCE($3, name) WHERE workspace_id = $1 AND category_id = $2 RETURNING *;"
     rows = await conn.fetchrow(query, 
@@ -34,6 +35,8 @@ async def update_category(conn, workspace_id: int, category_id: int, update_cate
                                update_category.name)
     return dict(rows)
 
+# Delete category
+@db_error_handler
 async def delete_category(conn, workspace_id: int, category_id: int):
     query = """
         DELETE FROM categories 
