@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from ...deps import get_db_connection
 from app.task.crud import task_assignment_crud
+from app.task.schemas.TaskAssignment_schema import TaskAssignmentOut
+from typing import List
 import asyncpg
 
 router = APIRouter()
@@ -23,15 +25,12 @@ async def create_taskassignment(
     }
 
 # Router for getting all assigned users from a task
-@router.get("/task/{task_id}/assignment")
+@router.get("/task/{task_id}/assignment", response_model=List[TaskAssignmentOut])
 async def get_taskassignment(task_id: int, conn: asyncpg.Connection = Depends(get_db_connection)):
     taskassignment =  await task_assignment_crud.get_taskassignment(conn, task_id)
     if not taskassignment:
         raise HTTPException(status_code=400, detail="No assigned users")
-    return{"status": "success", 
-           "message": f"Assigned users in task {task_id}", 
-           "data": taskassignment
-           }
+    return[TaskAssignmentOut(**r) for r in taskassignment]
 
 # Router for removing assigned users from task
 @router.delete("/task/{task_id}/assignment/{user_id}")
