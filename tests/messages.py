@@ -3,15 +3,12 @@ import websockets
 import json
 
 async def test_ws():
-    uri = "ws://127.0.0.1:8000/workspace/2/1"
+    uri = "ws://127.0.0.1:8000/workspace/1/3"
     async with websockets.connect(uri) as ws:
         await ws.send(json.dumps({
             "type":"text",
-            "content": """
-                po
-            """,
-            "reply_to": None
-
+            "content": "ggggg",
+            "reply_to": 3
         }))
 
         response =  await ws.recv()
@@ -25,3 +22,4 @@ asyncio.run(test_ws())
 #         print("✅ received:", msg)
 
 # asyncio.run(test_ws())
+
