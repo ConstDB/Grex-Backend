@@ -22,7 +22,7 @@ async def get_taskassignment(conn, task_id: int):
                 ta.task_id,
                 ta.user_id,
                 u.profile_picture AS avatar,
-                (u.first_name || ' ' || u.last_name) AS name
+                (u.first_name || ' ' || u.last_name) AS name        
             FROM task_assignments ta
             LEFT JOIN users u ON u.user_id = ta.user_id
             WHERE ta.task_id = $1 
