@@ -33,7 +33,7 @@ async def get_categories_route(
 
 
 # For updating a category in workspaces
-@router.put("/workspace/{workspace_id}/category/{category_id}", response_model=CategoryOut)
+@router.put("/workspace/{workspace_id}/categories/{category_id}", response_model=CategoryOut)
 async def put_category(workspace_id: int,
                        category_id: int,
                        category: CategoryUpdate,
@@ -45,7 +45,8 @@ async def put_category(workspace_id: int,
         raise HTTPException(status_code=404, detail=str(e))
     return row
 
-@router.delete("/workspace/{workspace_id}/category/{category_id}", response_model=CategoryDelete)
+# For deleting category
+@router.delete("/workspace/{workspace_id}/categories/{category_id}", response_model=CategoryDelete)
 async def del_category(workspace_id: int,
                        category_id: int,
                        conn: asyncpg.Connection = Depends(get_db_connection)):
