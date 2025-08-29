@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS categories (
     workspace_id INTEGER REFERENCES workspaces(workspace_id) ON DELETE CASCADE,
     name VARCHAR(100),
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-)
+);
 
 -- =========================
 -- TASKS
