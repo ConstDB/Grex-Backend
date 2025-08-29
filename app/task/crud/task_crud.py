@@ -1,10 +1,10 @@
 # app/api/task/crud/task_crud.py
 
-from app.task.schemas.Tasks_schema import TaskCreate, TaskPatch
+from ...task.schemas.Tasks_schema import TaskCreate, TaskPatch
 from fastapi import HTTPException
 from datetime import datetime, timezone
-from app.utils.decorators import db_error_handler
-from app.utils.task_logs import log_task_action
+from ...utils.decorators import db_error_handler
+from ...utils.task_logs import log_task_action
 
 
 now = datetime.now(timezone.utc)

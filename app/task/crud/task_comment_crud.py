@@ -1,8 +1,8 @@
-from app.task.schemas.TaskComment_schema import TaskCommentCreate, TaskCommentUpdate, TaskCommentOut
+from ...task.schemas.TaskComment_schema import TaskCommentCreate, TaskCommentUpdate, TaskCommentOut
 from datetime import datetime
-from app.utils.decorators import db_error_handler
+from ...utils.decorators import db_error_handler
 from datetime import datetime
-from app.utils.task_logs import log_task_action
+from ...utils.task_logs import log_task_action
 
 # Comment on a task
 @db_error_handler
