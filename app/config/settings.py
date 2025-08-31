@@ -23,6 +23,11 @@ class Settings(BaseSettings):
     SESSION_SECRET: str 
     SECRET_PASSWORD: str
 
+    CLOUD_NAME: str
+    CLOUD_API_KEY: str
+    CLOUD_SECRET_KEY: str
+    CLOUDINARY_URL: str
+
     class Config:
         env_file = ".env"
 
