@@ -1,7 +1,7 @@
 # app/api/task/crud/task_crud.py
-from app.utils.decorators import db_error_handler
+from ...utils.decorators import db_error_handler
 from datetime import date, datetime
-from app.utils.task_logs import log_task_action
+from ...utils.task_logs import log_task_action
 
 # Assigning users to a specific task
 @db_error_handler
@@ -22,7 +22,7 @@ async def get_taskassignment(conn, task_id: int):
                 ta.task_id,
                 ta.user_id,
                 u.profile_picture AS avatar,
-                (u.first_name || ' ' || u.last_name) AS name
+                (u.first_name || ' ' || u.last_name) AS name        
             FROM task_assignments ta
             LEFT JOIN users u ON u.user_id = ta.user_id
             WHERE ta.task_id = $1 

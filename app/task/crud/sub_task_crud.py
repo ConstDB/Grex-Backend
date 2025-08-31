@@ -1,7 +1,7 @@
-from app.task.schemas.SubTasks_schema import SubTasksCreate, SubTasksPatch
+from ...task.schemas.SubTasks_schema import SubTasksCreate, SubTasksPatch
 from datetime import datetime
-from app.utils.decorators import db_error_handler
-from app.utils.task_logs import log_task_action
+from ...utils.decorators import db_error_handler
+from ...utils.task_logs import log_task_action
 
 now = datetime.now()    
 
@@ -90,15 +90,13 @@ async def get_subtasks_by_task(conn, task_id: int):
 async def update_subtask_status(conn, task_id: int, subtask_id: int, subtask_update: SubTasksPatch):
     query = f"UPDATE subtasks SET is_done = COALESCE($3, is_done) WHERE task_id = $1 AND subtask_id = $2 RETURNING *;"
     row = await conn.fetchrow(query, task_id, subtask_id, subtask_update.is_done)
-    
-    if not row:
-        return None
-    content = (
-        f"A member has finished a subtask_id: {subtask_id} to {subtask_update.is_done}"
-    )
-    await log_task_action(conn, task_id, content)
     return dict(row)
-
+    # if not row:
+    #     return None
+    # content = (
+    #     f"A member has finished a subtask_id: {subtask_id} to {subtask_update.is_done}"
+    # )
+    # await log_task_action(conn, task_id, content)
 
 # Delete a subtask
 @db_error_handler

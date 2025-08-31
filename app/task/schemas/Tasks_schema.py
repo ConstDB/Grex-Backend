@@ -13,7 +13,6 @@ class TaskBase(BaseModel):
     status: Literal["pending", "done", "overdue"] = "pending"
     priority_level: Literal["low", "medium", "high"] = "low"
     created_by: int
-    created_at: datetime
 
 class TaskCreate(TaskBase):
     pass
@@ -23,7 +22,7 @@ class TaskPatch(BaseModel):
     subject: Optional[str] = None
     description: Optional[str] = None
     deadline: Optional[date] = None
-    status: Optional[Literal["pending", "in_progress", "completed"]] = None
+    status: Optional[Literal["pending", "done", "overdue"]] = None
     priority_level: Optional[Literal["low", "medium", "high"]] = None
     marked_done_at: Optional[datetime] = None
 
