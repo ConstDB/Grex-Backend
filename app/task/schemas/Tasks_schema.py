@@ -13,7 +13,6 @@ class TaskBase(BaseModel):
     status: Literal["pending", "done", "overdue"] = "pending"
     priority_level: Literal["low", "medium", "high"] = "low"
     created_by: int
-    created_at: datetime
 
 class TaskCreate(TaskBase):
     pass
