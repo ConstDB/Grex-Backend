@@ -12,6 +12,7 @@ services:
     depends_on:
       - db
       - redis
+      - qdrant
     networks:
       - grex-net
 
@@ -46,6 +47,16 @@ services:
       - ./data/pgadmin-data:/var/lib/pgadmin
     depends_on:
       - db
+    networks:
+      - grex-net
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    restart: always
+    ports:
+      - "6333:6333"
+    volumes:
+      - ./data/qdrant:/qdrant/storage
     networks:
       - grex-net
 
