@@ -12,7 +12,7 @@ router = APIRouter()
 @router.post("/task/{task_id}/comments")
 async def create_taskcomment(task_id: int, 
                              taskcomment: TaskCommentCreate, 
-                            #  token: str = Depends(get_current_user),
+                             token: str = Depends(get_current_user),
                              conn: asyncpg.Connection = Depends(get_db_connection)):
     created = await task_comment_crud.create_taskcomment(conn, task_id, taskcomment)
     if not created:
@@ -22,7 +22,7 @@ async def create_taskcomment(task_id: int,
 # Router for getting comments in a task
 @router.get("/task/{task_id}/comments/", response_model=List[TaskCommentOut])
 async def get_taskcomment(task_id: int,
-                        #   token: str = Depends(get_current_user),
+                          token: str = Depends(get_current_user),
                           conn: asyncpg.Connection = Depends(get_db_connection)):
     
     rows = await task_comment_crud.get_taskcomment(conn, task_id)
@@ -36,7 +36,7 @@ async def get_taskcomment(task_id: int,
 async def update_taskcomment(task_id: int,
                             comment_id: int,
                             update_taskcomment: TaskCommentUpdate,
-                            # token: str = Depends(get_current_user), 
+                            token: str = Depends(get_current_user), 
                             conn: asyncpg.Connection = Depends(get_db_connection)):
     put = await task_comment_crud.update_taskcomment(conn, task_id, comment_id, update_taskcomment)
     if not put:
@@ -47,7 +47,7 @@ async def update_taskcomment(task_id: int,
 @router.delete("/task/{task_id}/comments/{comment_id}")
 async def delete_taskcomment(task_id: int, 
                              comment_id: int, 
-                            #  token: str = Depends(get_current_user),
+                             token: str = Depends(get_current_user),
                              conn: asyncpg.Connection = Depends(get_db_connection)):
     
     query = "DELETE FROM task_comments WHERE comment_id = $1 AND task_id = $2 RETURNING *;"
