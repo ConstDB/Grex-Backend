@@ -22,10 +22,10 @@ register_exception_handlers(app)
 async def lifespan(app: FastAPI):
 
     await db.initialize_connection()
+    await setup_collection()
     await workspace_trigger()
     await start_scheduler(db.pool)
     yield
-
     await db.close_connection()
 
 app = FastAPI(lifespan=lifespan)
