@@ -1,7 +1,7 @@
 from ..categories.schema import CategoryCreate, CategoryUpdate, CategoryDelete
 from datetime import datetime
 from ..utils.decorators import db_error_handler
-from ..utils.task_logs import log_task_action
+
 
 # For Creating Category
 @db_error_handler
