@@ -1,9 +1,9 @@
 # app/api/task/crud/task_attachment_crud.py
 
 from datetime import datetime
-from app.task.schemas.TaskAttachment_schema import TaskAttachmentCreate, TaskAttachmentDelete
-from app.utils.decorators import db_error_handler
-from app.utils.task_logs import log_task_action
+from ...task.schemas.TaskAttachment_schema import TaskAttachmentCreate, TaskAttachmentDelete
+from ...utils.decorators import db_error_handler
+from ...utils.task_logs import log_task_action
 
 # Create a task attachment
 @db_error_handler
