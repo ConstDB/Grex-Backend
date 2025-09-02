@@ -1,4 +1,4 @@
-from .qdrant_config import embedding_model
+from .utils.embeddings import compute_embedding
 
 
 task_logs = [
