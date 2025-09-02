@@ -4,13 +4,11 @@ from datetime import date
 from ..deps import get_db_connection
 import asyncpg
 from ..workspaces.schemas import WorkspaceCreation, GetWorkspaceInfo, GetWorkspaces,UserDetail
-from .crud import add_workspace_to_db, get_all_user_workspaces,  workspace_add_member, workspace_role_update, kick_member, get_user_info, get_workspace_from_db, insert_members_read_status, search_member_by_name,change_nickname
+from .crud import add_workspace_to_db, get_all_user_workspaces,  workspace_add_member, workspace_role_update, kick_member, get_user_info, get_workspace_from_db, insert_members_read_status, search_member_by_name,change_nickname,workspace_update_data, workspace_remove_pinned_messages,update_pinned_message, workspace_pinned_messages
 import json
 router = APIRouter()
     
-@router.get("/testing")
-async def Testing():
-    return "hello this is workspaces route"
+
 
 # ===========================POST========================================================================
 
@@ -91,6 +89,18 @@ async def get_workspace_members(workspace_id: int, name: str, conn: asyncpg.Conn
         return await search_member_by_name(name, workspace_id, conn)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get workspace members -> {e}")
+    
+@router.get("/workspace/{workspace_id}")
+async def workspace_get_pinned_messages(workspace_id:int, message_id:int, pinned_id:int, conn:asyncpg.Connection = Depends(get_db_connection)):
+    try:
+        res = await workspace_pinned_messages(workspace_id, message_id, pinned_id, conn)
+        
+        return res 
+    except Exception as e: 
+        raise HTTPException(status_code=500, detail =f"process failed {e}")
+        
+        
+        
      
 
 # ===========================PUUTA======================================================================
@@ -102,16 +112,6 @@ async def workspace_update_role (workspace_id: int, user_id : int, role: str, co
     except Exception as e:
          raise HTTPException(status_code=500, detail=f"Process Failed -> {e}")  
      
- #===========================DELETE=====================================================================
-@router.delete("/{workspace_id}/members")
-async def workspace_kick_member(workspace_id: int, user_id:int, conn: asyncpg.Connection = Depends(get_db_connection)): 
-    try: 
-        res = await kick_member(workspace_id, user_id, conn)
-        
-        return res 
-    except Exception as e:
-         raise HTTPException(status_code=500, detail=f"Process Failed -> {e}")
-        
 @router.patch("/workspace{workspace_id}/members")
 async def update_user_nickname(workspace_id:int,  user_id:int, name:str,  conn: asyncpg.Connection = Depends(get_db_connection)):
     try: 
@@ -121,3 +121,42 @@ async def update_user_nickname(workspace_id:int,  user_id:int, name:str,  conn: 
         return res 
     except Exception as e:
          raise HTTPException(status_code=500, detail=f"Process Failed -> {e}")
+     
+@router.patch("/workspace/{workspace_id}")
+async def workspace_update_description(workspace_id: int, project_nature: str,Description : str,  conn: asyncpg.Connection=Depends(get_db_connection)):
+    try:
+        res = await workspace_update_data(workspace_id, project_nature, Description, conn)
+        
+        return res
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Process failed -> {e}")
+    
+@router.patch("/workspace/{workspace_id}")
+async def workspace_update_pinned_message(workspace_id: int , message_id: int , pinned_by:int, conn : asyncpg.Connection=Depends(get_db_connection)):
+    try: 
+        res = await update_pinned_message(workspace_id, message_id, pinned_by, conn )
+
+        return res
+    except Exception as e: 
+        raise HTTPException(status_code=500, detail=f"process failed ->{e}")
+    
+     
+ #===========================DELETE=====================================================================
+@router.delete("/{workspace_id}/members")
+async def workspace_kick_member(workspace_id: int, user_id:int, conn: asyncpg.Connection = Depends(get_db_connection)): 
+    try: 
+        res = await kick_member(workspace_id, user_id, conn)
+        
+        return res 
+    except Exception as e:
+         raise HTTPException(status_code=500, detail=f"Process Failed -> {e}")
+     
+@router.delete("/workspace/{workspace_id}")
+async def workspace_remove_pinned(workspace_id:int, message_id: int, pinned_by:int, conn: asyncpg.Connection=Depends(get_db_connection)):
+    try: 
+        res = await workspace_remove_pinned_messages(workspace_id, message_id, pinned_by, conn)
+        
+        return res 
+    except Exception as e: 
+        raise HTTPException(status_code=500, detail=f"Process Failed ->{e}")
+    
