@@ -14,12 +14,8 @@ async def create_taskassignment(
     task_id: int, 
     user_id: int, 
     token: str = Depends(get_current_user),
-    conn: asyncpg.Connection = Depends(get_db_connection)
-):
+    conn: asyncpg.Connection = Depends(get_db_connection)):
     assigned = await task_assignment_crud.create_taskassignment(conn, task_id, user_id)
-    if not assigned:
-        raise HTTPException(status_code=400, detail="Failed to assign user to task")
-
     return {
         "status": "success",
         "message": f"User {user_id} was assigned to Task {task_id}",
@@ -31,10 +27,8 @@ async def create_taskassignment(
 async def get_taskassignment(task_id: int, 
                              token: str = Depends(get_current_user),
                              conn: asyncpg.Connection = Depends(get_db_connection)):
-    taskassignment =  await task_assignment_crud.get_taskassignment(conn, task_id)
-    if not taskassignment:
-        raise HTTPException(status_code=400, detail="No assigned users")
-    return[TaskAssignmentOut(**r) for r in taskassignment]
+    taskassignment = await task_assignment_crud.get_taskassignment(conn, task_id)
+    return [TaskAssignmentOut(**r) for r in taskassignment] if taskassignment else []
 
 # Router for removing assigned users from task
 @router.delete("/task/{task_id}/assignment/{user_id}")
