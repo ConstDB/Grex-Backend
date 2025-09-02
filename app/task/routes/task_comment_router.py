@@ -23,13 +23,9 @@ async def create_taskcomment(task_id: int,
 @router.get("/task/{task_id}/comments/", response_model=List[TaskCommentOut])
 async def get_taskcomment(task_id: int,
                           token: str = Depends(get_current_user),
-                          conn: asyncpg.Connection = Depends(get_db_connection)):
-    
+                          conn: asyncpg.Connection = Depends(get_db_connection)):  
     rows = await task_comment_crud.get_taskcomment(conn, task_id)
-    if not rows:
-        raise HTTPException(status_code=404, detail="No comments yet or invalid task_id")
-    # Convert dict rows to Pydantic models
-    return [TaskCommentOut(**r) for r in rows]
+    return [TaskCommentCreate(**r) for r in rows] if rows else []
 
 # Router for updating comment contents
 @router.put("/task/{task_id}/comments/{comment_id}")
