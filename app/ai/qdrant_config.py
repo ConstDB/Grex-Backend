@@ -1,21 +1,17 @@
 from sentence_transformers import SentenceTransformer
-from qdrant_client import QdrantClient
+from qdrant_client import AsyncQdrantClient
 from qdrant_client.models import Distance, VectorParams, PayloadSchemaType
 from ..utils.logger import logger
 
 embedding_model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
 
-qdrant = QdrantClient(host=qdrant, port=6333)
+qdrant = AsyncQdrantClient(host="localhost", port=6333)
 
 TASKS_COLLECTION_NAME = "task_logs"
 MESSAGES_COLLECTION_NAME = "messages_logs"
 EMBEDDING_DIM = 384
 
-tasks = await qdrant.collection_exists(TASKS_COLLECTION_NAME)
-messages = await qdrant.collection_exists(MESSAGES_COLLECTION_NAME)
-
-
-async def ensure_collection(client: QdrantClient, name:str, dim:int, id: int):
+async def ensure_collection(client: AsyncQdrantClient, name:str, dim:int, id: int):
     """ checks if collection exists"""
     exists = await client.collection_exists(name)
 
