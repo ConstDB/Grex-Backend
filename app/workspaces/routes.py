@@ -2,11 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException
 from typing import List
 from datetime import date
 from ..deps import get_db_connection
-import asyncpg
 from ..workspaces.schemas import WorkspaceCreation, GetWorkspaceInfo, GetWorkspaces,UserDetail
-from .crud import add_workspace_to_db, get_all_user_workspaces,  workspace_add_member, workspace_role_update, kick_member, get_user_info,get_workspace_from_db, insert_members_read_status
-import json
+from .crud import add_workspace_to_db, get_all_user_workspaces,  workspace_add_member, workspace_role_update, kick_member, get_user_info,get_workspace_from_db, insert_members_read_status, search_member_by_name
 from ..users.auth import get_current_user
+from ..utils.normalizer import normalize_name
+import json
+import asyncpg
+
 router = APIRouter()
     
 @router.get("/testing")
@@ -85,9 +87,9 @@ async def get_workspace_info(user_id:int, workspace_id:int, conn: asyncpg.Connec
          raise HTTPException(status_code=500, detail=f"Process Failed -> {e}")
 
 @router.get("{workspace_id}/members/search")
-async def get_workspace_members(workspace_id: int, name: str, conn: asyncpg.Connection = Depends(get_db_connection)):
+async def get_workspace_members(workspace_id: int, name: str, conn: asyncpg.Connection = Depends(get_db_connection), token : str = Depends(get_current_user)):
     try:
-        return await search_member_by_name(name, workspace_id, conn)
+        return await search_member_by_name(normalize_name(name), workspace_id, conn)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get workspace members -> {e}")    
      

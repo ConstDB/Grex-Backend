@@ -225,3 +225,24 @@ async def kick_member(workspace_id: int, user_id: int, conn: asyncpg.Connection)
         return res 
     except Exception as e:
             raise HTTPException(status_code=500, detail=f"Process Failed -> {e}")
+
+
+async def search_member_by_name(name:str, workspace_id: int, conn: asyncpg.Connection):
+    try:
+        query="""
+            SELECT
+                u.user_id,
+                u.first_name,
+                u.last_name, 
+                u.email, 
+                u.profile_picture
+            FROM users u
+            LEFT JOIN workspace_members wm ON u.user_id = wm.user_id AND wm.workspace_id = $2
+            WHERE ((u.first_name || ' ' || u.last_name) ILIKE '%' || $1 || '%')
+            AND wm.workspace_id = $2
+        """
+
+        res = await conn.fetch(query, name, workspace_id)
+        return res
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch workspace member -> {e}")
