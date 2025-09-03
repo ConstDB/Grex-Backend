@@ -79,13 +79,17 @@ async def get_workspace_info(user_id:int, workspace_id:int, conn: asyncpg.Connec
             raise HTTPException(status_code=404, detail=f"user does not belong on given workspace")
         
         info = dict(workspace)
-        info["members"] = json.loads(info["members"])  
-
-              
+        info["members"] = json.loads(info["members"])       
         return info
     except Exception as e:
          raise HTTPException(status_code=500, detail=f"Process Failed -> {e}")
-     
+
+@router.get("{workspace_id}/members/search")
+async def get_workspace_members(workspace_id: int, name: str, conn: asyncpg.Connection = Depends(get_db_connection)):
+    try:
+        return await search_member_by_name(name, workspace_id, conn)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get workspace members -> {e}")    
      
 
 # ===========================PUUTA======================================================================
