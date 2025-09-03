@@ -205,51 +205,7 @@ async def insert_members_read_status(payload:dict, conn: asyncpg.Connection):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to add read status on this workspace: {e}")
-
-async def workspace_role_update(workspace_id: int, user_id: int, role:str, conn: asyncpg.Connection): 
-    try:
-        query = """
-        UPDATE workspace_members
-        SET role = $3
-        WHERE workspace_id = $1 AND user_id = $2
-        returning * ;
-         """
-    
-        res = await conn.fetchrow(query, workspace_id, user_id, role) 
-    
-        return res
-    except Exception as e:
-        raise HTTPException(status_code=500, detail= f"Process failed -> {e}")      
             
-async def kick_member(workspace_id: int, user_id: int, conn: asyncpg.Connection):
-    try: 
-        query =  """
-        DELETE FROM workspace_members 
-        WHERE workspace_id = $1 AND user_id = $2
-        RETURNING *
-        """
-        res = await conn.fetchrow(query, workspace_id, user_id)
-        
-
-        return res 
-    except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Process Failed -> {e}")
-        
-async def change_nickname(workspace_id:int, user_id: int, name: str, conn: asyncpg.Connection):
-
-    try: 
-        query = """ UPDATE workspace_members
-        SET nickname = $3
-        WHERE workspace_id = $1 AND user_id = $2 
-        RETURNING*;
-        
-        """
-        
-        res = await conn.fetchrow(query, workspace_id, user_id,name)
-        
-        return res
-    except Exception as e: 
-            raise HTTPException(status_code=500, detail=f"Process Failes -> {e}")
 
 async def search_member_by_name(name:str, workspace_id: int, conn: asyncpg.Connection):
     try:
@@ -272,88 +228,72 @@ async def search_member_by_name(name:str, workspace_id: int, conn: asyncpg.Conne
         return res
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch workspace member -> {e}")
+           
     
-async def workspace_update_data  (workspace_id: int , project_nature: str, Description: str, conn: asyncpg.Connection):
-    try:
-        query = """
+
+async def kick_member(workspace_id: int, user_id: int, conn: asyncpg.Connection):
+    try: 
+        query =  """
+        DELETE FROM workspace_members 
+        WHERE workspace_id = $1 AND user_id = $2
+        RETURNING *
+        """
+        res = await conn.fetchrow(query, workspace_id, user_id)
+        
+
+        return res 
+    except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Process Failed -> {e}")
+        
+async def update_user_data(
+    workspace_id: int,
+    user_id: int,
+    nickname:str, 
+    role: str ,
+    project_nature: str ,
+    Description: str,
+    conn: asyncpg.Connection    
+):
+    
+    workspace_update = []
+    workspace_values = []
+    idx = 1
+    
+
+    if nickname is not None: 
+        workspace_update.append (f"nickname = ${idx}")
+        workspace_values.append(nickname)
+        idx += 1
+        
+    if role is not None: 
+        workspace_update.append(f"role = ${idx}")
+        workspace_values.append(role)
+        idx +=1
+        
+    if project_nature is not None: 
+        workspace_update.append(f"project_nature = ${idx}")
+        workspace_values.append(project_nature)
+        idx +=1
+        
+    if Description is not None: 
+        workspace_update.append(f"Description = ${idx}")
+        workspace_values.append(Description)
+        idx +=1
+    
+                
+    if not workspace_update:
+       return None
+
+
+    query = f"""
+    
         UPDATE workspaces
-        SET project_nature = $2, DESCRIPTION =$3
-        WHERE workspace_id = $1
+            SET { ", " .join(workspace_update)}
+        WHERE workspace_id = ${idx} 
         RETURNING *;
         """
-        res = await conn.fetchrow(query, workspace_id, project_nature, Description )
-        
-        return res 
-    except Exception as e: 
-        raise HTTPException(status_code=500, detail=f"Failed to fetch workspace member -> {e}")            
+    workspace_values.extend([workspace_id, user_id])
     
+    res = await conn.fetchrow(query, *workspace_values)
+    return dict(res) if res else None
     
-async def workspace_pin_message (workspace_id: int, message_id: int, pinned_by:int, conn:asyncpg.Connection):
-    try:
-        query = """
-        INSERT INTO pinned_messages (workspace_id,  message_id, pinned_by )
-        VALUES ($1, $2, $3 )
-        RETURNING *; 
-        """
-        res = await conn.fetchrow(query, workspace_id, message_id, pinned_by)
-        
-        return res
-    except Exception as e: 
-        raise HTTPException(status_code=500, detail=f"process failed")
-
-    
-async def workspace_remove_pinned_messages(workspace_id:int, message_id:int, pinned_by:int,  conn: asyncpg.Connection ):
-    try:
-        query = """
-        DELETE FROM pinned_messages
-        where workspace_id = $1 
-            AND message_id = $2
-            AND pinned_by =$3
-        RETURNING *;
-        
-
-        """
-        res = await conn.fetchrow(query, workspace_id, message_id, pinned_by)
-        
-        return res 
-    except Exception as e: 
-        raise HTTPException (status_code=500, detail=f"Process failed -> {e}")
-    
-    
-async def update_pinned_message(workspace_id: int, message_id:int, pinned_by:int, pinned_at:date,  conn: asyncpg.Connection):
-    try: 
-        query = """
-        UPDATE pinned_messages 
-        SET pinned_at = $1,
-        WHERE workspace_id = $2 
-        AND message_id = $3
-        AND pinned_by = $4
-        RETURNING *; 
-        """        
-        res = await conn.fetchrow(workspace_id, message_id, pinned_by , pinned_at)
-        
-        return res 
-    except Exception as e:
-        raise HTTPException (status_code=500, detail=f"procesds failed -> {e}")
-    
-async def workspace_pinned_messages(workspace_id:int, message_id: int, pinned_by:int, pinned_at:date, conn: asyncpg.Connection):
-    try: 
-        query = """
-        SELECT pinned_messages 
-            w.workspace_id
-            w.message_id,
-            w.pinned_by,
-        FROM 
-            workspace w
-        LEFT JOIN 
-            workspace_id wid ON w.messaged_by = wid.pinned_by;
-        
-        """
-        
-        res = await conn.fetchrow (workspace_id, message_id, pinned_by, pinned_at)
-        
-        return res
-    except Exception as e:
-        raise HTTPException (status_code=500, detail=f"process failed -> {e}")
-        
-        
