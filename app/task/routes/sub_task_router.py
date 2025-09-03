@@ -42,7 +42,9 @@ async def get_subtasks_by_task(task_id: int,
                                 token: str = Depends(get_current_user), 
                                 conn: asyncpg.Connection = Depends(get_db_connection)):
     subtask = await sub_task_crud.get_subtasks_by_task(conn, task_id)
-    return{SubTasksOut(**r) for r in subtask} if subtask else []
+    return {"status": "success", 
+            "data": [SubTasksOut(**r) for r in subtask] if subtask else [] 
+            }
 
 # Router for patching a subtask
 @router.put("/task/{task_id}/subtask/{subtask_id}")
