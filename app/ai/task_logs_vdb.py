@@ -20,4 +20,25 @@ async def insert_task_logs_to_vdb(task_log_id:int, workspace_id:int, content:str
         print(f"Failed to insert user to Qdrant -> {e}")
 
 
-asyncio.run(insert_task_logs_to_vdb(1,1, task_logs))
+# asyncio.run(insert_task_logs_to_vdb(1,1, task_logs))
+
+
+async def get_task_embeddings():
+    try:
+        records, _ = await qdrant.scroll(
+            collection_name=task,
+            limit=10,
+            with_payload=True,
+            with_vectors=True
+        )
+
+        
+        for r in records:
+            print(f"id : {r.id}")
+            print(f"vector : {r.vector}")
+            print(f"payload : {r.payload}")
+    except Exception as e:
+        print(f"Failed to fetch task logs embeddings -> {e}")
+
+
+asyncio.run(get_task_embeddings())
