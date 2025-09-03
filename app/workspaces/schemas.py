@@ -14,7 +14,6 @@ class WorkspaceCreation(BaseModel):
     
     
 class GetWorkspaces (BaseModel):
-    
     workspace_id: int
     name: str
     project_nature: Optional[str] = None
@@ -67,14 +66,6 @@ class WorkspacePatchUpdate(BaseModel):
     name: str
     due_date: date 
 
-class WorkspacePinnedMessage(BaseModel):
-    workspace_id: int
-    message_id: int
-    sender_id: int 
-    pinned_message: str
-    pinned_by: int  
-    pinned_at: date 
-    
 
     
 
