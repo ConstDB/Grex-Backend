@@ -9,10 +9,10 @@ tokenizer = transformers.AutoTokenizer.from_pretrained("sentence-transformers/al
 
 
 
-s = """Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
-     It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for 'lorem ipsum' will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose (injected humour and the like).
+# s = """Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
+#      It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for 'lorem ipsum' will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose (injected humour and the like).
 
-"""
+# """
 
 
 def compute_embedding(text):
@@ -24,9 +24,8 @@ def compute_embedding(text):
 
         embeddings = transformer.encode(chunks) # convert text into embeddings
 
-        # if embeddings is more than one return the average embeddings else just send the embeddings
-        # this means that if the text is less than the max_token then we will just send the raw embeddings
-        return np.mean(embeddings, axis=0) if len(embeddings) > 1 else embeddings 
+        #  return the average embeddings
+        return np.mean(embeddings, axis=0)
     except Exception as e:
         logger.info(f"Failed to compute embeddings -> {e}")
 
@@ -50,5 +49,3 @@ def chunk_text(text:str, max_tokens: int = 200, token_overlap:int = 20):
     except Exception as e:
         logger.info(f"Failed to chunk_text -> {e}")
         # print(f"Failed to chunk_text -> {e}")
-
-print(compute_embedding(s))
