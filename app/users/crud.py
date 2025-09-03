@@ -53,10 +53,9 @@ async def revoke_user_token_on_db(user_id:int, payload:dict, conn: asyncpg.Conne
 async def get_users_by_name(name: str, conn: asyncpg.Connection):
     try:
         query = """
-            SELECT first_name, last_name, email, profile_picture
+            SELECT user_id, first_name, last_name, email, profile_picture
             FROM users
-            WHERE first_name ILIKE '%' || $1 || '%'
-                OR last_name ILIKE '%' || $1 || '%'
+            WHERE ((first_name || ' ' || last_name) ILIKE '%' || $1 || '%')
             LIMIT 10;
         """
 
