@@ -13,7 +13,6 @@ class TaskBase(BaseModel):
     status: Literal["pending", "done", "overdue"] = "pending"
     priority_level: Literal["low", "medium", "high"] = "low"
     created_by: int
-    created_at: datetime
 
 class TaskCreate(TaskBase):
     pass
@@ -23,7 +22,7 @@ class TaskPatch(BaseModel):
     subject: Optional[str] = None
     description: Optional[str] = None
     deadline: Optional[date] = None
-    status: Literal["pending", "done", "overdue"] = "pending"
+    status: Optional[Literal["pending", "done", "overdue"]] = None
     priority_level: Optional[Literal["low", "medium", "high"]] = None
     marked_done_at: Optional[datetime] = None
 
@@ -34,15 +33,15 @@ class TaskDelete(BaseModel):
 class TaskAllOut(BaseModel):
     task_id: int
     workspace_id: int
-    subject: str
     title: str
+    subject: str
     description: str
     deadline: Optional[date]
     status: Literal["pending", "done", "overdue"] = "pending"
     priority_level: Optional[Literal["low", "medium", "high"]] = None
     created_by: int
     created_at: datetime
-    marked_done_at: datetime
+    marked_done_at: Optional[datetime]
 
 # class SubTaskOut(BaseModel):
 #     subtask_id: int

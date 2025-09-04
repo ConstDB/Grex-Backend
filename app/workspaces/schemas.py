@@ -13,7 +13,7 @@ class WorkspaceCreation(BaseModel):
     created_by: int  
     
     
-class GetWorkspaces (BaseModel):
+class GetWorkspaces(BaseModel):
     workspace_id: int
     name: str
     project_nature: Optional[str] = None
@@ -64,7 +64,7 @@ class WorkspacePutUpdate(BaseModel):
 class WorkspacePatchUpdate(BaseModel):
     workspace_id:int
     name: str
-    due_date: date 
+    due_date: date
 
 
     
