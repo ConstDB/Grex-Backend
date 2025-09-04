@@ -4,6 +4,7 @@ from datetime import datetime
 
 class TaskCommentBase(BaseModel):
     content: str
+    created_at: datetime
     sender_id: int
 
 class TaskCommentCreate(TaskCommentBase):
@@ -15,9 +16,10 @@ class TaskCommentUpdate(BaseModel):
 class TaskCommentDelete(BaseModel):
     comment_id: int
 
-class TaskCommentOut(TaskCommentBase):
+class TaskCommentOut(BaseModel):
     comment_id: int
     task_id: int
+    content: str
     created_at: datetime 
     sender_id: int
     profile_picture: Optional[str] = None

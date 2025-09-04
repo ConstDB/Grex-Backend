@@ -7,3 +7,9 @@ class TaskAssignmentBase(BaseModel):
 
 class TaskAssignmentCreate(TaskAssignmentBase):
     pass
+
+class TaskAssignmentOut(BaseModel):
+    task_id: int
+    user_id: int
+    avatar: Optional[str] = None
+    name: str

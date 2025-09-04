@@ -10,8 +10,6 @@ import os
 import time
 import logging
 
-logger = logging.getLogger("uvicorn")
-
 
 load_dotenv()
 
