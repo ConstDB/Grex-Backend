@@ -1,4 +1,4 @@
-lfrom sentence_transformers import SentenceTransformer
+from sentence_transformers import SentenceTransformer
 from qdrant_client import AsyncQdrantClient
 from qdrant_client.models import Distance, VectorParams, PayloadSchemaType
 from ..utils.logger import logger

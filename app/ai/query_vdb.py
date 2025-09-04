@@ -1,9 +1,31 @@
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
+import torch
 
-model = AutoModelForCausalLM.from_pretrained("microsoft/Phi-3-mini-4k-instruct")
-tokenizer = AutoTokenizer.from_pretrained("microsoft/Phi-3-mini-4k-instruct")
+# quant_config = BitsAndBytesConfig(
+#     load_in_4bit=True,
+#     bnb_4bit_use_double_quant=True,
+#     bnb_4bit_quant_type="nf4",           # nf4 is usually best for LLMs
+#     bnb_4bit_compute_dtype=torch.float16 # keep compute in fp16
+#     )
+model = AutoModelForCausalLM.from_pretrained(
+    "microsoft/phi-1_5",
+    dtype=torch.float16,
+    # quantization_config=quant_config,
+    device_map="auto",
+    low_cpu_mem_usage=True
+    )
+tokenizer = AutoTokenizer.from_pretrained("microsoft/phi-1_5")
 
-inputs = tokenizer("Hello you are an assistant.", return_tensors="pt")
-output = model.generate(**inputs, max_new_tokens=200)
 
-print(output.decode(outputs[0], skip_special_tokens=True))
+prompt = """
+Query: "@GrexAI what is the synonym of good"
+"""
+
+inputs = tokenizer(prompt, return_tensors="pt")
+output = model.generate(
+    **inputs,
+    max_new_tokens=30,
+    do_sample=False,     # deterministic output
+)
+
+print(tokenizer.decode(output[0], skip_special_tokens=True))
