@@ -13,7 +13,7 @@ manager = ConnectionManager()
 
 
 @router.websocket("/workspace/{workspace_id}/{user_id}")
-async def websocket_message_endpoint(websocket: WebSocket, workspace_id: int, user_id: int):
+async def websocket_message_endpoint(websocket: WebSocket, workspace_id: int, user_id: int, token:str = Depends(get_current_user)):
     await manager.connect(workspace_id, websocket)
 
     try:
