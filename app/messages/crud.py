@@ -23,18 +23,28 @@ async def insert_text_messages_to_db(text_data: dict, conn: asyncpg.Connection):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to insert text_message into text_messages table -> {e}")
 
-async def get_few_messages_from_db(workspace_id: int, timestamp: datetime, conn: asyncpg.Connection):
+async def get_few_messages_from_db(workspace_id: int, conn: asyncpg.Connection, last_id:int = None):
     try:
-        query ="""
-            SELECT *
-            FROM message_details
-            WHERE workspace_id = $1 
-            AND sent_at < $2
-            ORDER BY sent_at DESC
-            LIMIT $3
-        """
-
-        res = await conn.fetch(query, workspace_id, timestamp, 30)
+        if last_id:
+            query = """
+                SELECT *
+                FROM message_details
+                WHERE workspace_id = $1 
+                    AND message_id < $2
+                ORDER BY message_id DESC
+                LIMIT $3
+            """
+            res = await conn.fetch(query, workspace_id, last_id, 30)
+        else:
+            query ="""
+                SELECT *
+                FROM message_details
+                WHERE workspace_id = $1
+                ORDER BY message_id DESC
+                LIMIT $2
+            
+            """
+            res = await conn.fetch(query, workspace_id, 30)
 
         return res
     except Exception as e:
@@ -56,3 +66,18 @@ async def get_last_read_timestamp(workspace_id: int, user_id: int, conn: asyncpg
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch user's last_read_at timestamp -> {e}")
 
+
+async def get_sender_data(user_id: int, workspace_id: int, conn: asyncpg.Connection):
+    query = """
+        SELECT
+            u.profile_picture,
+            wm.nickname
+        FROM users u
+        LEFT JOIN workspace_members wm ON u.user_id = wm.user_id
+        WHERE u.user_id = $1
+            AND wm.workspace_id = $2
+    """
+
+    res = await conn.fetchrow(query, user_id, workspace_id)
+
+    return res

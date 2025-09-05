@@ -4,6 +4,7 @@ from fastapi import WebSocket
 class ConnectionManager:
     def __init__(self):
         self.active_connections: Dict[int, List[WebSocket]] = {} # -> List of websockets/sockets
+        self.connected_user_payload: Dict[str, Dict] = {}
     
     async def connect(self, workspace_id: int, websocket: WebSocket):
         """
@@ -39,3 +40,18 @@ class ConnectionManager:
         if workspace_id in self.active_connections:
             for conn in self.active_connections[workspace_id]:
                 await conn.send_json(message)
+
+    async def store_cache(self, id:str, payload:dict):
+        self.connected_user_payload[id] = {
+            "avatar": payload["profile_picture"],
+            "nickname": payload["nickname"]
+        }
+        return self.connected_user_payload[id]
+
+    async def get_user_cache(self, id:str):
+        return self.connected_user_payload[id]
+
+    async def not_in_collection(self, id: str):
+        if id not in self.connected_user_payload:
+            return True
+        return False
