@@ -12,7 +12,7 @@ router = APIRouter()
 @router.post("/task/{task_id}/attachments")
 async def add_attachment(task_id: int, 
                          attachment: TaskAttachmentCreate,
-                         token: str = Depends(get_current_user), 
+                        #  token: str = Depends(get_current_user), 
                          conn=Depends(get_db_connection)):
     try:
         row = await create_attachment(conn, task_id, attachment)
@@ -23,7 +23,7 @@ async def add_attachment(task_id: int,
 # Get task attachment
 @router.get("/task/{task_id}/attachments")
 async def fetch_attachments(task_id: int, 
-                            token: str = Depends(get_current_user),
+                            # token: str = Depends(get_current_user),
                             conn=Depends(get_db_connection)):
     
     rows = await get_attachments_by_task(conn, task_id)
@@ -32,7 +32,7 @@ async def fetch_attachments(task_id: int,
 # Delete a task attachment
 @router.delete("/task/{task_id}/attachments")
 async def remove_attachment(attachment: TaskAttachmentDelete, 
-                            token: str = Depends(get_current_user),
+                            # token: str = Depends(get_current_user),
                             conn=Depends(get_db_connection)):
     
     row = await delete_attachment(conn, attachment)

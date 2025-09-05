@@ -13,7 +13,7 @@ router = APIRouter()
 async def create_taskassignment(
     task_id: int, 
     user_id: int, 
-    token: str = Depends(get_current_user),
+    # token: str = Depends(get_current_user),
     conn: asyncpg.Connection = Depends(get_db_connection)):
     assigned = await task_assignment_crud.create_taskassignment(conn, task_id, user_id)
     return {
@@ -25,7 +25,7 @@ async def create_taskassignment(
 # Router for getting all assigned users from a task
 @router.get("/task/{task_id}/assignment", response_model=List[TaskAssignmentOut])
 async def get_taskassignment(task_id: int, 
-                             token: str = Depends(get_current_user),
+                            #  token: str = Depends(get_current_user),
                              conn: asyncpg.Connection = Depends(get_db_connection)):
     taskassignment = await task_assignment_crud.get_taskassignment(conn, task_id)
     return [TaskAssignmentOut(**r) for r in taskassignment] if taskassignment else []
@@ -34,7 +34,7 @@ async def get_taskassignment(task_id: int,
 @router.delete("/task/{task_id}/assignment/{user_id}")
 async def delete_taskassignment(task_id: int, 
                                 user_id: int, 
-                                token: str = Depends(get_current_user),
+                                # token: str = Depends(get_current_user),
                                 conn: asyncpg.Connection = Depends (get_db_connection)):
     remove = await task_assignment_crud.delete_taskassignment(conn, task_id, user_id)
     if not remove:
