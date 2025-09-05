@@ -15,7 +15,7 @@ router = APIRouter()
 # ===========================POST========================================================================
 
 @router.post("")
-async def create_workspace(workspace: WorkspaceCreation, conn: asyncpg.Connection = Depends(get_db_connection)): 
+async def create_workspace(workspace: WorkspaceCreation, conn: asyncpg.Connection = Depends(get_db_connection), token: str = Depends(get_current_user)): 
     try:
         workspace_dict = workspace.model_dump()
         
@@ -25,7 +25,7 @@ async def create_workspace(workspace: WorkspaceCreation, conn: asyncpg.Connectio
          raise HTTPException(status_code=500, detail=f"Workspace creation failed -> {e}")     
       
 @router.post("/{workspace_id}/members")
-async def add_workspace_member(email:str, workspace_id: int, conn: asyncpg.Connection = Depends(get_db_connection)):
+async def add_workspace_member(email:str, workspace_id: int, conn: asyncpg.Connection = Depends(get_db_connection), token: str = Depends(get_current_user)):
     try: 
         user = await get_user_info(email, conn)
         user_dict = dict(user)
@@ -52,7 +52,7 @@ async def add_workspace_member(email:str, workspace_id: int, conn: asyncpg.Conne
 # ===========================GET======================================================================
    
 @router.get("/{user_id}", response_model=List[GetWorkspaces])
-async def get_all_workspaces(user_id:int, conn: asyncpg.Connection = Depends(get_db_connection)):
+async def get_all_workspaces(user_id:int, conn: asyncpg.Connection = Depends(get_db_connection), token: str = Depends(get_current_user)):
     try:
         
         workspaces = await get_all_user_workspaces(user_id, conn)
@@ -70,7 +70,7 @@ async def get_all_workspaces(user_id:int, conn: asyncpg.Connection = Depends(get
      
 
 @router.get("/{workspace_id}/{user_id}")
-async def get_workspace_info(user_id:int, workspace_id:int, conn: asyncpg.Connection = Depends(get_db_connection)): 
+async def get_workspace_info(user_id:int, workspace_id:int, conn: asyncpg.Connection = Depends(get_db_connection), token: str = Depends(get_current_user)): 
     try:
         workspace = await get_workspace_from_db(user_id, workspace_id, conn)
 
@@ -84,7 +84,7 @@ async def get_workspace_info(user_id:int, workspace_id:int, conn: asyncpg.Connec
          raise HTTPException(status_code=500, detail=f"Process Failed -> {e}")
      
 @router.get("{workspace_id}/members/search")
-async def get_workspace_members(workspace_id: int, name: str, conn: asyncpg.Connection = Depends(get_db_connection)):
+async def get_workspace_members(workspace_id: int, name: str, conn: asyncpg.Connection = Depends(get_db_connection), token: str = Depends(get_current_user)):
     try:
         return await search_member_by_name(normalize_name(name), workspace_id, conn)
     except Exception as e:
@@ -93,7 +93,7 @@ async def get_workspace_members(workspace_id: int, name: str, conn: asyncpg.Conn
 
 # ===========================PATCH======================================================================
 @router.patch("/{workspace_id}")
-async def workspace_update (workspace_id: int, model: WorkspacePatch, conn: asyncpg.Connection=Depends(get_db_connection)):
+async def workspace_update (workspace_id: int, model: WorkspacePatch, conn: asyncpg.Connection=Depends(get_db_connection), token: str = Depends(get_current_user)):
     try:
         res = await update_workspace_data (workspace_id, model.model_dump(),  conn)    
         return res
@@ -101,7 +101,7 @@ async def workspace_update (workspace_id: int, model: WorkspacePatch, conn: asyn
         raise HTTPException(status_code=500, detail=f"Process failed -> {e}")
     
 @router.patch("/{workspace_id}/members/{user_id}")
-async def workspace_user_update(workspace_id: int, user_id: int, model: WorkspaceMembersPatch, conn: asyncpg.Connection = Depends(get_db_connection)):
+async def workspace_user_update(workspace_id: int, user_id: int, model: WorkspaceMembersPatch, conn: asyncpg.Connection = Depends(get_db_connection), token: str = Depends(get_current_user)):
     try:
         res = await update_user_data(workspace_id, user_id, model.model_dump(), conn)
         return res
@@ -111,7 +111,7 @@ async def workspace_user_update(workspace_id: int, user_id: int, model: Workspac
 
  #===========================DELETE=====================================================================
 @router.delete("/{workspace_id}/members")
-async def workspace_kick_member(workspace_id: int, user_id:int, conn: asyncpg.Connection = Depends(get_db_connection)): 
+async def workspace_kick_member(workspace_id: int, user_id:int, conn: asyncpg.Connection = Depends(get_db_connection), token: str = Depends(get_current_user)): 
     try: 
         res = await kick_member(workspace_id, user_id, conn)
         
