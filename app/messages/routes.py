@@ -10,12 +10,8 @@ from datetime import datetime
 
 router = APIRouter()
 
-@router.get("/testing")
-async def Testing():
-    return "hello this is messaging route"
-
 @router.get("/workspace/{workspace_id}/messages")
-async def get_messages(workspace_id: int, last_id:int=None, conn: asyncpg.Connection = Depends(get_db_connection)):
+async def get_messages(workspace_id: int, last_id:int=None, conn: asyncpg.Connection = Depends(get_db_connection), token:str = Depends(get_current_user)):
     try:
         response = await get_few_messages_from_db(workspace_id, conn, last_id)
         return response
