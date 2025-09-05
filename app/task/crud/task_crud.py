@@ -1,6 +1,6 @@
 # app/api/task/crud/task_crud.py
 
-from ...task.schemas.Tasks_schema import TaskCreate, TaskPatch
+from ...task.schemas.Tasks_schema import TaskCreate, TaskPatch, TaskCreateOut
 from fastapi import HTTPException
 from datetime import datetime, timezone
 from ...utils.decorators import db_error_handler
@@ -31,11 +31,20 @@ async def create_task(conn, workspace_id: int, task: TaskCreate):
 
     query = """
         INSERT INTO tasks 
-        (workspace_id, title, subject, description, deadline, status, priority_level, created_by)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-        RETURNING task_id, workspace_id, title, subject, description, deadline, status, priority_level, created_by, created_at;
+        (workspace_id, title, subject, description, deadline, status, priority_level, start_date, created_by)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        RETURNING task_id, workspace_id, title, subject, description, deadline, status, priority_level, start_date, created_by, created_at;
     """
-    row = await conn.fetchrow(query, workspace_id, task.title, task.subject, task.description, task.deadline, status, priority, task.created_by)
+    row = await conn.fetchrow(query, 
+                              workspace_id, 
+                              task.title, 
+                              task.subject, 
+                              task.description, 
+                              task.deadline, 
+                              status, 
+                              priority, 
+                              task.start_date, 
+                              task.created_by)
     task_id = row['task_id']
 
     # Log the creation
@@ -45,7 +54,7 @@ async def create_task(conn, workspace_id: int, task: TaskCreate):
     )
     await log_task_action(conn, workspace_id, content)
 
-    return dict(row)
+    return TaskCreateOut(**dict(row))
 
 # COMMENT BELOW IS FOR GETTING ALL SUB RELATED TASK WITHIN TASK    
 # async def get_task(conn, workspace_id: int, task_id: int):
