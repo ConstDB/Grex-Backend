@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from typing import Optional, List
 from ..users.schemas import UserBasic, UserDetail
 from datetime import date, datetime
+from ..messages.schemas import Message_Base
 
 class WorkspaceCreation(BaseModel):
     name: str
@@ -12,8 +13,7 @@ class WorkspaceCreation(BaseModel):
     created_by: int  
     
     
-class GetWorkspaces (BaseModel):
-    
+class GetWorkspaces(BaseModel):
     workspace_id: int
     name: str
     project_nature: Optional[str] = None
@@ -61,12 +61,17 @@ class WorkspacePutUpdate(BaseModel):
     due_date: date
     leader_id: str
     created_at: date 
-class WorkspacePatchUpdate(BaseModel):
-    workspace_id:int
-    name: str
-    due_date: date 
-
-
+class WorkspacePatch(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    project_nature: Optional[str] = None
+    start_date: Optional[date] = None 
+    due_date: Optional [date] = None 
+    workspace_profile_url: Optional [str] = None
     
+
+class WorkspaceMembersPatch(BaseModel):
+    role:  Optional[str] = None
+    nickname:  Optional[str] = None
 
    

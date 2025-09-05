@@ -8,6 +8,7 @@ from ..utils.logger import logger
 import jwt
 import os
 import time
+import logging
 
 
 load_dotenv()

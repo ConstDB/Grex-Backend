@@ -3,7 +3,8 @@ from fastapi import HTTPException, Depends
 from ..deps import get_db_connection
 from ..utils.query_builder import insert_query
 from ..db_instance import db
-
+import datetime as date
+from .schemas import WorkspacePatch,WorkspaceMembersPatch
 async def add_workspace_to_db(workspace:dict, conn: asyncpg.Connection):
     try:
         query = """
@@ -87,7 +88,9 @@ async def get_all_user_workspaces(user_id: int, conn:asyncpg.Connection):
                     json_build_object(
                         'user_id', u.user_id, 
                         'profile_picture', u.profile_picture,
-                        'status', u.status                 
+                        'status', u.status ,                
+                        'phone_number', u.phone_number,      
+                        'nickname', wm.nickname
                         )
                 ) FILTER (WHERE u.user_id IS NOT NULL),
                 '[]'                   
@@ -132,18 +135,22 @@ async def get_workspace_from_db(user_id:int, workspace_id: int, conn: asyncpg.Co
                 w.created_by, 
                 w.created_at,
                 
+                w.created_by,
+                w.workspace_profile_url, 
+        
                 COALESCE(            
                     json_agg(
                         json_build_object(
                             'user_id', u.user_id, 
                             'role', wm.role,
-                            'nickname', wm.nickname,
                             'joined_at', wm.joined_at,
                             'first_name', u.first_name,
                             'last_name', u.last_name,
+                             'nickname', wm.nickname,
                             'email', u.email,
                             'profile_picture', u.profile_picture,
-                            'status', u.status 
+                            'status', u.status
+                              
                         )
                     ) FILTER (WHERE u.user_id IS NOT NULL),
                     '[]'                   
@@ -157,6 +164,7 @@ async def get_workspace_from_db(user_id:int, workspace_id: int, conn: asyncpg.Co
                     FROM workspace_members wm2
                     WHERE wm2.workspace_id = w.workspace_id
                         AND wm2.user_id = $2
+                        
                 ) 
                 
                 GROUP BY
@@ -196,22 +204,32 @@ async def insert_members_read_status(payload:dict, conn: asyncpg.Connection):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to add read status on this workspace: {e}")
+            
 
-async def workspace_role_update(workspace_id: int, user_id: int, role:str, conn: asyncpg.Connection): 
+async def search_member_by_name(name:str, workspace_id: int, conn: asyncpg.Connection):
     try:
-        query = """
-        UPDATE workspace_members
-        SET role = $3
-        WHERE workspace_id = $1 AND user_id = $2
-        returning * ;
-         """
-    
-        res = await conn.fetchrow(query, workspace_id, user_id, role) 
-    
+        query="""
+            SELECT
+                u.user_id,
+                u.first_name,
+                u.last_name,
+                wm.nickname, 
+                u.email, 
+                u.profile_picture
+                
+            FROM users u
+            LEFT JOIN workspace_members wm ON u.user_id = wm.user_id AND wm.workspace_id = $2
+            WHERE ((u.first_name || ' ' || u.last_name) ILIKE '%' || $1 || '%')
+            AND wm.workspace_id = $2
+        """
+
+        res = await conn.fetch(query, name, workspace_id)
         return res
     except Exception as e:
-        raise HTTPException(status_code=500, detail= f"Process failed -> {e}")      
-            
+        raise HTTPException(status_code=500, detail=f"Failed to fetch workspace member -> {e}")
+           
+    
+
 async def kick_member(workspace_id: int, user_id: int, conn: asyncpg.Connection):
     try: 
         query =  """
@@ -225,7 +243,123 @@ async def kick_member(workspace_id: int, user_id: int, conn: asyncpg.Connection)
         return res 
     except Exception as e:
             raise HTTPException(status_code=500, detail=f"Process Failed -> {e}")
+        
+async def update_workspace_data(
+    workspace_id: int,
+    model : dict, 
+    conn: asyncpg.Connection    
+):
+    
+    workspace_update = []
+    workspace_values = []
+    idx = 1    
+        
+    name = model.get("name")
+    project_nature = model.get("project_nature")
+    description = model.get("description")
+    start_date = model.get("start_date")
+    due_date = model.get("due_date")
+    workspace_profile_url = model.get("workspace_profile_url")
+    created_by = model.get("created_by")
+    created_at = model.get("created_at")
+    
+    
+    if name is not None: 
+        workspace_update.append (f"name = ${idx}")
+        workspace_values.append(name)
+        idx += 1
+        
+    if project_nature is not None: 
+        workspace_update.append(f"project_nature = ${idx}")
+        workspace_values.append(project_nature)
+        idx +=1
+        
+    if description is not None: 
+        workspace_update.append(f"description = ${idx}")
+        workspace_values.append(description)
+        idx +=1
+    
+    if start_date is not None: 
+        workspace_update.append(f"start_date = ${idx}")
+        workspace_values.append(start_date)
+        idx +=1
+        
+    if due_date is not None: 
+        workspace_update.append(f"due_date = ${idx}")
+        workspace_values.append (due_date)
+        idx +=1
+        
+    if workspace_profile_url is not None:
+        workspace_update.append(f"workspace_profile_url = ${idx}")
+        workspace_values.append(workspace_profile_url)
+        idx +=1
+        
+    if created_by is not None: 
+        workspace_update.append(f"created_by = ${idx}")
+        workspace_values.append(created_by)
+        idx+=1
+        
+    if created_at is not None: 
+        workspace_update.append(f"created_at = ${idx}")
+        workspace_values.append(created_at)
+        idx+=1
+        
+                
+    if not workspace_update:
+       return None
 
+
+    query = f"""
+    
+        UPDATE workspaces
+            SET { ", " .join(workspace_update)}
+        WHERE workspace_id = ${idx} 
+        RETURNING *;
+        """
+        
+    workspace_values.append(workspace_id)
+    
+    res = await conn.fetchrow(query, *workspace_values)
+    return dict(res) if res else None
+
+
+async def update_user_data(workspace_id:int, user_id: int, model: dict, conn: asyncpg.Connection): 
+   
+    user_update = []
+    user_values = []
+    idx = 1 
+    
+        
+    nickname = model.get("nickname")
+    role = model.get("role")
+        
+    if nickname is not None:
+        user_update.append(f"nickname = ${idx}")
+        user_values.append(nickname)
+        idx +=1
+        
+    if role is not None:
+        user_update.append(f"role = ${idx}")
+        user_values.append(role)
+        idx +=1
+
+    if not user_update:
+       return None
+
+
+    query = f"""
+    
+        UPDATE workspace_members
+            SET { ", " .join(user_update)}
+        WHERE workspace_id  = ${idx}
+        AND user_id= ${idx} 
+        RETURNING *;
+        """
+        
+    user_values.append(workspace_id, user_id)
+    
+    res = await conn.fetchrow(query, *user_values)
+    return dict(res) if res else None
 
 async def search_member_by_name(name:str, workspace_id: int, conn: asyncpg.Connection):
     try:
@@ -246,3 +380,5 @@ async def search_member_by_name(name:str, workspace_id: int, conn: asyncpg.Conne
         return res
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch workspace member -> {e}")
+
+
