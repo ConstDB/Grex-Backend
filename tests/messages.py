@@ -7,7 +7,7 @@ async def test_ws():
     async with websockets.connect(uri) as ws:
         await ws.send(json.dumps({
             "type":"text",
-            "content": "ggggg",
+            "content": "Wag ka na mag n-word par",
             "reply_to": 3
         }))
 
