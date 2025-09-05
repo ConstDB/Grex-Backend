@@ -4,7 +4,7 @@ from ..deps import get_db_connection
 from ..utils.query_builder import insert_query
 from ..db_instance import db
 import datetime as date
-
+from .schemas import WorkspacePatch,WorkspaceMembersPatch
 async def add_workspace_to_db(workspace:dict, conn: asyncpg.Connection):
     try:
         query = """
@@ -88,11 +88,10 @@ async def get_all_user_workspaces(user_id: int, conn:asyncpg.Connection):
                     json_build_object(
                         'user_id', u.user_id, 
                         'profile_picture', u.profile_picture,
-                        'status', u.status                 
-                        )
+                        'status', u.status ,                
                         'phone_number', u.phone_number,      
                         'nickname', wm.nickname
-                        
+                        )
                 ) FILTER (WHERE u.user_id IS NOT NULL),
                 '[]'                   
             ) AS members
@@ -245,41 +244,66 @@ async def kick_member(workspace_id: int, user_id: int, conn: asyncpg.Connection)
     except Exception as e:
             raise HTTPException(status_code=500, detail=f"Process Failed -> {e}")
         
-async def update_user_data(
+async def update_workspace_data(
     workspace_id: int,
-    user_id: int,
-    nickname:str, 
-    role: str ,
-    project_nature: str ,
-    Description: str,
+    model : dict, 
     conn: asyncpg.Connection    
 ):
     
     workspace_update = []
     workspace_values = []
-    idx = 1
-    
-
-    if nickname is not None: 
-        workspace_update.append (f"nickname = ${idx}")
-        workspace_values.append(nickname)
-        idx += 1
+    idx = 1    
         
-    if role is not None: 
-        workspace_update.append(f"role = ${idx}")
-        workspace_values.append(role)
-        idx +=1
+    name = model.get("name")
+    project_nature = model.get("project_nature")
+    description = model.get("description")
+    start_date = model.get("start_date")
+    due_date = model.get("due_date")
+    workspace_profile_url = model.get("workspace_profile_url")
+    created_by = model.get("created_by")
+    created_at = model.get("created_at")
+    
+    
+    if name is not None: 
+        workspace_update.append (f"name = ${idx}")
+        workspace_values.append(name)
+        idx += 1
         
     if project_nature is not None: 
         workspace_update.append(f"project_nature = ${idx}")
         workspace_values.append(project_nature)
         idx +=1
         
-    if Description is not None: 
-        workspace_update.append(f"Description = ${idx}")
-        workspace_values.append(Description)
+    if description is not None: 
+        workspace_update.append(f"description = ${idx}")
+        workspace_values.append(description)
         idx +=1
     
+    if start_date is not None: 
+        workspace_update.append(f"start_date = ${idx}")
+        workspace_values.append(start_date)
+        idx +=1
+        
+    if due_date is not None: 
+        workspace_update.append(f"due_date = ${idx}")
+        workspace_values.append (due_date)
+        idx +=1
+        
+    if workspace_profile_url is not None:
+        workspace_update.append(f"workspace_profile_url = ${idx}")
+        workspace_values.append(workspace_profile_url)
+        idx +=1
+        
+    if created_by is not None: 
+        workspace_update.append(f"created_by = ${idx}")
+        workspace_values.append(created_by)
+        idx+=1
+        
+    if created_at is not None: 
+        workspace_update.append(f"created_at = ${idx}")
+        workspace_values.append(created_at)
+        idx+=1
+        
                 
     if not workspace_update:
        return None
@@ -292,12 +316,50 @@ async def update_user_data(
         WHERE workspace_id = ${idx} 
         RETURNING *;
         """
-    workspace_values.extend([workspace_id, user_id])
+        
+    workspace_values.append(workspace_id)
     
     res = await conn.fetchrow(query, *workspace_values)
     return dict(res) if res else None
-    
 
+
+async def update_user_data(workspace_id:int, user_id: int, model: dict, conn: asyncpg.Connection): 
+   
+    user_update = []
+    user_values = []
+    idx = 1 
+    
+        
+    nickname = model.get("nickname")
+    role = model.get("role")
+        
+    if nickname is not None:
+        user_update.append(f"nickname = ${idx}")
+        user_values.append(nickname)
+        idx +=1
+        
+    if role is not None:
+        user_update.append(f"role = ${idx}")
+        user_values.append(role)
+        idx +=1
+
+    if not user_update:
+       return None
+
+
+    query = f"""
+    
+        UPDATE workspace_members
+            SET { ", " .join(user_update)}
+        WHERE workspace_id  = ${idx}
+        AND user_id= ${idx} 
+        RETURNING *;
+        """
+        
+    user_values.append(workspace_id, user_id)
+    
+    res = await conn.fetchrow(query, *user_values)
+    return dict(res) if res else None
 
 async def search_member_by_name(name:str, workspace_id: int, conn: asyncpg.Connection):
     try:
