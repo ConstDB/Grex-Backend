@@ -1,5 +1,5 @@
 
-from fastapi import WebSocket, WebSocketDisconnect, APIRouter, Depends
+from fastapi import WebSocket, WebSocketDisconnect, APIRouter, Depends, HTTPException
 from ..websocket_manager import ConnectionManager
 from ..users.auth import get_current_user
 from .crud import insert_messages_to_db, insert_text_messages_to_db, get_sender_data
@@ -13,9 +13,14 @@ manager = ConnectionManager()
 
 
 @router.websocket("/workspace/{workspace_id}/{user_id}")
-async def websocket_message_endpoint(websocket: WebSocket, workspace_id: int, user_id: int, token:str = Depends(get_current_user)):
+async def websocket_message_endpoint(websocket: WebSocket, workspace_id: int, user_id: int):
     await manager.connect(workspace_id, websocket)
 
+    token = websocket.headers.get("authorization")
+    
+    if get_current_user(token, is_HTTP=False) == None:
+        websocket.close(code=1008, reason="Invalid credentials.")
+        
     try:
         while True:
             data = await websocket.receive_text()
