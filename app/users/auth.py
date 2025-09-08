@@ -21,15 +21,19 @@ pwd_content = CryptContext(schemes=["bcrypt"])
 
 oauth_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 
-def get_current_user(token:str = Depends(oauth_scheme)):
+def get_current_user(token:str = Depends(oauth_scheme), is_HTTP = True):
     try:
         payload = decode_access_token(token)
+        
         if payload is None:
-            raise HTTPException(
-            status_code=401,
-            detail="Invalid or expired access token",
-            headers={"WWW-Authenticate": "Bearer"},
-            )
+            if is_HTTP == False:
+                return None
+            else:
+                raise HTTPException(
+                status_code=401,
+                detail="Invalid or expired access token",
+                headers={"WWW-Authenticate": "Bearer"},
+                )
         return payload
     except Exception as e:
         raise HTTPException(status_code=401, detail=f"{e}")
