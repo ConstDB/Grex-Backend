@@ -25,7 +25,7 @@ async def post_category(
 
 # For getting a category in workspaces
 @router.get("/workspace/{workspace_id}/categories", response_model=list[CategoryOut])
-async def get_categories_route(
+async def get_category(
     workspace_id: int,
     token: str = Depends(get_current_user), 
     conn: asyncpg.Connection = Depends(get_db_connection)
@@ -39,7 +39,7 @@ async def get_categories_route(
 async def put_category(workspace_id: int,
                        category_id: int,
                        category: CategoryUpdate,
-                    #    token: str = Depends(get_current_user),
+                       token: str = Depends(get_current_user),
                        conn: asyncpg.Connection = Depends(get_db_connection)):
     try:
         row = await update_category(conn, workspace_id, category_id, category)

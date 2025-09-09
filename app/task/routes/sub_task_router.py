@@ -27,15 +27,6 @@ async def create_subtask(
     return {"status": "success", "data": created}
     
 
-# Router for getting specific subtask by task_id and subtask_id
-# @router.get("/{task_id}/{subtasK_id}")
-# async def get_subtask(task_id:int, subtask_id: int, conn: asyncpg.Connection = Depends (get_db_connection)):
-#     subtask = await sub_task_crud.get_subtask(conn, task_id, subtask_id)
-#     if not subtask:
-#         raise HTTPException(status_code=404, detail="Subtask not found")
-#     return{"status": "success", "data": subtask}
-
-
 # Router for getting all subtask in task_id
 @router.get("/task/{task_id}/subtask")
 async def get_subtasks_by_task(task_id: int, 
