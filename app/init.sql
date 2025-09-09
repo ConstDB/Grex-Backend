@@ -63,6 +63,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     deadline DATE,
     status VARCHAR(20) CHECK (status IN ('pending', 'done', 'overdue')),
     priority_level VARCHAR(20),
+    start_date DATE NULL,
     created_by INTEGER REFERENCES users(user_id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     marked_done_at TIMESTAMPTZ
