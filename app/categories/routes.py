@@ -14,6 +14,7 @@ router = APIRouter()
 async def post_category(
     workspace_id: int, 
     category: CategoryCreate,
+    token: str = Depends(get_current_user),
     conn: asyncpg.Connection = Depends(get_db_connection)
 ):
     try:
@@ -24,8 +25,9 @@ async def post_category(
 
 # For getting a category in workspaces
 @router.get("/workspace/{workspace_id}/categories", response_model=list[CategoryOut])
-async def get_categories_route(
-    workspace_id: int, 
+async def get_category(
+    workspace_id: int,
+    token: str = Depends(get_current_user), 
     conn: asyncpg.Connection = Depends(get_db_connection)
 ):
     rows = await get_category(conn, workspace_id)
@@ -37,7 +39,7 @@ async def get_categories_route(
 async def put_category(workspace_id: int,
                        category_id: int,
                        category: CategoryUpdate,
-                    #    token: str = Depends(get_current_user),
+                       token: str = Depends(get_current_user),
                        conn: asyncpg.Connection = Depends(get_db_connection)):
     try:
         row = await update_category(conn, workspace_id, category_id, category)
@@ -49,6 +51,7 @@ async def put_category(workspace_id: int,
 @router.delete("/workspace/{workspace_id}/categories/{category_id}", response_model=CategoryDelete)
 async def del_category(workspace_id: int,
                        category_id: int,
+                       token: str = Depends(get_current_user),
                        conn: asyncpg.Connection = Depends(get_db_connection)):
     row = await delete_category(conn, workspace_id, category_id)
     if not row:
