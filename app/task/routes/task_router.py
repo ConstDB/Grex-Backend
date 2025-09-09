@@ -17,7 +17,7 @@ router = APIRouter()
 async def create_task(   
     workspace_id: int,
     task_in: TaskCreate,
-    # token: str = Depends(get_current_user),
+    token: str = Depends(get_current_user),
     conn: asyncpg.Connection = Depends(get_db_connection)
 ):
     return await task_crud.create_task(conn=conn, workspace_id=workspace_id, task=task_in)
@@ -26,7 +26,7 @@ async def create_task(
 @router.get("/{workspace_id}/{task_id}", response_model=TaskAllOut) 
 async def get_task(workspace_id: int, 
                    task_id: int, 
-                #    token: str = Depends(get_current_user),
+                   token: str = Depends(get_current_user),
                    conn: asyncpg.Connection = Depends(get_db_connection)):
     task = await task_crud.get_task(conn=conn, workspace_id=workspace_id, task_id=task_id)
     if not task:
@@ -36,7 +36,7 @@ async def get_task(workspace_id: int,
 # Get all Tasks in a Workspace
 @router.get("/{workspace_id}", response_model=List[TaskAllOut]) 
 async def get_all_tasks(workspace_id: int, 
-                        # token: str = Depends(get_current_user),
+                        token: str = Depends(get_current_user),
                         conn: asyncpg.Connection = Depends(get_db_connection)):
 
     get = await task_crud.get_tasks_by_workspace(conn=conn, workspace_id=workspace_id)
@@ -50,7 +50,7 @@ async def patch_task(
     workspace_id: int,
     task_id: int,
     patch_task: TaskPatch,
-    # token: str = Depends(get_current_user),
+    token: str = Depends(get_current_user),
     conn: asyncpg.Connection = Depends(get_db_connection)
 ):
     task = await task_crud.patch_task(
@@ -67,7 +67,7 @@ async def patch_task(
 @router.delete("/{workspace_id}/{task_id}")
 async def delete_task(workspace_id: int, 
                       task_id: int, 
-                    #   token: str = Depends(get_current_user),
+                      token: str = Depends(get_current_user),
                       conn: asyncpg.Connection = Depends(get_db_connection)):
     deleted = await task_crud.delete_task(conn=conn, workspace_id=workspace_id, task_id=task_id)
     if not deleted:
