@@ -57,37 +57,3 @@ class TaskAllOut(BaseModel):
     created_at: datetime
     marked_done_at: Optional[datetime]
 
-# class SubTaskOut(BaseModel):
-#     subtask_id: int
-#     task_id: int
-#     description: str
-#     is_done: bool
-#     created_at: datetime
-
-# class TaskCommentOut(BaseModel):
-#     comment_id: int
-#     task_id: int
-#     content: str
-#     created_at: datetime
-#     sender_id: int | None = None
-
-# class TaskAssignmentOut(BaseModel):
-#     user_id: int
-#     task_id: int
-
-# class TaskAttachmentOut(BaseModel):
-#     attachment_id: int
-#     file_url: str
-#     uploaded_at: datetime
-
-# class TaskOut(TaskBase):
-#     task_id: int
-#     created_at: datetime
-#     marked_done_at: Optional[datetime] = None
-
-#     # Subqueries
-#     subtasks: List[SubTaskOut] = []
-#     comments: List[TaskCommentOut] = []
-#     assignments: List[TaskAssignmentOut] = []
-#     attachments: List[TaskAttachmentOut] = []
-
