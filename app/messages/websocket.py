@@ -13,19 +13,13 @@ manager = ConnectionManager()
 
 
 @router.websocket("/workspace/{workspace_id}/{user_id}")
-async def websocket_message_endpoint(websocket: WebSocket, workspace_id: int, user_id: int):
+async def websocket_message_endpoint(websocket: WebSocket, workspace_id: int, user_id: int, token: str):
 
-    protocol = websocket.headers.get("sec-websocket-protocol")
-    if not protocol:
-        await websocket.close(code=1008, reason="Missing token.")
-        return
-        
-    token = protocol.strip()
-    if get_current_user(token, is_HTTP=False) == None:
+    if get_current_user(token.strip(), is_HTTP=False) == None:
         await websocket.close(code=1008, reason="Invalid credentials.")
         return
     
-    await manager.connect(workspace_id, websocket, protocol)
+    await manager.connect(workspace_id, websocket)
     try:
         while True:
             data = await websocket.receive_text()

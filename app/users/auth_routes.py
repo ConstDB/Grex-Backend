@@ -62,7 +62,7 @@ async def sign_up(user: UserRegisterSchema, conn: asyncpg.Connection = Depends(g
             key="refresh_token",
             value=refresh_payload["refresh_token"],
             httponly=True,
-            samesite="lax",
+            samesite="None",
             # secure=False, # for dev phase
             max_age=7*24*60*60
         )
@@ -110,7 +110,7 @@ async def login(user: UserLoginSchema, conn: asyncpg.Connection = Depends(get_db
             value=refresh_payload["refresh_token"],
             httponly=True,
             # secure=False, #For dev phase  
-            samesite="lax",
+            samesite="None",
             max_age=7*24*60*60
         )
  
