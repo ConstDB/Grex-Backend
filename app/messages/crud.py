@@ -31,7 +31,7 @@ async def get_few_messages_from_db(workspace_id: int, conn: asyncpg.Connection, 
                 FROM message_details
                 WHERE workspace_id = $1 
                     AND message_id < $2
-                ORDER BY message_id 
+                ORDER BY message_id DESC
                 LIMIT $3
             """
             res = await conn.fetch(query, workspace_id, last_id, 30)
@@ -45,8 +45,8 @@ async def get_few_messages_from_db(workspace_id: int, conn: asyncpg.Connection, 
             
             """
             res = await conn.fetch(query, workspace_id, 30)
-            res.reverse()
-
+            
+        res.reverse()
         return res
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get messages from DB -> {e}")
