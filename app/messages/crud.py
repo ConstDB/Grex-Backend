@@ -40,11 +40,12 @@ async def get_few_messages_from_db(workspace_id: int, conn: asyncpg.Connection, 
                 SELECT *
                 FROM message_details
                 WHERE workspace_id = $1
-                ORDER BY message_id
+                ORDER BY message_id DESC
                 LIMIT $2
             
             """
             res = await conn.fetch(query, workspace_id, 30)
+            res.reverse()
 
         return res
     except Exception as e:
