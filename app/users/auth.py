@@ -8,6 +8,7 @@ from ..utils.logger import logger
 import jwt
 import os
 import time
+import logging
 
 
 load_dotenv()
@@ -20,18 +21,24 @@ pwd_content = CryptContext(schemes=["bcrypt"])
 
 oauth_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 
-def get_current_user(token:str = Depends(oauth_scheme)):
+def get_current_user(token:str = Depends(oauth_scheme), is_HTTP = True):
     try:
         payload = decode_access_token(token)
         if payload is None:
-            raise HTTPException(
-            status_code=401,
-            detail="Invalid or expired access token",
-            headers={"WWW-Authenticate": "Bearer"},
-            )
+            if is_HTTP:
+                raise HTTPException(
+                status_code=401,
+                detail="Invalid or expired access token",
+                headers={"WWW-Authenticate": "Bearer"},
+                )
+            else:
+                return None
         return payload
     except Exception as e:
-        raise HTTPException(status_code=401, detail=f"{e}")
+        if is_HTTP:
+            raise HTTPException(status_code=401, detail=f"{e}")
+        else:
+            return None
 
 def token_response(token:str):
     """
@@ -58,7 +65,7 @@ def create_access_token(email:str):
     try:
         payload = {
             "sub": email,
-            "exp": time.time() + 30,
+            "exp": time.time() + 15 * 60,
             "type": "access"
         }
         token = jwt.encode(payload, JWT_ACCESS_SECRET, algorithm=JWT_ALGORITHM)
