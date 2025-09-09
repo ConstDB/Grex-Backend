@@ -63,7 +63,7 @@ async def subtask_patch(
 # Router for deleting a subtask
 @router.delete("/task/{task_id}/subtask/{subtask_id}")
 async def delete_subtask(task_id: int, subtask_id: int,
-                        #  token: str = Depends(get_current_user), 
+                         token: str = Depends(get_current_user), 
                          conn: asyncpg.Connection = Depends(get_db_connection)):
     deleted = await sub_task_crud.delete_subtask(conn, task_id, subtask_id)
     if not deleted:
