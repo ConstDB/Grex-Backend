@@ -25,7 +25,7 @@ async def post_category(
 
 # For getting a category in workspaces
 @router.get("/workspace/{workspace_id}/categories", response_model=list[CategoryOut])
-async def get_category(
+async def fetch_category(
     workspace_id: int,
     token: str = Depends(get_current_user), 
     conn: asyncpg.Connection = Depends(get_db_connection)
