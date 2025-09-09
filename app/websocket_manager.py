@@ -6,7 +6,7 @@ class ConnectionManager:
         self.active_connections: Dict[int, List[WebSocket]] = {} # -> List of websockets/sockets
         self.connected_user_payload: Dict[str, Dict] = {}
     
-    async def connect(self, workspace_id: int, websocket: WebSocket, protocol=str):
+    async def connect(self, workspace_id: int, websocket: WebSocket):
         """
             this accepts new Websocket and associate it with its respective workspace_id.
         
@@ -16,7 +16,7 @@ class ConnectionManager:
             the moment a member turned online we will connect their websocket to the workspace_id so that they can recieve new messages
 
         """
-        await websocket.accept(subprotocol=protocol)
+        await websocket.accept()
         if workspace_id not in self.active_connections:
             self.active_connections[workspace_id] = []
         self.active_connections[workspace_id].append(websocket)

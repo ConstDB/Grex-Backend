@@ -3,12 +3,12 @@ import websockets
 import json
 
 async def test_ws():
-    uri = "ws://127.0.0.1:8000/workspace/1/1"
+    uri = "ws://127.0.0.1:8000/workspace/1/1?token=<token ng user>"
     token = "<Pass a token here if you want to test it>"
-    async with websockets.connect(uri, subprotocols=[token]) as ws:
+    async with websockets.connect(uri) as ws:
         await ws.send(json.dumps({
             "type":"text",
-            "content": "Wag ka na mag n-word par",
+            "content": "okay ka ah",
             "reply_to": 3
         }))
 
