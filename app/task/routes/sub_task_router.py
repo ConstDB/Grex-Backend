@@ -12,7 +12,7 @@ router = APIRouter()
 async def create_subtask(
     task_id: int,
     subtask: SubTasksCreate,
-    # token: str = Depends(get_current_user),
+    token: str = Depends(get_current_user),
     conn: asyncpg.Connection = Depends(get_db_connection)
 ):
     task_exists = await conn.fetchrow("SELECT task_id FROM tasks WHERE task_id = $1", task_id)
@@ -52,7 +52,7 @@ async def subtask_patch(
     task_id: int,
     subtask_id: int,
     subtask_patch: SubTasksPatch,
-    # token: str = Depends(get_current_user),
+    token: str = Depends(get_current_user),
     conn: asyncpg.Connection = Depends(get_db_connection)
 ):
     updated = await sub_task_crud.update_subtask_status(conn, task_id, subtask_id, subtask_patch)
