@@ -28,15 +28,23 @@ async def create_task(conn, workspace_id: int, task: TaskCreate):
     )
     if not user_exists:
         raise HTTPException(status_code=404, detail=f"User with id {task.created_by} does not exist")
+    
+    category_id = task.category_id #If the user inputs none/0 in category it will default to 'General' category
+    if category_id or category_id == 0:
+        category_id = await conn.fetchval(
+            "SELECT category_id FROM categories WHERE workspace_id=$1 AND name='General'",
+            workspace_id
+        )
 
     query = """
         INSERT INTO tasks 
-        (workspace_id, title, subject, description, deadline, status, priority_level, start_date, created_by)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-        RETURNING task_id, workspace_id, title, subject, description, deadline, status, priority_level, start_date, created_by, created_at;
+        (workspace_id, category_id, title, subject, description, deadline, status, priority_level, start_date, created_by)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        RETURNING task_id, workspace_id, category_id, title, subject, description, deadline, status, priority_level, start_date, created_by, created_at;
     """
     row = await conn.fetchrow(query, 
-                              workspace_id, 
+                              workspace_id,
+                              category_id, 
                               task.title, 
                               task.subject, 
                               task.description, 
@@ -53,7 +61,6 @@ async def create_task(conn, workspace_id: int, task: TaskCreate):
         f"(task_id: {task_id}) with description '{task.description}', deadline: {task.deadline.isoformat()}."
     )
     await log_task_action(conn, workspace_id, content)
-
     return TaskCreateOut(**dict(row))
 
 

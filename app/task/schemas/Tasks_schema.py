@@ -6,6 +6,7 @@ from datetime import datetime, date
 
 
 class TaskBase(BaseModel):
+    category_id: Optional[int] = None
     title: str
     subject: Optional[str] = None
     description: str
@@ -19,6 +20,7 @@ class TaskCreate(TaskBase):
     pass
 
 class TaskCreateOut(BaseModel):
+    category_id: Optional[int] = None
     title: str
     subject: str
     description: str
@@ -30,6 +32,7 @@ class TaskCreateOut(BaseModel):
     created_at: datetime
 
 class TaskPatch(BaseModel):
+    category_id: Optional[int] = None
     title: Optional[str] = None
     subject: Optional[str] = None
     description: Optional[str] = None
@@ -46,6 +49,7 @@ class TaskDelete(BaseModel):
 class TaskAllOut(BaseModel):
     task_id: int
     workspace_id: int
+    category_id: int
     title: str
     subject: str
     description: str
