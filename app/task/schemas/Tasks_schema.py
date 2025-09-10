@@ -1,12 +1,12 @@
 # app/api/task/schemas/Task_schema.py
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, Literal, List
 from datetime import datetime, date
 
 
 class TaskBase(BaseModel):
-    category_id: Optional[int] = None
+    category: str
     title: str
     subject: Optional[str] = None
     description: str
@@ -20,7 +20,7 @@ class TaskCreate(TaskBase):
     pass
 
 class TaskCreateOut(BaseModel):
-    category_id: Optional[int] = None
+    category: str 
     title: str
     subject: str
     description: str
@@ -32,7 +32,7 @@ class TaskCreateOut(BaseModel):
     created_at: datetime
 
 class TaskPatch(BaseModel):
-    category_id: Optional[int] = None
+    category: Optional[str] = None
     title: Optional[str] = None
     subject: Optional[str] = None
     description: Optional[str] = None
@@ -49,7 +49,7 @@ class TaskDelete(BaseModel):
 class TaskAllOut(BaseModel):
     task_id: int
     workspace_id: int
-    category_id: int
+    category: str
     title: str
     subject: str
     description: str
