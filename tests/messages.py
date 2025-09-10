@@ -3,8 +3,7 @@ import websockets
 import json
 
 async def test_ws():
-    uri = "ws://127.0.0.1:8000/workspace/1/1?token=<token ng user>"
-    token = "<Pass a token here if you want to test it>"
+    uri = "ws://127.0.0.1:8000/workspace/1/1?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzdHJpbmciLCJleHAiOjE3NTczOTM2NzkuMzA0MTQzLCJ0eXBlIjoiYWNjZXNzIn0.O1ZiYeaSJpF7T0kzSO12Esx6oXjtjJzTBEXfl4NorHQ"
     async with websockets.connect(uri) as ws:
         await ws.send(json.dumps({
             "type":"text",
@@ -17,10 +16,4 @@ async def test_ws():
 
 
 asyncio.run(test_ws())
-# async def test_ws():
-#     async with websockets.connect("ws://127.0.0.1:8000/ws") as ws:
-#         msg = await ws.recv()
-#         print("✅ received:", msg)
-
-# asyncio.run(test_ws())
 

@@ -42,10 +42,20 @@ async def workspace_trigger():
                 await conn.execute("""
                     CREATE OR REPLACE FUNCTION add_workspace_leader()
                     RETURNS TRIGGER AS $$
+                    DECLARE
+                        u_first_name TEXT;
                     BEGIN 
-                        INSERT INTO workspace_members (user_id, workspace_id, nickname, role)
-                        VALUES(NEW.created_by, NEW.workspace_id, 'Leader','leader');
 
+                        SELECT u.first_name INTO u_first_name
+                        FROM users u 
+                        WHERE u.user_id = NEW.created_by;
+
+                        INSERT INTO workspace_members (user_id, workspace_id, nickname, role)
+                        VALUES(NEW.created_by, NEW.workspace_id, u_first_name,'leader');
+
+                        INSERT INTO categories (workspace_id, name)
+                        VALUES(NEW.workspace_id, 'General');
+                        
                         INSERT INTO message_read_status (workspace_id, user_id)
                         VALUES (NEW.workspace_id, NEW.created_by)
                         ON CONFLICT (workspace_id, user_id) DO NOTHING;
