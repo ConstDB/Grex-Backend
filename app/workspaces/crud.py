@@ -5,6 +5,7 @@ from ..utils.query_builder import insert_query
 from ..db_instance import db
 import datetime as date
 from .schemas import WorkspacePatch,WorkspaceMembersPatch
+
 async def add_workspace_to_db(workspace:dict, conn: asyncpg.Connection):
     try:
         query = """
@@ -362,11 +363,11 @@ async def update_user_data(workspace_id:int, user_id: int, model: dict, conn: as
         UPDATE workspace_members
             SET { ", " .join(user_update)}
         WHERE workspace_id  = ${idx}
-        AND user_id= ${idx} 
+        AND user_id= ${idx + 1 } 
         RETURNING *;
         """
         
-    user_values.append(workspace_id, user_id)
+    user_values.extend([workspace_id, user_id])
     
     res = await conn.fetchrow(query, *user_values)
     return dict(res) if res else None
