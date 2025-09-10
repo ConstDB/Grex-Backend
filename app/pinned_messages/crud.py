@@ -8,6 +8,25 @@ from datetime import datetime
 from .schemas import WorkspaceGetPinnedMessage, WorkspacePinnedMessage, WorkspaceRemovePinnedMessage
 
 
+    
+async def get_pinned_messages(workspace_id:int,  conn: asyncpg.Connection):
+    try:
+
+        query = """
+        SELECT * FROM  pinned_messages 
+        WHERE workspace_id = $1
+        ORDER BY pinned_at DESC;
+        """
+
+        res = await conn.fetch (query, workspace_id)
+        return res
+    except Exception as e:
+        raise HTTPException (status_code=500, detail=f"process failed -> {e}")
+    
+async def pin_workspace_message (workspace_id:int, message_id: int, conn: asyncpg.Connection):
+    pass
+    """try: 
+        pass"""
 
 async def workspace_remove_pinned_messages(workspace_id:int, message_id:int, conn: asyncpg.Connection ):
     try:
@@ -24,41 +43,3 @@ async def workspace_remove_pinned_messages(workspace_id:int, message_id:int, con
     except Exception as e: 
 
         raise HTTPException (status_code=500, detail=f"Process failed -> {e}")
-    
-
-
-async def update_pinned_message(workspace_id: int, model: WorkspaceGetPinnedMessage, conn: asyncpg.Connection):
-    try: 
-        pinned_at = datetime.utcnow()
-        message_id = model.message_id
-        pinned_by = model.pinned_by
-        
-        query = """
-        UPDATE pinned_messages 
-        SET pinned_at = $1
-        WHERE workspace_id = $2 
-        AND message_id = $3
-        AND pinned_by = $4
-        RETURNING *; 
-        """   
-
-        res = await conn.fetchrow(query, pinned_at, model.workspace_id, model.message_id, model.pinned_by)
-        return res 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"process failed -> {e}")
-
-    
-    
-async def workspace_pinned_messages(workspace_id:int,  conn: asyncpg.Connection):
-    try:
-
-        query = """
-        SELECT * FROM  pinned_messages 
-        WHERE workspace_id = $1
-        ORDER BY pinned_at DESC;
-        """
-
-        res = await conn.fetch (query, workspace_id)
-        return res
-    except Exception as e:
-        raise HTTPException (status_code=500, detail=f"process failed -> {e}")
