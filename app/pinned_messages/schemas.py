@@ -6,6 +6,8 @@ from ..messages.schemas import Message_Base
 
 
 class WorkspaceGetPinnedMessage(BaseModel):
+    workspace_id: int 
+    message_id:int
     pinned_by: int 
     pinned_at:date 
 
