@@ -28,7 +28,6 @@ async def create_pinned_message(workspace_id: int, message_id: int, pinned_by:in
         if not exists:
             raise HTTPException(status_code=404, detail="Message not found. Cannot pin.")
         
-        
         res = await pin_workspace_message (workspace_id, message_id, pinned_by, conn)
         
         return res
