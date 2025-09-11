@@ -5,7 +5,7 @@ from ..utils.decorators import db_error_handler
 
 # For Creating Category
 @db_error_handler
-async def create_category(conn, workspace_id: int, category: CategoryCreate):
+async def insert_category_db(conn, workspace_id: int, category: CategoryCreate):
     query = """
         INSERT INTO categories (workspace_id, name)
         VALUES ($1, $2)
@@ -16,7 +16,7 @@ async def create_category(conn, workspace_id: int, category: CategoryCreate):
 
 # Get Category
 @db_error_handler
-async def get_category(conn, workspace_id: int):
+async def fetch_category_db(conn, workspace_id: int):
     query = """
         SELECT *
         FROM categories 
@@ -27,7 +27,7 @@ async def get_category(conn, workspace_id: int):
 
 # Update category
 @db_error_handler
-async def update_category(conn, workspace_id: int, category_id: int, update_category:CategoryUpdate):
+async def update_category_db(conn, workspace_id: int, category_id: int, update_category:CategoryUpdate):
     query = f"UPDATE categories SET name = COALESCE($3, name) WHERE workspace_id = $1 AND category_id = $2 RETURNING *;"
     rows = await conn.fetchrow(query, 
                                workspace_id, 
@@ -37,7 +37,7 @@ async def update_category(conn, workspace_id: int, category_id: int, update_cate
 
 # Delete category
 @db_error_handler
-async def delete_category(conn, workspace_id: int, category_id: int):
+async def delete_category_db(conn, workspace_id: int, category_id: int):
     query = """
         DELETE FROM categories 
         WHERE workspace_id = $1 AND category_id = $2 
