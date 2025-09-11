@@ -183,11 +183,11 @@ CREATE TABLE IF NOT EXISTS message_attachments (
 -- PINNED MESSAGES
 -- =========================
 CREATE TABLE IF NOT EXISTS pinned_messages (
-    pin_id SERIAL PRIMARY KEY,
     message_id INTEGER REFERENCES messages(message_id) ON DELETE CASCADE,
     pinned_by INTEGER REFERENCES users(user_id) ON DELETE SET NULL,
     pinned_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    workspace_id INTEGER REFERENCES workspaces(workspace_id) ON DELETE CASCADE
+    workspace_id INTEGER REFERENCES workspaces(workspace_id) ON DELETE CASCADE,
+    PRIMARY KEY (workspace_id, message_id)
 );
 
 -- =========================

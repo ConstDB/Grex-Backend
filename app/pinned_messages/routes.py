@@ -3,47 +3,34 @@ from typing import List
 from datetime import date
 from ..deps import get_db_connection
 import asyncpg
-from .crud import get_pinned_messages, pin_workspace_message, workspace_unpin_messages
-from .schemas import WorkspacePinnedMessage
+from .crud import fetch_pinned_messages_db, insert_pinned_message_db, unpin_messages_db 
+from .schemas import PinnedMessagesPayload
+from ..users.auth import get_current_user
+
 
 router = APIRouter()
 
 
-@router.get("/workspace/{workspace_id}/pinned-messages/{message_id}")
-async def fetch_pinned_message(workspace_id: int, message_id: int, conn: asyncpg.Connection=Depends (get_db_connection)):
+@router.get("/workspace/{workspace_id}/pinned/message", response_model=List[PinnedMessagesPayload])
+async def get_pinned_messages_route(workspace_id: int,  conn: asyncpg.Connection=Depends(get_db_connection), token: str=Depends(get_current_user)):
     try:
-        res = await get_pinned_messages(workspace_id, message_id, conn )
-        return res 
+        messages = await fetch_pinned_messages_db(workspace_id, conn )
+        return [PinnedMessagesPayload(**message) for message in messages] 
     except Exception as e: 
         raise HTTPException(status_code=500, detail=f"Process Failed -> {e}")
 
-
-@router.post("/workspace/{workspace_id}/pinned-messages/{message_id}")
-
-async def create_pinned_message(workspace_id: int, message_id: int, pinned_by:int, conn: asyncpg.Connection=Depends(get_db_connection)):
-    try:
-        
-        check_query = "SELECT 1 FROM messages WHERE message_id=$1"
-        exists = await conn.fetchrow(check_query, message_id)
-        if not exists:
-            raise HTTPException(status_code=404, detail="Message not found. Cannot pin.")
-        
-        res = await pin_workspace_message (workspace_id, message_id, pinned_by, conn)
-        
+@router.post("/workspace/{workspace_id}/pinned-messages/{message_id}", response_model=PinnedMessagesPayload)
+async def create_pinned_messages_route(workspace_id: int, message_id: int, pinned_by:int, conn: asyncpg.Connection=Depends(get_db_connection), token: str=Depends(get_current_user)):
+    try:        
+        res = await insert_pinned_message_db (workspace_id, message_id, pinned_by, conn)
         return res
     except Exception as e: 
         raise HTTPException(status_code=500, detail=f"Process Failed -> {e}")
-    
 
-
-@router.delete("/workspace/{workspace_id}/pinned-messages/{message_id}")
-
-async def workspace_remove_pinned(workspace_id:int, message_id: int,  conn: asyncpg.Connection=Depends(get_db_connection)):
+@router.delete("/workspace/{workspace_id}/pinned-messages/{message_id}", response_model=PinnedMessagesPayload)
+async def remove_pinned_messages_route(workspace_id:int, message_id: int,  conn: asyncpg.Connection=Depends(get_db_connection), token: str=Depends(get_current_user)):
     try: 
-        res = await workspace_unpin_messages(workspace_id, message_id,  conn)
-
+        res = await unpin_messages_db(workspace_id, message_id,  conn)
         return res 
     except Exception as e: 
-
-
         raise HTTPException(status_code=500, detail=f"Process Failed ->{e}")
