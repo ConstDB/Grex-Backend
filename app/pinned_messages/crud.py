@@ -5,25 +5,22 @@ from ..deps import get_db_connection
 from ..utils.query_builder import insert_query
 from ..db_instance import db
 from datetime import datetime
-from .schemas import WorkspaceGetPinnedMessage, WorkspacePinnedMessage, WorkspaceRemovePinnedMessage
-
-
+from .schemas import PinnedMessagesPayload
     
-async def get_pinned_messages(workspace_id:int,  conn: asyncpg.Connection):
+async def fetch_pinned_messages_db(workspace_id:int,  conn: asyncpg.Connection):
     try:
-
         query = """
         SELECT * FROM pinned_messages 
         WHERE workspace_id = $1
         ORDER BY pinned_at DESC;
         """
-
-        res = await conn.fetch (query, workspace_id)
+        res = await conn.fetch(query, workspace_id)
+        
         return res
     except Exception as e:
         raise HTTPException (status_code=500, detail=f"process failed -> {e}")
     
-async def pin_workspace_message (workspace_id:int, message_id: int, pinned_by:int, conn: asyncpg.Connection):
+async def insert_pinned_message_db (workspace_id:int, message_id: int, pinned_by:int, conn: asyncpg.Connection):
     try:
         query = """
         INSERT INTO pinned_messages
@@ -32,14 +29,14 @@ async def pin_workspace_message (workspace_id:int, message_id: int, pinned_by:in
         RETURNING *;  
         """
         res = await conn.fetchrow(query, workspace_id, message_id, pinned_by)
-        return res
+        if res:
+            return dict(res)
     except Exception as e: 
         raise HTTPException(status_code=500, detail=f"Process Failed -> {e}")
                 
 
-async def workspace_unpin_messages(workspace_id:int, message_id:int, conn: asyncpg.Connection ):
+async def unpin_messages_db(workspace_id:int, message_id:int, conn: asyncpg.Connection ):
     try:
-
         query = """
         DELETE FROM pinned_messages
         where workspace_id = $1 
@@ -48,7 +45,8 @@ async def workspace_unpin_messages(workspace_id:int, message_id:int, conn: async
         """
         res = await conn.fetchrow(query, workspace_id, message_id )
 
-        return res 
+        if res:
+            return dict(res) 
     except Exception as e: 
 
         raise HTTPException (status_code=500, detail=f"Process failed -> {e}")
