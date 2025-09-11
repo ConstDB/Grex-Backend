@@ -31,6 +31,6 @@ router.include_router(auth_router, tags=["Authentication"])
 router.include_router(users_router, tags=["Users"])
 router.include_router(workspaces_router, prefix="/workspace", tags=["Workspaces"])
 router.include_router(websocket_router)
-router.include_router(pinned_router, prefix="/pinned", tags=["Pinned Messages"])
+router.include_router(pinned_router, tags=["Pinned Messages"])
 
 
