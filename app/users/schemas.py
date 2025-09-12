@@ -9,12 +9,9 @@ class UserRegisterSchema(BaseModel):
     email: str
     password_hash: str
     
-
-
 class UserLoginSchema(BaseModel):
     email: str
     password_hash: str
-
 
 class UserBasic(BaseModel):
     user_id: int
@@ -38,10 +35,17 @@ class RefreshToken(BaseModel):
 class EmailObject(BaseModel):
     email: str
     
-class GetUserData(BaseModel):
-    user_id:int
-    first_name:str
-    last_name:str
-    email: str
-    phone_number:str  
+class GetUserResponse(BaseModel):
+    first_name:Optional[str]
+    last_name:Optional[str]
+    email:Optional[str]
+    phone_number:Optional[str] 
+    profile_picture: Optional[str] = None
 
+class PatchUserResponse(BaseModel):
+    first_name: Optional[str]
+    last_name: Optional[str]
+    email: Optional[str]
+    profile_picture: Optional[str]
+    phone_number: Optional[str]
+    
