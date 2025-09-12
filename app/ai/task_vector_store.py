@@ -36,8 +36,6 @@ class ProcessTaskLog:
                 with_payload=True,
                 with_vectors=True
             )
-
-            
             for r in records:
                 print(f"id : {r.id}")
                 print(f"vector : {r.vector}")
@@ -53,19 +51,15 @@ class ProcessTaskLog:
         self.task_logs_queue.append(data)
 
         if len(self.task_logs_queue) == 1:
-            await self.queue()
+            asyncio.create_task(self.queue())
 
     async def queue(self):
 
         while self.task_logs_queue:
-            log = self.task_logs_queue.popleft()
-            await self.insert_task_logs_to_vdb(log["task_log_id"], log["workspace_id"], log["content"])
+            try:
+                log = self.task_logs_queue.popleft()
+                await self.insert_task_logs_to_vdb(log["task_log_id"], log["workspace_id"], log["content"])
+            except Exception as e:
+                logger.error(f"Failed to insert task log:{log["task_log_id"]} to qdrant : {e}")
+        logger.info("Task queue is empty.")
 
-        logger.info("Queue is empty")
-
-            
-        
-
-t = ProcessTaskLog()
-
-asyncio.run(r.get_task_embeddings())
