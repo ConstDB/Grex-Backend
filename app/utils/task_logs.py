@@ -13,5 +13,5 @@ async def log_task_action(conn, workspace_id: int, content: str):
     row = await conn.fetchrow(query, workspace_id, content)
     dict_row = dict(row)
     
-    process.insert_data(dict_row["task_log_id"], workspace_id, content)
+    await process.insert_data(dict_row["task_log_id"], workspace_id, content)
     return dict_row
