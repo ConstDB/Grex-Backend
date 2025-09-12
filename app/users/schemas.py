@@ -37,3 +37,11 @@ class RefreshToken(BaseModel):
 
 class EmailObject(BaseModel):
     email: str
+    
+class GetUserData(BaseModel):
+    user_id:int
+    first_name:str
+    last_name:str
+    email: str
+    phone_number:str  
+
