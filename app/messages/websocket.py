@@ -10,7 +10,7 @@ import json
 
 router = APIRouter()
 manager = ConnectionManager()
-
+process = ProcessMessageLogs()
 
 @router.websocket("/workspace/{workspace_id}/{user_id}")
 async def websocket_message_endpoint(websocket: WebSocket, workspace_id: int, user_id: int, token: str):
@@ -44,6 +44,7 @@ async def websocket_message_endpoint(websocket: WebSocket, workspace_id: int, us
                         sender_cache = await manager.get_user_cache(f"{workspace_id}-{user_id}")
 
                     message_id = await insert_messages_to_db(message_data, conn)
+                    await process.insert_data(workspace_id, message_id, payload.get("content"))
                     if payload["type"] == "text":
                         await insert_text_messages_to_db(text_data={"message_id": message_id, "content":payload["content"]["text"]}, conn=conn)
 

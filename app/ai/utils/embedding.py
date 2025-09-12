@@ -42,5 +42,6 @@ def chunk_text(text:str, max_tokens: int = 200, token_overlap:int = 20):
         logger.info(f"Failed to chunk_text -> {e}")
         # print(f"Failed to chunk_text -> {e}")
 
-def queue_function():
-    pass
+# text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent eget ornare purus, at euismod orci. Phasellus tortor felis, eleifend ac lobortis eget, congue nec magna. Vivamus scelerisque sem lobortis risus suscipit consequat. Phasellus tincidunt ante id justo molestie, quis bibendum risus mollis. Donec quis augue id magna hendrerit porta. Quisque semper pharetra luctus. Cras imperdiet vel purus vitae pellentesque. Nulla lobortis interdum tortor et mattis. Etiam elementum tortor gravida, volutpat sapien sit amet, porta odio. "
+
+# print(f"result: \n {compute_embedding(text)}")
