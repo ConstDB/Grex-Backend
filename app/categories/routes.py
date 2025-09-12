@@ -3,9 +3,8 @@ from ..deps import get_db_connection
 from ..users.auth import get_current_user
 from ..categories.crud import create_category, update_category, get_category, delete_category
 from ..categories.schema import CategoryCreate, CategoryUpdate, CategoryOut, CategoryDelete
-
 import asyncpg
-from typing import List
+
 
 router = APIRouter()
 
