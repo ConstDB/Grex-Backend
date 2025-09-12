@@ -49,21 +49,19 @@ class ProcessTaskLog:
         data = {
             "task_log_id": task_log_id, "workspace_id": workspace_id, "content": content
         }
-        self.task_logs_queue.append(data)
         
-        if not self.task_logs_queue:
-            self.queue(data)
+        self.task_logs_queue.append(data)
 
+        if len(self.task_logs_queue) == 1:
+            await self.queue()
 
+    async def queue(self):
 
-    async def queue(self, data: dict):
-        log = self.task_logs_queue.pop()
-        await self.insert_task_logs_to_vdb(log["task_log_id"], log["workspace_id"], log["content"])
+        while self.task_logs_queue:
+            log = self.task_logs_queue.popleft()
+            await self.insert_task_logs_to_vdb(log["task_log_id"], log["workspace_id"], log["content"])
 
-        if self.task_logs_queue:
-            self.queue()
-        else:
-            logger.info("Queue is empty")
+        logger.info("Queue is empty")
 
             
         
