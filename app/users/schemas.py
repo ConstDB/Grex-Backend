@@ -36,16 +36,20 @@ class EmailObject(BaseModel):
     email: str
     
 class GetUserResponse(BaseModel):
-    first_name:Optional[str]
-    last_name:Optional[str]
-    email:Optional[str]
-    phone_number:Optional[str] 
-    profile_picture: Optional[str] = None
+    first_name:str
+    last_name:str
+    email:str
+    phone_number:str
+    password_hash: str
+    profile_picture: str
+    
 
 class PatchUserResponse(BaseModel):
-    first_name: Optional[str]
-    last_name: Optional[str]
-    email: Optional[str]
-    profile_picture: Optional[str]
-    phone_number: Optional[str]
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    email: Optional[str] = None
+    phone_number: Optional[str] = None
+    password_hash: Optional [str] = None
+    profile_picture: Optional[str] = None
+    
     
