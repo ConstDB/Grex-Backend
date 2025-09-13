@@ -20,11 +20,10 @@ async def add_recipients(
 @router.get("/")
 async def fetch_user_notifications(
     user_id: int,
-    workspace_id: Optional[int] = None,
     token: str = Depends(get_current_user),
     conn: asyncpg.Connection = Depends(get_db_connection),
 ):
-    return await notif_recipient_crud.get_recipients(conn, user_id, workspace_id)
+    return await notif_recipient_crud.get_recipients(conn, user_id)
 
 @router.patch("/{notification_id}/read")
 async def mark_notification_as_read(

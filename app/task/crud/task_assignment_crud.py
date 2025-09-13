@@ -13,15 +13,20 @@ async def create_taskassignment(conn, task_id, user_id):
     row = await conn.fetchrow(query, task_id, user_id)
     
     if row:
-        # Create notification (DB will auto-set created_at via DEFAULT CURRENT_TIMESTAMP)
+        workspace_id = await conn.fetchval(
+            "SELECT workspace_id FROM tasks WHERE task_id = $1",
+            task_id
+        )
+
         notif_query = """
-            INSERT INTO notifications (content)
-            VALUES ($1)
+            INSERT INTO notifications (content, workspace_Id)
+            VALUES ($1, $2)
             RETURNING notification_id
         """
         notif_row = await conn.fetchrow(
             notif_query,
-            f"You have been assigned to Task {task_id}"
+            f"You have been assigned to Task {task_id}",
+            workspace_id
         )
         if notif_row:
             recipient_query = """
@@ -34,7 +39,6 @@ async def create_taskassignment(conn, task_id, user_id):
                 user_id
             )
         return dict(row)
-
 
 # Get assigned users from a task
 @db_error_handler
@@ -65,15 +69,20 @@ async def delete_taskassignment(conn, task_id: int, user_id: int):
     row = await conn.fetchrow(query, task_id, user_id)
     
     if row:
-        # Create notification (DB auto-handles created_at)
+        workspace_id = await conn.fetchval(
+            "SELECT workspace_id from tasks WHERE task_id = $1",
+            task_id
+        )
+        
         notif_query = """
-            INSERT INTO notifications (content)
-            VALUES ($1)
+            INSERT INTO notifications (content, workspace_id)
+            VALUES ($1, $2)
             RETURNING notification_id
         """
         notif_row = await conn.fetchrow(
             notif_query,
-            f"You have been unassigned from Task {task_id}"
+            f"You have been unassigned from Task {task_id}",
+            workspace_id
         )
         if notif_row:
             recipient_query = """
