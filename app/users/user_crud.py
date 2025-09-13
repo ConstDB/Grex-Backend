@@ -81,7 +81,7 @@ async def update_user_information_db(
         UPDATE users
             set {", " .join(user_update)} 
         WHERE user_id = ${idx}
-        RETURNING *;
+        RETURNING first_name, last_name, email, profile_picture, phone_number;
         """
     user_values.append(user_id)
     
