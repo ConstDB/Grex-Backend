@@ -242,12 +242,8 @@ async def patch_task(
         old_val = current_task[field]
 
         if field == "category_id":
-            old_cat = await conn.fetchval(
-                "SELECT name FROM categories WHERE category_id=$1", old_val
-            )
-            new_cat = await conn.fetchval(
-                "SELECT name FROM categories WHERE category_id=$1", value
-            )
+            old_cat = await conn.fetchval("SELECT name FROM categories WHERE category_id=$1", old_val)
+            new_cat = await conn.fetchval("SELECT name FROM categories WHERE category_id=$1", value)
             log_changes.append(f"category changed from '{old_cat}' to '{new_cat}'")
         else:
             log_changes.append(f"{field} changed from '{old_val}' to '{value}'")
@@ -258,6 +254,26 @@ async def patch_task(
         actor = updated_by or "Leader"
         content = f"{actor} patched task_id {task_id}. Changes: {changes}"
         await log_task_action(conn, workspace_id, content)
+
+        notif_row = await conn.fetchrow(
+            """
+            INSERT INTO notifications (content, workspace_id)
+            VALUES ($1, $2)
+            RETURNING notification_id
+            """,
+            f"A task {task_id} has been modified. {changes}", 
+            workspace_id
+        )
+        if notif_row:
+            await conn.execute(
+                """
+                INSERT INTO notification_recipients(notification_id, user_id, is_read)
+                SELECT $1, ta.user_id, FALSE
+                FROM task_assignments ta
+                WHERE ta.task_id = $2
+                """,
+                notif_row["notification_id"], task_id
+            )
 
     return dict(row)
 
