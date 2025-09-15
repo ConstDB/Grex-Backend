@@ -33,6 +33,7 @@ async def get_user_from_db(email:str, conn: asyncpg.Connection, fetch:str="*"):
         return res
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Something went wrong -> {e}")
+    
 
 async def update_refresh_token_on_db(user_id:int, payload:dict, conn: asyncpg.Connection):
     try: 
@@ -40,6 +41,7 @@ async def update_refresh_token_on_db(user_id:int, payload:dict, conn: asyncpg.Co
         return await conn.execute(query, *payload.values(), user_id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Something went wrong -> {e}")
+    
 
 async def revoke_user_token_on_db(user_id:int, payload:dict, conn: asyncpg.Connection):
     try:
@@ -50,16 +52,8 @@ async def revoke_user_token_on_db(user_id:int, payload:dict, conn: asyncpg.Conne
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Something went wrong on CRUD -> {e}")
 
-async def get_users_by_name(name: str, conn: asyncpg.Connection):
-    try:
-        query = """
-            SELECT user_id, first_name, last_name, email, profile_picture
-            FROM users
-            WHERE ((first_name || ' ' || last_name) ILIKE '%' || $1 || '%')
-            LIMIT 10;
-        """
 
-        res = await conn.fetch(query, name)
-        return res
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to search user on DB -> {e}")
+   
+
+        
+    
