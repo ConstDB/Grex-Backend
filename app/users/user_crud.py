@@ -1,7 +1,6 @@
-from fastapi import Depends, HTTPException
+from fastapi import HTTPException
+from .auth import get_password_hash
 import asyncpg
-from asyncpg.exceptions import UniqueViolationError
-from ..utils.query_builder import insert_query, get_query, update_query
 
 
 async def fetch_users_by_name(name: str, conn: asyncpg.Connection):
@@ -22,7 +21,7 @@ async def fetch_users_by_name(name: str, conn: asyncpg.Connection):
 async def fetch_user_data_db(user_id: int, conn: asyncpg.Connection ):
     try: 
         query = """
-        SELECT first_name, last_name, email, phone_number, password_hash, profile_picture
+        SELECT first_name, last_name, email, phone_number, profile_picture
         FROM users
         WHERE user_id = $1
         """    
@@ -46,8 +45,9 @@ async def update_user_information_db(
     last_name = model.get("last_name")
     email = model.get("email")
     phone_number = model.get("phone_number")
-    password_hash = model.get("password")
+    password_hash = model.get("password_hash")
     profile_picture = model.get("profile_picture")
+    
     
     if first_name is not None: 
         user_update.append(f"first_name =  ${idx}")
@@ -70,8 +70,9 @@ async def update_user_information_db(
         idx +=1
         
     if password_hash is not None: 
-        user_update.append(f"password = ${idx}")
-        user_values.append (password_hash)
+        password_hash = get_password_hash(password_hash)
+        user_update.append(f"password_hash = ${idx}")
+        user_values.append(password_hash)
         idx +=1
     
     if profile_picture is not None:
@@ -87,7 +88,7 @@ async def update_user_information_db(
         UPDATE users
             set {", " .join(user_update)} 
         WHERE user_id = ${idx}
-        RETURNING first_name, last_name, email, phone_number, password_hash, profile_picture;
+        RETURNING first_name, last_name, email, phone_number, profile_picture;
         """
     user_values.append(user_id)
     
