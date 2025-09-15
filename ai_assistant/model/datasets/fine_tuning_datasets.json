@@ -4,10 +4,7 @@
   { "text": "So, does that make sense to you?", "label": 0 },
   { "text": "What’s your take on my last point?", "label": 0 },
   { "text": "GrexAI, am I making sense in this discussion?", "label": 0 },
-  {
-    "text": "Do you think <member1> has a point in what they said?",
-    "label": 0
-  },
+  { "text": "Do you think <member1> has a point in what they said?","label": 0},
   { "text": "Does what I just said seem right?", "label": 0 },
   { "text": "GrexAI, is my reasoning earlier sound?", "label": 0 },
   { "text": "So based on what I said, what’s your opinion?", "label": 0 },
