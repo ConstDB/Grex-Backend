@@ -1,6 +1,7 @@
 from fastapi import HTTPException
 from ...utils.decorators import db_error_handler
-from ..schemas.notif_recipient_schema import NotificationRecipientCreate
+from typing import List
+from ..schemas.notif_recipient_schema import NotificationRecipientCreate, NotificationRecipientOut
 
 @db_error_handler
 async def add_recipients(conn, notification_id: int, recipients: list[NotificationRecipientCreate]):
@@ -16,10 +17,22 @@ async def add_recipients(conn, notification_id: int, recipients: list[Notificati
 
 
 @db_error_handler
-async def get_recipients(conn, user_id: int):
-    query = "SELECT * FROM notification_recipients WHERE user_id = $1"
+async def get_recipients(conn, user_id: int) -> List[NotificationRecipientOut]:
+    query = """
+            SELECT
+                r.recipient_id,
+                r.notification_id,
+                r.user_id,
+                n.content,
+                r.is_read,
+                r.delivered_at
+            FROM notification_recipients r
+            JOIN notifications n ON r.notification_id = n.notification_id
+            WHERE r.user_id = $1
+            ORDER BY r.delivered_at DESC
+            """
     rows = await conn.fetch(query, user_id)
-    return [dict(r) for r in rows]
+    return [NotificationRecipientOut(**dict(row)) for row in rows]
 
 
 async def mark_as_read(conn, user_id: int, notification_id: int):

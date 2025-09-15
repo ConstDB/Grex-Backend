@@ -248,11 +248,21 @@ async def patch_task(
         else:
             log_changes.append(f"{field} changed from '{old_val}' to '{value}'")
 
+
+    creator_name = await conn.fetchval(
+    """
+    SELECT first_name || ' ' || last_name
+    FROM users
+    WHERE user_id = $1
+    """,
+    current_task["created_by"]
+    ) or f"User {current_task['created_by']}"
+
     # write the task_logs
     if log_changes:
         changes = ", ".join(log_changes)
-        actor = updated_by or "Leader"
-        content = f"{actor} patched task_id {task_id}. Changes: {changes}"
+        changed_field_names = ", ".join([field.capitalize() for field in changed_fields.keys()])
+        content = f"{creator_name} patched task_id {task_id}. Changes: {changes}"
         await log_task_action(conn, workspace_id, content)
 
         notif_row = await conn.fetchrow(
@@ -261,7 +271,7 @@ async def patch_task(
             VALUES ($1, $2)
             RETURNING notification_id
             """,
-            f"A task {task_id} has been modified. {changes}", 
+            f"{creator_name} has modified Task {task_id}. Changes made: [{changed_field_names}]", 
             workspace_id
         )
         if notif_row:

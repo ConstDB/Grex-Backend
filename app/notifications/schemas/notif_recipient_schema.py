@@ -6,7 +6,6 @@ from typing import Optional
 class NotificationRecipientBase(BaseModel):
     notification_id: int
     user_id: int
-    workspace_id: Optional[int] = None  # can be NULL for personal/global notifs
     is_read: bool = False
 
 # For creating a new recipient entry
@@ -20,4 +19,6 @@ class NotificationRecipientUpdate(BaseModel):
 # For reading (what gets returned in API responses)
 class NotificationRecipientOut(NotificationRecipientBase):
     recipient_id: int
+    content: str
     delivered_at: datetime
+    is_read: bool = False
