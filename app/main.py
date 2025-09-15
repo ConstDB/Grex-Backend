@@ -11,6 +11,7 @@ import os
 from fastapi import FastAPI
 from app.utils.error_handlers import register_exception_handlers
 from app.notifications.scheduler import start_scheduler
+from ai_assistant.vectorstore.qdrant_config import setup_collection
 
 app = FastAPI()
 

@@ -1,5 +1,5 @@
 from sentence_transformers import SentenceTransformer
-from ...utils.logger import logger
+from app.utils.logger import logger
 import numpy as np
 import transformers
 
