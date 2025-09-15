@@ -1,6 +1,5 @@
 from pydantic import BaseModel, AwareDatetime
 from typing import Optional
-from datetime import datetime
 
 
 class UserRegisterSchema(BaseModel):
@@ -39,9 +38,8 @@ class GetUserResponse(BaseModel):
     first_name:str
     last_name:str
     email:str
-    phone_number:str
-    password_hash: str
-    profile_picture: str
+    phone_number:Optional[str] = None
+    profile_picture:Optional[str] = None
     
 
 class PatchUserResponse(BaseModel):
