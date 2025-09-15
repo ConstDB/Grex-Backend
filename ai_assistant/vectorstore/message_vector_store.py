@@ -1,7 +1,7 @@
-from .utils.embedding import compute_embedding
+from ..utils.embedding import compute_embedding
 from qdrant_client.models import PointStruct
 from collections import deque
-from ..utils.logger import logger
+from app.utils.logger import logger
 from .qdrant_config import qdrant, MESSAGES_COLLECTION_NAME
 import asyncio
 

@@ -2,7 +2,7 @@
 from fastapi import WebSocket, WebSocketDisconnect, APIRouter, Depends, HTTPException
 from ..websocket_manager import ConnectionManager
 from ..users.auth import get_current_user, websocket_authentication
-from ..ai.message_logs_vdb import ProcessMessageLogs
+from ai_assistant.vectorstore.message_vector_store import ProcessMessageLogs
 from .crud import insert_messages_to_db, insert_text_messages_to_db, get_sender_data
 from ..db_instance import db
 from ..utils.logger import logger

@@ -10,7 +10,7 @@ from .config.settings import settings as st
 import os
 from fastapi import FastAPI
 from app.utils.error_handlers import register_exception_handlers
-from .ai.qdrant_config import setup_collection
+from ai_assistant.vectorstore.qdrant_config import setup_collection
 
 app = FastAPI()
 
