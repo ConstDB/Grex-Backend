@@ -2,18 +2,21 @@ import asyncio
 import websockets
 import json
 
-async def test_ws():
-    uri = "ws://127.0.0.1:8000/workspace/1/1?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzdHJpbmciLCJleHAiOjE3NTc4OTkzNTcuMzQ1MzMyNCwidHlwZSI6ImFjY2VzcyJ9.6DWcXSfvmyzgcgm82R13g9jeQSFgxdZjpbdXxza-lpk"
+
+
+async def test_ws(data: dict):
+    uri = f"ws://127.0.0.1:8000/workspace/{data["workspace_id"]}/{data["user_id"]}?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlZHJpY2hkYXJyZW5zYW50dXlvQGdtYWlsLmNvbSIsImV4cCI6MTc1ODAyNjI5MS44NzM1MTc1LCJ0eXBlIjoiYWNjZXNzIn0.68KziOgc8o8sVaao7jyKMbV_p15pivooLY_elb-ddD8"
     async with websockets.connect(uri) as ws:
         await ws.send(json.dumps({
             "type":"text",
-            "content": "okay ka ah",
+            "content": data["message"],
             "reply_to": None
         }))
 
         response =  await ws.recv()
-        print(f"Recieved: {response} ")
 
+with open('./mock_messages.json', "r") as file:
+    messages = json.load(file)
 
-asyncio.run(test_ws())
-
+for message in messages:
+    asyncio.run(test_ws(message))

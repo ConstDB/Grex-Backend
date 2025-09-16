@@ -42,8 +42,8 @@ async def add_workspace_member(email:str, workspace_id: int, conn: asyncpg.Conne
             "user_id" : user_dict["user_id"]
         }
         
-        await insert_members_read_status(member_read_status, conn)
         res = await workspace_add_member(member,  conn)
+        await insert_members_read_status(member_read_status, conn)
         
         return res 
     except Exception as e:
