@@ -1,6 +1,5 @@
 from pydantic import BaseModel, AwareDatetime
 from typing import Optional
-from datetime import datetime
 
 
 class UserRegisterSchema(BaseModel):
@@ -9,12 +8,9 @@ class UserRegisterSchema(BaseModel):
     email: str
     password_hash: str
     
-
-
 class UserLoginSchema(BaseModel):
     email: str
     password_hash: str
-
 
 class UserBasic(BaseModel):
     user_id: int
@@ -37,3 +33,21 @@ class RefreshToken(BaseModel):
 
 class EmailObject(BaseModel):
     email: str
+    
+class GetUserResponse(BaseModel):
+    first_name:str
+    last_name:str
+    email:str
+    phone_number:Optional[str] = None
+    profile_picture:Optional[str] = None
+    
+
+class PatchUserResponse(BaseModel):
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    email: Optional[str] = None
+    phone_number: Optional[str] = None
+    password_hash: Optional [str] = None
+    profile_picture: Optional[str] = None
+    
+    

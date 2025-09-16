@@ -3,12 +3,12 @@ import websockets
 import json
 
 async def test_ws():
-    uri = "ws://127.0.0.1:8000/workspace/1/1?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzdHJpbmciLCJleHAiOjE3NTczOTM2NzkuMzA0MTQzLCJ0eXBlIjoiYWNjZXNzIn0.O1ZiYeaSJpF7T0kzSO12Esx6oXjtjJzTBEXfl4NorHQ"
+    uri = "ws://127.0.0.1:8000/workspace/1/1?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzdHJpbmciLCJleHAiOjE3NTc1ODA1OTguMTM2MTM3NywidHlwZSI6ImFjY2VzcyJ9.ODlrPKd4bvtbPAEccbgxA89a0mkHr-BDpUoDr1CBuKw"
     async with websockets.connect(uri) as ws:
         await ws.send(json.dumps({
             "type":"text",
             "content": "okay ka ah",
-            "reply_to": 3
+            "reply_to": None
         }))
 
         response =  await ws.recv()
