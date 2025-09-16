@@ -39,14 +39,11 @@ class ProcessMessageLogs:
                 query_vector=embedding,
                 limit=10,
                 with_payload=True,
-                with_vectors=True,
+                with_vectors=False,
                 query_filter=search_filter
             )
-            
-            for r in records:
-                print(f"id : {r.id}")
-                print(f"vector : {r.vector}")
-                print(f"payload : {r.payload}")
+
+            return records
         except Exception as e:
             print(f"Failed to fetch message logs embeddings -> {e}")
 

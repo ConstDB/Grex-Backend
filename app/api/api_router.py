@@ -14,6 +14,7 @@ from ..messages.websocket import router as websocket_router
 from ..pinned_messages.routes import router as pinned_router  
 from ..quick_links.routes import router as link_router
 from ..recent_activity.router import router as activity_router
+from ai_assistant.routes import router as grex_router
 
 
 router = APIRouter()
@@ -33,5 +34,5 @@ router.include_router(websocket_router)
 router.include_router(pinned_router, tags=["Pinned Messages"])
 router.include_router(link_router, tags=["Quick Links"])
 router.include_router(activity_router, tags=["Recent Activities"])
-
+router.include_router(grex_router, tags=["Grex AI"])
 
