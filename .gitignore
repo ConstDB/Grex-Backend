@@ -4,6 +4,7 @@ __pycache__/
 *.pyc
 .venv/
 data/
+.pytest_cache
 
 ai_assistant/model/grex-distilbert
 ai_assistant/model/results
