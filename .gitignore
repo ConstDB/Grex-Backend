@@ -6,7 +6,8 @@ __pycache__/
 data/
 .pytest_cache
 
-
+ai_assistant/model/grex-distilbert/
+ai_assistant/model/results
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
