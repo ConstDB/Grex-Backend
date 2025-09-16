@@ -1,8 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
+from fastapi.responses import JSONResponse
 from ...deps import get_db_connection
 from ...users.auth import get_current_user
 from ...notifications.crud import notif_recipient_crud
 from ..schemas.notif_recipient_schema import NotificationRecipientCreate, NotificationRecipientOut
+from ..events import register_lister, push_notifications
 from typing import List
 import asyncpg
 
@@ -15,7 +17,17 @@ async def add_recipients(
     token: str = Depends(get_current_user),
     conn: asyncpg.Connection = Depends(get_db_connection)
 ):
-    return await notif_recipient_crud.add_recipients(conn, notification_id, recipients)
+    result = await notif_recipient_crud.add_recipients(conn, notification_id, recipients)
+
+    # Notify all recipients via long polling
+    for r in recipients:
+        await push_notifications(r.user_id, {
+            "notification_id": notification_id,
+            "content": "You have a new notification"
+        })
+
+    return result
+
 
 @router.get("/", response_model=List[NotificationRecipientOut])
 async def fetch_user_notifications(
@@ -33,3 +45,15 @@ async def mark_notification_as_read(
     conn: asyncpg.Connection = Depends(get_db_connection)
 ):
     return await notif_recipient_crud.mark_as_read(conn, user_id, notification_id)
+
+
+@router.get("/stream")
+async def notifications_stream(
+    user_id: int,
+    token: str = Depends(get_current_user)
+):
+    """
+    Wait until there's a new notification for the user or timeout (30s).
+    """
+    result = await register_lister(user_id)
+    return JSONResponse({"notification": result})

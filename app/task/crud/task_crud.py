@@ -5,6 +5,7 @@ from fastapi import HTTPException
 from datetime import datetime, timezone
 from ...utils.decorators import db_error_handler
 from ...utils.task_logs import log_task_action
+from ...notifications.events import push_notifications
 
 
 now = datetime.now(timezone.utc)
@@ -284,6 +285,14 @@ async def patch_task(
                 """,
                 notif_row["notification_id"], task_id
             )
+            assigned_users = await conn.fetch(
+            "SELECT user_id FROM task_assignments WHERE task_id=$1", task_id
+)
+            for u in assigned_users:
+                await push_notifications(u["user_id"],{
+                    "notification_id": notif_row["notification_id"],
+                    "content": f"{creator_name} have modified Task{task_id}. Changes made: [{changed_field_names}]",
+            })
 
     return dict(row)
 

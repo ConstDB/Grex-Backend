@@ -1,6 +1,6 @@
 # app/api/task/crud/task_crud.py
 from ...utils.decorators import db_error_handler
-from ...utils.task_logs import log_task_action
+from ...notifications.events import push_notifications
 
 # Assigning users to a specific task
 @db_error_handler
@@ -38,6 +38,11 @@ async def create_taskassignment(conn, task_id, user_id):
                 notif_row["notification_id"],
                 user_id
             )
+            await push_notifications(user_id,{
+                "notification_id": notif_row["notification_id"],
+                "content": f"You have been assiend to Task {task_id}",
+            })
+
         return dict(row)
 
 # Get assigned users from a task
@@ -94,5 +99,9 @@ async def delete_taskassignment(conn, task_id: int, user_id: int):
                 notif_row["notification_id"],
                 user_id
             )
+            await push_notifications(user_id,{
+                "notification_id": notif_row["notification_id"],
+                "content": f"You have been assiend to Task {task_id}",
+            })
 
     return dict(row) if row else None
