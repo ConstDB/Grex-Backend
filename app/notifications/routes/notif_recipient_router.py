@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
+from datetime import datetime
 from ...deps import get_db_connection
 from ...users.auth import get_current_user
 from ...notifications.crud import notif_recipient_crud
 from ..schemas.notif_recipient_schema import NotificationRecipientCreate, NotificationRecipientOut
-from ..events import register_lister, push_notifications
+from ..events import register_listener, push_notifications
 from typing import List
 import asyncpg
 
@@ -23,7 +24,8 @@ async def add_recipients(
     for r in recipients:
         await push_notifications(r.user_id, {
             "notification_id": notification_id,
-            "content": "You have a new notification"
+            "content": "You have a new notification",
+            "delivered_at": datetime
         })
 
     return result
@@ -55,5 +57,5 @@ async def notifications_stream(
     """
     Wait until there's a new notification for the user or timeout (30s).
     """
-    result = await register_lister(user_id)
-    return JSONResponse({"notification": result})
+    result = await register_listener(user_id)
+    return JSONResponse(result)

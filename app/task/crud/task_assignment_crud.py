@@ -40,7 +40,7 @@ async def create_taskassignment(conn, task_id, user_id):
             )
             await push_notifications(user_id,{
                 "notification_id": notif_row["notification_id"],
-                "content": f"You have been assiend to Task {task_id}",
+                "content": f"You have been assigned to Task {task_id}",
             })
 
         return dict(row)
@@ -101,7 +101,7 @@ async def delete_taskassignment(conn, task_id: int, user_id: int):
             )
             await push_notifications(user_id,{
                 "notification_id": notif_row["notification_id"],
-                "content": f"You have been assiend to Task {task_id}",
+                "content": f"You have been removed from Task {task_id}",
             })
 
     return dict(row) if row else None

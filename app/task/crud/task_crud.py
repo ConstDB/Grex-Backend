@@ -118,8 +118,6 @@ async def get_task(conn, workspace_id: int, task_id: int):
         WHERE t.workspace_id = $1 AND t.task_id = $2
     """
     row = await conn.fetchrow(query, workspace_id, task_id)
-    if not row:
-        raise HTTPException(status_code=404, detail=f"Task {task_id} not found in workspace {workspace_id}")
     row = dict(row)
     if row.get("category") is None:
         row["category"] = "General"
@@ -270,7 +268,7 @@ async def patch_task(
             """
             INSERT INTO notifications (content, workspace_id)
             VALUES ($1, $2)
-            RETURNING notification_id
+            RETURNING notification_id, content
             """,
             f"{creator_name} has modified Task {task_id}. Changes made: [{changed_field_names}]", 
             workspace_id
@@ -291,7 +289,7 @@ async def patch_task(
             for u in assigned_users:
                 await push_notifications(u["user_id"],{
                     "notification_id": notif_row["notification_id"],
-                    "content": f"{creator_name} have modified Task{task_id}. Changes made: [{changed_field_names}]",
+                    "content": notif_row["content"],
             })
 
     return dict(row)
