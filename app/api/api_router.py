@@ -13,6 +13,7 @@ from ..users.auth_routes import router as auth_router
 from ..workspaces.routes import router as workspaces_router
 from ..messages.websocket import router as websocket_router
 from ..pinned_messages.routes import router as pinned_router  
+from ai_assistant.routes import router as grex_router
 
 
 router = APIRouter()
@@ -32,5 +33,5 @@ router.include_router(users_router, tags=["Users"])
 router.include_router(workspaces_router, prefix="/workspace", tags=["Workspaces"])
 router.include_router(websocket_router)
 router.include_router(pinned_router, tags=["Pinned Messages"])
-
+router.include_router(grex_router, tags=["Grex AI"])
 
