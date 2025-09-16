@@ -2,7 +2,8 @@ import pytest
 import asyncio
 from unittest.mock import AsyncMock, patch
 import numpy as np
-from ai_assistant.vectorstore.message_vector_store import ProcessMessageLog
+from ai_assistant.vectorstore.message_vector_store import ProcessMessageLogs
+# from ..ai_assistant.vectorstore.message_vector_store import ProcessMessageLogs
 
 @pytest.mark.asyncio
 async def test_insert_message_to_vdb_success():
@@ -45,19 +46,27 @@ async def test_get_message_embeddings_calls_qdrant_search():
 
 
 @pytest.mark.asyncio
-async def test_insert_data_triggers_queue(monkeypatch):
+async def test_queue_processes_messages(monkeypatch):
     process_logs = ProcessMessageLogs()
 
-    called = False
+    # Fake async insert function
+    mock_insert = AsyncMock()
+    monkeypatch.setattr(process_logs, "insert_message_to_vdb", mock_insert)
 
-    async def fake_queue():
-        nonlocal called
-        called = True
+    # Add some messages to the queue
+    process_logs.message_queue.append({"workspace_id": 1, "message_id": 101, "content": "first"})
+    process_logs.message_queue.append({"workspace_id": 1, "message_id": 102, "content": "second"})
 
-    monkeypatch.setattr(process_logs, "queue", fake_queue)
+    # Run the queue
+    await process_logs.queue()
 
-    await process_logs.insert_data(1, 99, "Queued message")
-    assert called is True
+    # Assert that insert_message_to_vdb was called for each message
+    assert mock_insert.await_count == 2
+    mock_insert.assert_any_await(1, 101, "first")
+    mock_insert.assert_any_await(1, 102, "second")
+
+    # After queue runs, it should be empty
+    assert len(process_logs.message_queue) == 0
     
 @pytest.mark.asyncio
 async def test_insert_message_to_vdb_failure(capsys):
