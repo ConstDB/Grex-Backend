@@ -31,8 +31,9 @@ async def test_message_attachment():
         }))
 
         response =  await ws.recv()
-        print(f"Recieved: {response} ")
 
+with open('./mock_messages.json', "r") as file:
+    messages = json.load(file)
 
 asyncio.run(test_message_attachment())
 asyncio.run(test_ws())

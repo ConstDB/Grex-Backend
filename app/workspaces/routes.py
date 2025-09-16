@@ -41,10 +41,10 @@ async def add_workspace_member(email:str, workspace_id: int, added_by: int, conn
             "workspace_id": workspace_id,
             "user_id" : user_dict["user_id"]
         }
-
+        
         res = await workspace_add_member(member,  conn)
         await insert_members_read_status(member_read_status, conn)
-
+        
         return res 
     except Exception as e:
          raise HTTPException(status_code=500, detail=f"Process Failed -> {e}") 

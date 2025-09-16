@@ -1,9 +1,6 @@
-from sentence_transformers import SentenceTransformer
 from qdrant_client import AsyncQdrantClient
 from qdrant_client.models import Distance, VectorParams, PayloadSchemaType
 from app.utils.logger import logger
-
-embedding_model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
 
 qdrant = AsyncQdrantClient(host="localhost", port=6333)
 

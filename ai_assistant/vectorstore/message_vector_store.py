@@ -1,12 +1,12 @@
 from ..utils.embedding import compute_embedding
-from qdrant_client.models import PointStruct
+from qdrant_client.models import PointStruct, FieldCondition, Filter, MatchValue
 from collections import deque
+import numpy as np
 from app.utils.logger import logger
 from .qdrant_config import qdrant, MESSAGES_COLLECTION_NAME
 import asyncio
 
 message_text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit"
-
 
 class ProcessMessageLogs:
 
@@ -25,14 +25,24 @@ class ProcessMessageLogs:
 
     # asyncio.run(insert_message_to_vdb(1, 1, message_text))
 
-    async def get_message_embeddings(self):
+    async def get_message_embeddings(self, embedding: np.ndarray, workspace_id: int):
         try:
-            records, _ = await qdrant.scroll(
+            cluster_filter = FieldCondition(
+                key="workspace_id",
+                match=MatchValue(value=workspace_id)
+            )
+
+            search_filter = Filter(must=cluster_filter)
+
+            records = await qdrant.search(
                 collection_name=self.message,
+                query_vector=embedding,
                 limit=10,
                 with_payload=True,
-                with_vectors=True
+                with_vectors=True,
+                query_filter=search_filter
             )
+            
             for r in records:
                 print(f"id : {r.id}")
                 print(f"vector : {r.vector}")
