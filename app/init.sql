@@ -173,6 +173,7 @@ CREATE TABLE IF NOT EXISTS message_read_status (
 CREATE TABLE IF NOT EXISTS message_attachments (
     attachment_id SERIAL PRIMARY KEY,
     message_id INTEGER REFERENCES messages(message_id) ON DELETE CASCADE,
+    file_name VARCHAR(255),
     file_url TEXT NOT NULL,
     file_type VARCHAR(20) CHECK (file_type IN ('image', 'video', 'file')),
     file_size_mb DECIMAL(10,2),

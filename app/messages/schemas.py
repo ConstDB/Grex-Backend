@@ -1,6 +1,8 @@
 from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional, Literal
+from decimal import Decimal
+
 
 class Message_Base(BaseModel):
     message_id: int
@@ -26,3 +28,13 @@ class MessageUpdate(BaseModel):
 
 class MessageReadStatus(BaseModel):
     last_read_at: datetime
+    
+class GetFiles(BaseModel):
+    attachment_id: int
+    message_id:int
+    file_name: str
+    file_type: str 
+    file_url: str
+    file_size_mb:Decimal
+    uploaded_at:datetime
+    
