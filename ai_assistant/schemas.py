@@ -6,3 +6,4 @@ class QueryPayload(BaseModel):
     nickname: str = Field(...)
     query : str = Field(...)
     workspace_id : int = Field(...)
+    message_id: int = Field(...)

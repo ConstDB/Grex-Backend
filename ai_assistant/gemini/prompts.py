@@ -1,4 +1,4 @@
-def generate_choice_1_content(previous:str, related:str, query:str):
+def generate_choice_0_content(previous:str, related:str, query:str):
     content_prompt = f"""
     Recent Messages:
     {previous}

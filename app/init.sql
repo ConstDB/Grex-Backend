@@ -364,3 +364,10 @@ CREATE TABLE IF NOT EXISTS recent_activities (
     content TEXT NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- =========================
+-- Grex User record
+-- =========================
+
+INSERT INTO users(user_id, first_name, last_name, email, password_hash)
+VALUES (9999, 'Grex', 'AI', 'Grex@gmail.com', '$2b$12$7z6h4EqzKn3oZLrLQoqR4OBvx0CZrjPMrXgF4FYXgPbnLUU5mR9dG')
