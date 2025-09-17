@@ -23,8 +23,6 @@ class ProcessMessageLogs:
         except Exception as e:
             print(f"failed to insert message into qdrant -> {e}")
 
-    # asyncio.run(insert_message_to_vdb(1, 1, message_text))
-
     async def get_message_embeddings(self, embedding: np.ndarray, workspace_id: int):
         try:
             cluster_filter = FieldCondition(
@@ -65,6 +63,3 @@ class ProcessMessageLogs:
                 logger.error(f"Failed to insert message log:{log["message_id"]} to qdrant : {e}")
 
         logger.info("Message queue is empty.")
-
-
-# asyncio.run(get_message_embeddings())

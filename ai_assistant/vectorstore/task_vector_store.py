@@ -1,8 +1,9 @@
 from ..utils.embedding import compute_embedding
-from qdrant_client.models import PointStruct
+from qdrant_client.models import PointStruct, Filter, FieldCondition, MatchValue
 from app.utils.logger import logger
 from .qdrant_config import qdrant, TASKS_COLLECTION_NAME
 import asyncio
+import numpy as np
 from collections import deque
 
 
@@ -19,29 +20,30 @@ class ProcessTaskLog:
             embedding = compute_embedding(content)
             point = PointStruct(id=task_log_id, vector=embedding, payload={"task_log_id": task_log_id, "workspace_id": workspace_id})
             res = await qdrant.upsert(collection_name=self.task, points=[point]) 
-            print(res)
         except Exception as e:
-            # logger.info(f"Failed to insert user to Qdrant -> {e}")
-            print(f"Failed to insert user to Qdrant -> {e}")
+            logger.error(f"Failed to insert user to Qdrant -> {e}")
 
-
-    # asyncio.run(insert_task_logs_to_vdb(1,1, task_logs))
-
-
-    async def get_task_embeddings(self):
+    async def get_task_embeddings(self, embedding: np.ndarray, workspace_id: int):
         try:
-            records, _ = await qdrant.scroll(
+            cluster_filter = FieldCondition(
+                key="workspace_id",
+                match=MatchValue(value=workspace_id)
+            )
+
+            search_filter = Filter(must=cluster_filter)
+
+            records = await qdrant.search(
                 collection_name=self.task,
+                query_vector=embedding,
                 limit=10,
                 with_payload=True,
-                with_vectors=True
+                with_vectors=False,
+                query_filter=search_filter
             )
-            for r in records:
-                print(f"id : {r.id}")
-                print(f"vector : {r.vector}")
-                print(f"payload : {r.payload}")
+
+            return records
         except Exception as e:
-            print(f"Failed to fetch task logs embeddings -> {e}")
+            logger.error(f"Failed to fetch task logs embeddings -> {e}")
 
     async def insert_data(self,task_log_id:int, workspace_id:int, content:str ):
         data = {

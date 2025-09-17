@@ -1,8 +1,8 @@
 from .utils.embedding import compute_embedding
 from .utils.query_classifier import query_classifier
-from .context_utils import prepare_context_messages
+from .context_utils import prepare_context_messages, prepare_tasks_context
 from app.utils.logger import logger
-from .gemini.prompts import generate_choice_0_content
+from .gemini.prompts import generate_choice_0_content, generate_choice_1_content
 from .gemini.client import gemini_setup
 from app.messages.websocket import manager
 from app.messages.crud import insert_messages_to_db, insert_text_messages_to_db
@@ -23,15 +23,18 @@ async def handle_query_service(payload: dict, conn: asyncpg.Connection):
     embedding = compute_embedding(query)
     choice = query_classifier(payload["query"])
 
+    logger.info(choice)
+
     if choice == 0:
         res = await execute_context_response_0(embedding, workspace_id, query, message_id, conn)
     elif choice == 1:
-        pass
+        res = await execute_context_with_tasks_response_1(embedding, workspace_id, query, message_id, conn)
     elif choice == 2:
         pass
     elif choice == 3:
         pass
     
+    return res
 
 async def execute_context_response_0(embedding: np.ndarray, workspace_id:int, query: str, message_id: int, conn: asyncpg.Connection):
     """
@@ -40,9 +43,33 @@ async def execute_context_response_0(embedding: np.ndarray, workspace_id:int, qu
 
     related_messages, recent_messages = await prepare_context_messages(embedding, workspace_id, query, conn)
     prompt = generate_choice_0_content(recent_messages, related_messages, query)
-    output =  gemini_setup(prompt)
+    try: 
+        output =  gemini_setup(prompt)
+    except Exception as e:
+        return {"error": "Grex is currently unavailable, please try again later."}
+    await broadcast_grex_output(workspace_id, message_id, output)
+
+
+async def execute_context_with_tasks_response_1(embedding: np.ndarray, workspace_id:int, query: str, message_id: int, conn: asyncpg.Connection):
+    """
+        Execute subsequent action for choice 0(fetch recent, related messages and task_logs for our reasoner to be context-aware)
+    """
+    
+    related_messages, recent_messages = await prepare_context_messages(embedding, workspace_id, query, conn)
+    task_logs, recent_tasks = await prepare_tasks_context(embedding, workspace_id, query, conn)
+    prompt = generate_choice_1_content(recent_messages, related_messages, task_logs, recent_tasks, query)
+
+    try: 
+        output =  gemini_setup(prompt)
+    except Exception as e:
+        return {"error": "Grex is currently unavailable, please try again later."}
+
+    logger.info(prompt)
+
+    logger.info(output)
 
     await broadcast_grex_output(workspace_id, message_id, output)
+
 
 async def broadcast_grex_output(workspace_id: int, reply_to: int, output:str):
     """
@@ -80,9 +107,9 @@ async def broadcast_grex_output(workspace_id: int, reply_to: int, output:str):
         "type": "text",
         "content": output,
         "reply_to": reply_to,
-        "sent_at": datetime.now(timezone.utc)
+        "sent_at": datetime.now(timezone.utc).isoformat()
     }
 
-    logger.info(f"Message: \n {message_obj}")
+    # logger.info(f"Message: \n {message_obj}")
 
     await manager.broadcast(workspace_id, message_obj)
