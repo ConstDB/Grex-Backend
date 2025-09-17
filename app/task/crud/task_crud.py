@@ -1,5 +1,3 @@
-# app/api/task/crud/task_crud.py
-
 from ...task.schemas.Tasks_schema import TaskCreate, TaskPatch, TaskCreateOut, TaskAllOut
 from fastapi import HTTPException
 from datetime import datetime, timezone
@@ -264,6 +262,14 @@ async def patch_task(
         content = f"{creator_name} patched task_id {task_id}. Changes: {changes}"
         await log_task_action(conn, workspace_id, content)
 
+        workspace_id = await conn.fetchval(
+            "SELECT workspace_id from tasks WHERE task_id = $1",
+            task_id
+        )
+        workspace_name = await conn.fetchval(
+            "SELECT name FROM workspaces WHERE workspace_id = $1",
+            workspace_id
+        )
         notif_row = await conn.fetchrow(
             """
             INSERT INTO notifications (content, workspace_id)
@@ -274,22 +280,27 @@ async def patch_task(
             workspace_id
         )
         if notif_row:
-            await conn.execute(
-                """
-                INSERT INTO notification_recipients(notification_id, user_id, is_read)
-                SELECT $1, ta.user_id, FALSE
-                FROM task_assignments ta
-                WHERE ta.task_id = $2
-                """,
-                notif_row["notification_id"], task_id
-            )
             assigned_users = await conn.fetch(
             "SELECT user_id FROM task_assignments WHERE task_id=$1", task_id
-)
+            )
             for u in assigned_users:
+                recipient_row = await conn.fetchrow(
+                    """
+                    INSERT INTO notification_recipients(notification_id, user_id, is_read)
+                    VALUES ($1, $2, FALSE)
+                    RETURNING recipient_id, user_id, is_read, delivered_at
+                    """,
+                    notif_row["notification_id"],
+                    u["user_id"]
+                )
                 await push_notifications(u["user_id"],{
                     "notification_id": notif_row["notification_id"],
+                    "user_id": u["user_id"],
+                    "recipient_id": recipient_row["recipient_id"],
                     "content": notif_row["content"],
+                    "workspace_name": workspace_name,
+                    "is_read": recipient_row["is_read"],
+                    "delivered_at": recipient_row["delivered_at"].isoformat(),
             })
 
     return dict(row)

@@ -5,6 +5,7 @@ from ..utils.query_builder import insert_query
 from ..db_instance import db
 import datetime as date
 from .schemas import WorkspacePatch,WorkspaceMembersPatch
+from ..notifications.events import push_notifications
 
 async def add_workspace_to_db(workspace:dict, conn: asyncpg.Connection):
     try:
@@ -199,9 +200,49 @@ async def workspace_add_member(payload:dict, conn: asyncpg.Connection = Depends(
     try:
         query = """
                 INSERT INTO workspace_members (workspace_id, user_id, role, nickname)
-                VALUES ($1, $2 , $3, $4)                  
+                VALUES ($1, $2 , $3, $4)    
+                RETURNING *;              
                 """
-        res = await conn.execute(query, *payload.values() )
+        res = await conn.fetchrow(query, *payload.values())
+
+        # added_by = await conn.fetchval(
+        #     "SELECT first_name || ' ' || last_name FROM users WHERE user_id=$1",
+        #     payload["added_by"]
+        # )
+        workspace_name = await conn.fetchval(
+            "SELECT name FROM workspaces WHERE workspace_id = $1",
+            payload["workspace_id"]
+        )
+
+        notif_row = await conn.fetchrow(
+            """
+            INSERT INTO notifications (content, workspace_id)
+            VALUES ($1, $2)
+            RETURNING notification_id, content
+            """,
+            f"You have been added to workspace {workspace_name}. You can now start collaborating!",
+            payload['workspace_id']
+        )
+
+        if notif_row:
+            recipient_row = await conn.fetchrow(
+                """
+                INSERT INTO notification_recipients(notification_id, user_id, is_read)
+                VALUES ($1, $2, FALSE)
+                RETURNING recipient_id, user_id, is_read, delivered_at
+                """,
+                notif_row["notification_id"],
+                payload["user_id"]
+            )
+            
+            await push_notifications(payload["user_id"],{
+                    "notification_id": notif_row["notification_id"],
+                    "user_id": payload["user_id"],
+                    "recipient_id": recipient_row["recipient_id"],
+                    "content": notif_row["content"],
+                    "is_read": recipient_row["is_read"],
+                    "delivered_at": recipient_row["delivered_at"].isoformat(),
+            })
         
         return res 
     except Exception as e:
@@ -249,6 +290,41 @@ async def kick_member(workspace_id: int, user_id: int, conn: asyncpg.Connection)
         RETURNING *
         """
         res = await conn.fetchrow(query, workspace_id, user_id)
+
+        workspace_name = await conn.fetchval(
+            "SELECT name FROM workspaces WHERE workspace_id = $1",
+            workspace_id
+        )
+
+        notif_row = await conn.fetchrow(
+            """
+            INSERT INTO notifications (content, workspace_id)
+            VALUES ($1, $2)
+            RETURNING notification_id, content
+            """,
+            f"You have been removed from workspace {workspace_name}.",
+            workspace_id
+        )
+
+        if notif_row:
+            recipient_row = await conn.fetchrow(
+                """
+                INSERT INTO notification_recipients(notification_id, user_id, is_read)
+                VALUES ($1, $2, FALSE)
+                RETURNING recipient_id, user_id, is_read, delivered_at
+                """,
+                notif_row["notification_id"],
+                user_id
+            )
+            
+            await push_notifications(user_id,{
+                    "notification_id": notif_row["notification_id"],
+                    "user_id": user_id,
+                    "recipient_id": recipient_row["recipient_id"],
+                    "content": notif_row["content"],
+                    "is_read": recipient_row["is_read"],
+                    "delivered_at": recipient_row["delivered_at"].isoformat(),
+            })
         
 
         return res 

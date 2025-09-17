@@ -24,10 +24,12 @@ async def get_recipients(conn, user_id: int) -> List[NotificationRecipientOut]:
                 r.notification_id,
                 r.user_id,
                 n.content,
+                w.name AS workspace_name,
                 r.is_read,
                 r.delivered_at
             FROM notification_recipients r
             JOIN notifications n ON r.notification_id = n.notification_id
+            LEFT JOIN workspaces w ON n.workspace_id = w.workspace_id
             WHERE r.user_id = $1
             ORDER BY r.delivered_at DESC
             """

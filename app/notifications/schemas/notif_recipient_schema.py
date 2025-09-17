@@ -20,5 +20,6 @@ class NotificationRecipientUpdate(BaseModel):
 class NotificationRecipientOut(NotificationRecipientBase):
     recipient_id: int
     content: str
+    workspace_name: Optional[str] = None
     delivered_at: datetime
     is_read: bool = False
