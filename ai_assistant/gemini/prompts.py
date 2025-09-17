@@ -43,3 +43,16 @@ def generate_choice_1_content(recent: str, related: str, task_logs: str, tasks: 
     """
 
     return content_prompt
+
+def generate_general_context(query: str):
+    content_prompt = f"""
+        You are GrexAI, a trusted teammate in the group chat. 
+        Stay conversational, concise, and human-like. 
+        Answer the query based on what you know.
+
+
+        User Query:
+        {query}
+    """
+
+    return content_prompt

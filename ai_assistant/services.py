@@ -2,7 +2,7 @@ from .utils.embedding import compute_embedding
 from .utils.query_classifier import query_classifier
 from .context_utils import prepare_context_messages, prepare_tasks_context
 from app.utils.logger import logger
-from .gemini.prompts import generate_choice_0_content, generate_choice_1_content
+from .gemini.prompts import generate_choice_0_content, generate_choice_1_content, generate_general_context
 from .gemini.client import gemini_setup
 from app.messages.websocket import manager
 from app.messages.crud import insert_messages_to_db, insert_text_messages_to_db
@@ -32,7 +32,7 @@ async def handle_query_service(payload: dict, conn: asyncpg.Connection):
     elif choice == 2:
         pass
     elif choice == 3:
-        pass
+        res = await execute_general_response_3(workspace_id, message_id, query)
     
     return res
 
@@ -70,6 +70,16 @@ async def execute_context_with_tasks_response_1(embedding: np.ndarray, workspace
 
     await broadcast_grex_output(workspace_id, message_id, output)
 
+
+async def execute_general_response_3(workspace_id:int, message_id: int, query: str):
+
+    prompt = generate_general_context(query)
+    try: 
+        output =  gemini_setup(prompt)
+    except Exception as e:
+        return {"error": "Grex is currently unavailable, please try again later."}
+    
+    await broadcast_grex_output(workspace_id, message_id, output)
 
 async def broadcast_grex_output(workspace_id: int, reply_to: int, output:str):
     """
