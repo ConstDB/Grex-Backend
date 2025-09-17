@@ -176,7 +176,7 @@ CREATE TABLE IF NOT EXISTS message_attachments (
     file_name VARCHAR(255),
     file_url TEXT NOT NULL,
     file_type VARCHAR(20) CHECK (file_type IN ('image', 'video', 'file')),
-    file_size_mb DECIMAL(10,2),
+    file_size DECIMAL(10,2),
     uploaded_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 

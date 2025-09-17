@@ -84,7 +84,7 @@ async def get_sender_data(user_id: int, workspace_id: int, conn: asyncpg.Connect
 
     return res
 
-async def fetch_attachments(
+async def fetch_attachments_db(
     workspace_id: int, 
     file_type: str, 
     conn: asyncpg.Connection):
@@ -93,10 +93,10 @@ async def fetch_attachments(
         SELECT
             ma.attachment_id,
             ma.message_id,
-            ma.file_name,
-            ma.file_type,
-            ma.file_url,
-            ma.file_size_mb,
+            ma.file_name as name,
+            ma.file_type as type,
+            ma.file_url as url,
+            ma.file_size as size,
             ma.uploaded_at
         FROM message_attachments ma
         JOIN messages m ON ma.message_id = m.message_id

@@ -32,9 +32,9 @@ class MessageReadStatus(BaseModel):
 class GetFiles(BaseModel):
     attachment_id: int
     message_id:int
-    file_name: str
-    file_type: str 
-    file_url: str
-    file_size_mb:Decimal
+    name: str
+    type: str 
+    url: str
+    size:float
     uploaded_at:datetime
     

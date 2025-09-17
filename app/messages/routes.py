@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from ..deps import get_db_connection
 from ..users.auth import get_current_user
-from .crud import get_few_messages_from_db, get_last_read_timestamp, update_last_read_timestamp,fetch_attachments
+from .crud import get_few_messages_from_db, get_last_read_timestamp, update_last_read_timestamp,fetch_attachments_db
 from .schemas import MessageReadStatus,GetFiles 
 from ..utils.logger import logger
 import asyncpg
@@ -36,24 +36,24 @@ async def get_last_read_at(workspace_id:int, user_id:int, conn: asyncpg.Connecti
     
     
 @router.get("/workspace/{workspace_id}/attachments/images", response_model = List [GetFiles])
-async def get_image_attachment (
+async def get_image_attachment_route (
     workspace_id: int,
     conn: asyncpg.Connection = Depends (get_db_connection),
     token:str = Depends(get_current_user)):
     try: 
-        return await fetch_attachments (workspace_id, 'image', conn)
+        return await fetch_attachments_db (workspace_id, 'image', conn)
     except Exception as e:
         raise HTTPException(status_code=500, detail = f"Process Failed ->{e}")
     
     
 @router.get("/workspace/{workspace_id}/attachments/files", response_model = List [GetFiles])
-async def get_file_attachment(
+async def get_file_attachment_route(
     workspace_id: int, 
     conn: asyncpg.Connection = Depends(get_db_connection), 
     token:str = Depends(get_current_user)):
     
     try:
-        return await fetch_attachments (workspace_id,'file',conn)
+        return await fetch_attachments_db (workspace_id,'file',conn)
     except Exception as e: 
         raise HTTPException(status_code=500, detail=f"Process Failed  -> {e}")
     
