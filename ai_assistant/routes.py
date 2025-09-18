@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from app.deps import get_db_connection
-from app.users.auth import get_current_user
+from app.authentication.services import get_current_user
 from .services import handle_query_service
 from .schemas import QueryPayload
 import asyncpg

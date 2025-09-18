@@ -10,7 +10,7 @@ class TaskBase(BaseModel):
     title: str
     subject: Optional[str] = None
     description: str
-    deadline: datetime
+    deadline: Optional[datetime] = None
     status: Literal["pending", "done", "overdue"] = "pending"
     priority_level: Literal["low", "medium", "high"] = "low"
     start_date: Optional[date] = None

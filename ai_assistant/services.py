@@ -1,9 +1,10 @@
 from .utils.embedding import compute_embedding
 from .utils.query_classifier import query_classifier
-from .context_utils import prepare_context_messages, prepare_tasks_context
+from .context_utils import prepare_context_messages, prepare_tasks_context, clean_tasks_data
 from app.utils.logger import logger
-from .gemini.prompts import generate_choice_0_content, generate_choice_1_content, generate_general_context
+from .gemini.prompts import generate_choice_0_content, generate_choice_1_content, generate_general_context, generate_agentic_context
 from .gemini.client import gemini_setup
+from .crud import insert_task_db
 from app.messages.websocket import manager
 from app.messages.crud import insert_messages_to_db, insert_text_messages_to_db
 from app.db_instance import db
@@ -30,11 +31,12 @@ async def handle_query_service(payload: dict, conn: asyncpg.Connection):
     elif choice == 1:
         res = await execute_context_with_tasks_response_1(embedding, workspace_id, query, message_id, conn)
     elif choice == 2:
-        pass
+        res = await execute_agentic_action_2(embedding, workspace_id, message_id, query, conn)
     elif choice == 3:
         res = await execute_general_response_3(workspace_id, message_id, query)
     
     return res
+
 
 async def execute_context_response_0(embedding: np.ndarray, workspace_id:int, query: str, message_id: int, conn: asyncpg.Connection):
     """
@@ -64,13 +66,40 @@ async def execute_context_with_tasks_response_1(embedding: np.ndarray, workspace
     except Exception as e:
         return {"error": "Grex is currently unavailable, please try again later."}
 
-    logger.info(prompt)
-
-    logger.info(output)
-
     await broadcast_grex_output(workspace_id, message_id, output)
 
 
+async def execute_agentic_action_2(embedding:np.ndarray, workspace_id:int, message_id:int, query:str, conn: asyncpg.Connection):
+    _, recent_tasks = await prepare_tasks_context(embedding, workspace_id, query, conn)
+    _, recent_messages = await prepare_context_messages(embedding, workspace_id, query, conn)
+
+    prompt = generate_agentic_context(recent_messages, recent_tasks, query)
+
+    try: 
+        output =  gemini_setup(prompt)
+    except Exception as e:
+        return {"error": f"Grex is currently unavailable, please try again later.: {e}"}
+    
+    payload = await clean_tasks_data(output)
+
+    try:
+        result = await insert_task_db(workspace_id, payload, conn)
+
+        response = f"""
+            Task created successfully!  
+
+            Here are the task details:  
+
+            {dict(result)}  
+
+            It’s already posted on the Kanban board — feel free to check it out there. 
+        """
+    except Exception as e:
+        return {"error": f"Failed to create task, please try again later. {e}"}
+    
+    await broadcast_grex_output(workspace_id, message_id, response)
+
+    
 async def execute_general_response_3(workspace_id:int, message_id: int, query: str):
 
     prompt = generate_general_context(query)
@@ -80,6 +109,7 @@ async def execute_general_response_3(workspace_id:int, message_id: int, query: s
         return {"error": "Grex is currently unavailable, please try again later."}
     
     await broadcast_grex_output(workspace_id, message_id, output)
+
 
 async def broadcast_grex_output(workspace_id: int, reply_to: int, output:str):
     """

@@ -3,7 +3,7 @@ from fastapi import WebSocket, WebSocketDisconnect, APIRouter, Depends, HTTPExce
 from ..websocket_manager import ConnectionManager
 from ..authentication.services import websocket_authentication
 from ai_assistant.vectorstore.message_vector_store import ProcessMessageLogs
-from .crud import insert_messages_to_db, insert_text_messages_to_db, get_sender_data
+from .crud import insert_messages_to_db, insert_text_messages_to_db, get_sender_data, insert_message_attachments_db
 from ..db_instance import db
 from ..utils.logger import logger
 from datetime import datetime, timezone

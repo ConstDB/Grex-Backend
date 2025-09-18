@@ -1,4 +1,4 @@
-from app.utils.query_builder import get_query
+from app.utils.query_builder import get_query, insert_query
 import asyncpg
 from fastapi import HTTPException
 
@@ -64,3 +64,16 @@ async def fetch_recent_tasks_db(workspace_id: int, conn: asyncpg.Connection, lim
     """
 
     return await conn.fetch(query, workspace_id, limit)
+
+async def insert_task_db(workspace_id:int, payload:dict, conn: asyncpg.Connection):
+    category = payload["category"] or "General"
+
+    category_id = await conn.fetchval(get_query("workspace_id", "name", fetch="category_id", table="categories"), workspace_id, category)
+
+    payload.pop("category")
+    payload["category_id"] = category_id
+    payload["workspace_id"] = workspace_id
+
+    query = insert_query(payload, "tasks")
+
+    return await conn.fetchrow(query, *payload.values())

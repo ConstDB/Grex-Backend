@@ -3,6 +3,8 @@ from .vectorstore.message_vector_store import ProcessMessageLogs
 from .vectorstore.task_vector_store import ProcessTaskLog
 from app.utils.logger import logger
 import asyncpg
+import json
+import re
 import numpy as np
 message_process = ProcessMessageLogs()
 task_process = ProcessTaskLog()
@@ -64,3 +66,11 @@ async def prepare_tasks_context(embedding: np.ndarray, workspace_id:int, query:s
 
     # logger.info(recent_tasks)
     return related_logs, recent_tasks
+
+async def clean_tasks_data(output:str):
+    cleaned = re.sub(r"^```(?:json)?|```$", "", output, flags=re.MULTILINE).strip()
+
+    try:
+        return json.loads(cleaned)
+    except Exception as e:
+        return {"error": f"Failed to convert string to json: {e}"}
