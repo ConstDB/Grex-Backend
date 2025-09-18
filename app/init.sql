@@ -159,6 +159,7 @@ CREATE TABLE IF NOT EXISTS notifications (
 CREATE TABLE IF NOT EXISTS messages (
     message_id SERIAL PRIMARY KEY,
     workspace_id INTEGER REFERENCES workspaces(workspace_id) ON DELETE CASCADE,
+    is_pinned BOOLEAN, 
     sender_id INTEGER REFERENCES users(user_id) ON DELETE SET NULL,
     message_type VARCHAR(20) CHECK (message_type IN ('text', 'image', 'file', 'poll')),
     reply_to INTEGER REFERENCES messages(message_id) ON DELETE SET NULL,
@@ -274,6 +275,7 @@ CREATE OR REPLACE VIEW message_details AS
 SELECT m.message_id,
        m.workspace_id,
        m.sender_id,
+       m.is_pinned,
        u.profile_picture,
        wm.nickname,
        m.message_type,

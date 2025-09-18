@@ -1,5 +1,6 @@
 from fastapi import HTTPException
 from ..authentication.services import get_password_hash
+from ..utils.query_builder import get_query
 import asyncpg
 
 
@@ -18,18 +19,24 @@ async def fetch_users_by_name(name: str, conn: asyncpg.Connection):
         raise HTTPException(status_code=500, detail=f"Failed to search user on DB -> {e}")
     
 
-async def fetch_user_data_db(user_id: int, conn: asyncpg.Connection ):
+async def fetch_user_data_db(user_id: int, fetch:str, conn: asyncpg.Connection ):
     try: 
-        query = """
-        SELECT first_name, last_name, email, phone_number, profile_picture
-        FROM users
-        WHERE user_id = $1
-        """    
+        query = get_query("user_id", fetch=fetch, table="users")
     
-        res = await conn.fetchrow(query, user_id ) 
+        res = await conn.fetchrow(query, user_id) 
         return res 
     except Exception as e: 
         raise HTTPException(status_code=500, detail=f"Process Failed -> {e}")
+    
+async def fetch_social_links_db(user_id: int, fetch:str, conn: asyncpg.Connection ):
+    try: 
+        query = get_query("user_id", fetch=fetch, table="social_links")
+    
+        res = await conn.fetchrow(query, user_id) 
+        return res 
+    except Exception as e: 
+        raise HTTPException(status_code=500, detail=f"Process Failed -> {e}")
+    
     
 async def update_user_information_db(
     user_id: int,

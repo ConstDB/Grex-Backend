@@ -98,8 +98,7 @@ async def get_all_user_workspaces(user_id: int, conn:asyncpg.Connection):
                 json_agg(
                     json_build_object(
                         'user_id', u.user_id, 
-                        'profile_picture', u.profile_picture,
-                        'status', u.status ,                
+                        'profile_picture', u.profile_picture,               
                         'phone_number', u.phone_number,      
                         'nickname', wm.nickname
                         )
@@ -159,8 +158,7 @@ async def get_workspace_from_db(user_id:int, workspace_id: int, conn: asyncpg.Co
                             'last_name', u.last_name,
                              'nickname', wm.nickname,
                             'email', u.email,
-                            'profile_picture', u.profile_picture,
-                            'status', u.status
+                            'profile_picture', u.profile_picture
                               
                         )
                     ) FILTER (WHERE u.user_id IS NOT NULL),

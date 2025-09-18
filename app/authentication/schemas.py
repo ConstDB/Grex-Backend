@@ -1,4 +1,4 @@
-from pydantic import BaseModel, AwareDatetime
+from pydantic import BaseModel
 from typing import Optional
 
 
@@ -17,4 +17,4 @@ class RefreshToken(BaseModel):
 
 class EmailObject(BaseModel):
     email: str
-    
+
