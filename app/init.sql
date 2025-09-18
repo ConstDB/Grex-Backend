@@ -77,7 +77,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     subject VARCHAR(200),
     title VARCHAR(200) NOT NULL,
     description TEXT,
-    deadline DATE,
+    deadline TIMESTAMPTZ,
     status VARCHAR(20) CHECK (status IN ('pending', 'done', 'overdue')),
     priority_level VARCHAR(20),
     start_date DATE NULL,

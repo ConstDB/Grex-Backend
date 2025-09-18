@@ -27,7 +27,7 @@ router.include_router(sub_task_router, tags=["SubTask"])
 router.include_router(task_assignment_router, tags=["TaskAssignment"])
 router.include_router(auth_router, tags=["Authentication"])
 router.include_router(users_router, tags=["Users"])
-router.include_router(workspaces_router, prefix="/workspace", tags=["Workspaces"])
+router.include_router(workspaces_router, tags=["Workspaces"])
 router.include_router(websocket_router)
 router.include_router(pinned_router, tags=["Pinned Messages"])
 
