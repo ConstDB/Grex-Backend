@@ -200,21 +200,22 @@ async def workspace_add_member(payload:dict, conn: asyncpg.Connection = Depends(
     try:
         query = """
                 INSERT INTO workspace_members (workspace_id, user_id, role, nickname, added_by)
-                VALUES ($1, $2 , $3, $4, $5)                  
+                VALUES ($1, $2 , $3, $4, $5)
+                RETURNING *;                  
                 """
         res = await conn.fetchrow(query, *payload.values())
 
         added_by = await conn.fetchval(
             """
-            SELECT CONCAT(first_name, ' ', last_name)
+            SELECT first_name || ' ' || last_name
             FROM users
             WHERE user_id = $1
             """,
             res["added_by"]
-        )
+        ) 
         workspace_name = await conn.fetchval(
             "SELECT name FROM workspaces WHERE workspace_id = $1",
-            payload["workspace_id"]
+            res["workspace_id"]
         )
         notif_row = await conn.fetchrow(
             """
@@ -223,7 +224,7 @@ async def workspace_add_member(payload:dict, conn: asyncpg.Connection = Depends(
             RETURNING notification_id, content
             """,
             f"You have been added by {added_by} to workspace {workspace_name}. You can now start collaborating!",
-            payload['workspace_id']
+            res['workspace_id']
         )
 
         if notif_row:
