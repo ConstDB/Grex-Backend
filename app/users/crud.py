@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 from ..authentication.services import get_password_hash
-from ..utils.query_builder import get_query
+from ..utils.query_builder import get_query, update_query
 import asyncpg
 
 
@@ -37,7 +37,18 @@ async def fetch_social_links_db(user_id: int, fetch:str, conn: asyncpg.Connectio
     except Exception as e: 
         raise HTTPException(status_code=500, detail=f"Process Failed -> {e}")
     
-    
+async def partial_update_user_db(user_id: int, payload:dict, conn: asyncpg.Connection):
+    query = update_query("user_id", model=payload, table="users")
+    res = await conn.fetchrow(query, *payload.values(), user_id)
+
+    return res
+
+async def partial_update_links_db(user_id: int, payload:dict, conn: asyncpg.Connection):
+    query = update_query("user_id", model=payload, table="social_links")
+    res = await conn.fetchrow(query, *payload.values(), user_id)
+
+    return res
+
 async def update_user_information_db(
     user_id: int,
     model: dict, 

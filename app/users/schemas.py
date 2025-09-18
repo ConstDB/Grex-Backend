@@ -18,7 +18,6 @@ class UserDetail(BaseModel):
     phone_number: Optional[str] = None
 
 class GetLinksResponse(BaseModel):
-    links_id: int
     github: Optional[str] = None
     linkedin: Optional[str] = None
     portfolio: Optional[str] = None
@@ -44,11 +43,13 @@ class GetUserWithLinksResponse(GetUserResponse):
     
 
 class PatchUserResponse(BaseModel):
-    first_name: Optional[str] = None
+    first_name:Optional[str] = None 
     last_name: Optional[str] = None
     email: Optional[str] = None
-    phone_number: Optional[str] = None
-    password_hash: Optional [str] = None
-    profile_picture: Optional[str] = None
-    
+    phone_number:Optional[str] = None
+    profile_picture:Optional[str] = None
+    role: Optional[str] = None
+    bio: Optional[str] = None
+    skills: Optional[List[str]] = None
+    social_links: Optional[GetLinksResponse] = None
     

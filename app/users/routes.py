@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
-from .schemas import GetUserWithLinksResponse
+from .schemas import GetUserWithLinksResponse, PatchUserResponse
 from ..deps import get_db_connection
 from .crud import fetch_users_by_name
-from .services import get_user_data_service
+from .services import get_user_data_service, partial_update_user_service
 from ..authentication.services import get_current_user
 from ..utils.normalizer import normalize_name
 import asyncpg
@@ -28,11 +28,11 @@ async def get_user_data_route(user_id: int, conn: asyncpg.Connection = Depends(g
     except Exception as e: 
         raise HTTPException (status_code=500, detail=f"Failed to get User Data -> {e}")
     
-# @router.patch("/user/{user_id}/profile",response_model=GetUserResponse)
-# async def update_user_info_route(user_id:int, model: PatchUserResponse, conn: asyncpg.Connection = Depends(get_db_connection), token: str = Depends(get_current_user)):
-#     try: 
-#         users = await update_user_information_db(user_id, model.model_dump(), conn)
+@router.patch("/user/{user_id}/profile")
+async def update_user_info_route(user_id:int, model: PatchUserResponse, conn: asyncpg.Connection = Depends(get_db_connection), token: str = Depends(get_current_user)):
+    try: 
+        users = await partial_update_user_service(user_id, model.model_dump(), conn)
          
-#         return users
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail = f"Process Failed -> {e}")
+        return users
+    except Exception as e:
+        raise HTTPException(status_code=500, detail = f"Process Failed -> {e}")
