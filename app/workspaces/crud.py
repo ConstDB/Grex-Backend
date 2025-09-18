@@ -199,9 +199,8 @@ async def get_workspace_from_db(user_id:int, workspace_id: int, conn: asyncpg.Co
 async def workspace_add_member(payload:dict, conn: asyncpg.Connection = Depends(get_db_connection)):
     try:
         query = """
-                INSERT INTO workspace_members (workspace_id, user_id, role, nickname)
-                VALUES ($1, $2 , $3, $4)    
-                RETURNING *;              
+                INSERT INTO workspace_members (workspace_id, user_id, role, nickname, added_by)
+                VALUES ($1, $2 , $3, $4, $5)                  
                 """
         res = await conn.fetchrow(query, *payload.values())
 
