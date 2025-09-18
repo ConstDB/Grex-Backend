@@ -10,10 +10,18 @@ from .schemas import PinnedMessagesPayload
 async def fetch_pinned_messages_db(workspace_id:int,  conn: asyncpg.Connection):
     try:
         query = """
-        SELECT * FROM pinned_messages 
-        WHERE workspace_id = $1
-        ORDER BY pinned_at DESC;
+        SELECT 
+            md.*,
+            wm.nickname AS pinned_by,
+            pm.pinned_at
+        FROM pinned_messages pm
+        JOIN message_details md ON pm.message_id = md.message_id
+        LEFT JOIN workspace_members wm ON wm.user_id = pm.pinned_by AND wm.workspace_id = $1
+        AND pm.workspace_id = md.workspace_id
+        WHERE pm.workspace_id = $1
+        ORDER BY pm.pinned_at DESC;
         """
+
         res = await conn.fetch(query, workspace_id)
         
         return res
