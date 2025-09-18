@@ -30,7 +30,8 @@ async def websocket_message_endpoint(websocket: WebSocket, workspace_id: int, us
                 "workspace_id": workspace_id,
                 "sender_id": user_id,
                 "message_type": payload["type"],
-                "reply_to": payload["reply_to"] 
+                "reply_to": payload["reply_to"],
+                "is_pinned": False 
             }
 
             async with db.get_connection() as conn:

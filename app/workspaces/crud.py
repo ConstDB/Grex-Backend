@@ -51,7 +51,7 @@ async def workspace_trigger():
                         FROM users u 
                         WHERE u.user_id = NEW.created_by;
 
-                        INSERT INTO workspace_members (user_id, workspace_id, nickname, role, nickname)
+                        INSERT INTO workspace_members (user_id, workspace_id, nickname, role, added_by)
                         VALUES(NEW.created_by, NEW.workspace_id, u_first_name,'leader', NEW.created_by);
 
                         INSERT INTO categories (workspace_id, name)

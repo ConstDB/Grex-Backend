@@ -2,7 +2,7 @@
 import asyncpg
 from fastapi import HTTPException, Depends
 from ..deps import get_db_connection
-from ..utils.query_builder import insert_query
+from ..utils.query_builder import insert_query, update_query
 from ..db_instance import db
 from datetime import datetime
 from .schemas import PinnedMessagesPayload
@@ -50,3 +50,12 @@ async def unpin_messages_db(workspace_id:int, message_id:int, conn: asyncpg.Conn
     except Exception as e: 
 
         raise HTTPException (status_code=500, detail=f"Process failed -> {e}")
+    
+
+async def update_message_db(message_id:int, conn: asyncpg.Connection , is_pin: bool=True):
+    payload = {
+        "is_pinned": is_pin
+    }
+    query = update_query("message_id", model=payload, table="messages")
+
+    await conn.execute(query, *payload.values(), message_id)
