@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from .schemas import UserLoginSchema, UserRegisterSchema,  RefreshToken, EmailObject
 from fastapi.responses import JSONResponse
-from .auth import verify_password, get_password_hash, create_access_token, create_refresh_token, token_response, oauth, decode_refresh_token
+from .services import verify_password, get_password_hash, create_access_token, create_refresh_token, token_response, oauth, decode_refresh_token
 from authlib.integrations.starlette_client import OAuth
 from fastapi.security import OAuth2PasswordRequestForm
 from ..db.database import Database
 from ..deps import get_db_connection
-from .authentication_crud import add_user_to_db, get_user_from_db, update_refresh_token_on_db, revoke_user_token_on_db
+from .crud import add_user_to_db, get_user_from_db, update_refresh_token_on_db, revoke_user_token_on_db
 from ..utils.logger import logger
 import asyncpg
 from ..config.settings import settings as st

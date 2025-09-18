@@ -1,5 +1,5 @@
 from fastapi import HTTPException
-from .auth import get_password_hash
+from ..authentication.services import get_password_hash
 import asyncpg
 
 

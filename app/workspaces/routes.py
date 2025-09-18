@@ -3,7 +3,7 @@ from typing import List
 from datetime import date
 from ..deps import get_db_connection
 from ..workspaces.schemas import WorkspaceCreation, GetWorkspaces, WorkspacePatch, WorkspaceMembersPatch
-from ..users.auth import get_current_user
+from ..authentication.services import get_current_user
 from ..utils.normalizer import normalize_name
 from .crud import add_workspace_to_db, get_all_user_workspaces,  workspace_add_member,  kick_member, get_user_info, get_workspace_from_db, insert_members_read_status, search_member_by_name, update_workspace_data, update_user_data
 import json

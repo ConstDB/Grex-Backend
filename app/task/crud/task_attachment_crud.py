@@ -47,8 +47,8 @@ async def create_attachment(conn, task_id: int, attachment: TaskAttachmentCreate
         f"{', '.join(updated_fields)}"
     )
 
-    # Call your logging helper
-    await log_task_action(conn, task_id, content)
+    # # Call your logging helper
+    # await log_task_action(conn, task_id, content)
 
     return dict(row)
 

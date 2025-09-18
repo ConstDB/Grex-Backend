@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from ..deps import get_db_connection
-from ..users.auth import get_current_user
+from ..authentication.services import get_current_user
 from ..categories.crud import insert_category_db, update_category_db, fetch_category_db, delete_category_db
 from ..categories.schema import CategoryCreate, CategoryUpdate, CategoryOut, CategoryDelete
 

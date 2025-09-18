@@ -5,7 +5,7 @@ from ..deps import get_db_connection
 import asyncpg
 from .crud import fetch_pinned_messages_db, insert_pinned_message_db, unpin_messages_db 
 from .schemas import PinnedMessagesPayload
-from ..users.auth import get_current_user
+from ..authentication.services import get_current_user
 
 
 router = APIRouter()

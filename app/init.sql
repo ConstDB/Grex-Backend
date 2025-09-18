@@ -9,7 +9,23 @@ CREATE TABLE IF NOT EXISTS users (
     revoked BOOLEAN,
     profile_picture TEXT,
     phone_number VARCHAR(20),
-    status VARCHAR(10) CHECK (status IN ('online', 'offline'))
+    role VARCHAR(150),
+    bio TEXT,
+    skills TEXT[]
+);
+
+-- =========================
+-- SOCIAL LINKS
+-- =========================
+CREATE TABLE IF NOT EXISTS social_links (
+    links_id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE, 
+    github TEXT,
+    linkedin TEXT,
+    portfolio TEXT,
+    twitter TEXT,
+    discord TEXT,
+    email TEXT
 );
 
 -- =========================

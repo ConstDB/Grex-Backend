@@ -7,8 +7,8 @@ from ..task.routes.task_attachment_router import router as task_attachment_route
 from ..task.routes.task_comment_router import router as task_comment_router
 from ..task.routes.sub_task_router import router as sub_task_router
 from ..task.routes.task_assignment_router import router as task_assignment_router
-from ..users.user_routes import router as users_router
-from ..users.auth_routes import router as auth_router
+from ..users.routes import router as users_router
+from ..authentication.routes import router as auth_router
 from ..workspaces.routes import router as workspaces_router
 from ..messages.websocket import router as websocket_router
 from ..pinned_messages.routes import router as pinned_router  

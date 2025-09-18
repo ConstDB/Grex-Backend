@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from ..deps import get_db_connection
-from ..users.auth import get_current_user
+from ..authentication.services import get_current_user
 from .crud import get_few_messages_from_db, get_last_read_timestamp, update_last_read_timestamp,fetch_attachments_db
 from .schemas import MessageReadStatus,GetFiles 
 from ..utils.logger import logger

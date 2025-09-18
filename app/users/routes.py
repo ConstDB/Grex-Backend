@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from .schemas import PatchUserResponse, GetUserResponse
 from ..deps import get_db_connection
-from .user_crud import fetch_users_by_name,fetch_user_data_db,update_user_information_db
-from .auth import get_current_user
+from .crud import fetch_users_by_name,fetch_user_data_db,update_user_information_db
+from ..authentication.services import get_current_user
 from ..utils.normalizer import normalize_name
 import asyncpg
 
