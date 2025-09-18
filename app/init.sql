@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS workspace_members (
     user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
     role VARCHAR(20) CHECK (role IN ('leader', 'member')),
     nickname VARCHAR(100),
+    added_by: INTEGER REFERENCES users(user_id),
     joined_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (workspace_id, user_id)
     

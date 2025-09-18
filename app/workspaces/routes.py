@@ -25,7 +25,7 @@ async def create_workspace(workspace: WorkspaceCreation, conn: asyncpg.Connectio
          raise HTTPException(status_code=500, detail=f"Workspace creation failed -> {e}")     
       
 @router.post("/{workspace_id}/members")
-async def add_workspace_member(email:str, workspace_id: int, added_by: str, conn: asyncpg.Connection = Depends(get_db_connection), token: str = Depends(get_current_user)):
+async def add_workspace_member(email:str, workspace_id: int, added_by: int, conn: asyncpg.Connection = Depends(get_db_connection), token: str = Depends(get_current_user)):
     try: 
         user = await get_user_info(email, conn)
         user_dict = dict(user)
@@ -35,16 +35,17 @@ async def add_workspace_member(email:str, workspace_id: int, added_by: str, conn
             "user_id" : user_dict["user_id"],
             "role" : 'member',
             "nickname" : user_dict["first_name"],
+            "added_by": added_by
         }
 
         member_read_status = {
             "workspace_id": workspace_id,
             "user_id" : user_dict["user_id"]
         }
-        
-        await insert_members_read_status(member_read_status, conn)
+
         res = await workspace_add_member(member,  conn)
-        
+        await insert_members_read_status(member_read_status, conn)
+
         return res 
     except Exception as e:
          raise HTTPException(status_code=500, detail=f"Process Failed -> {e}") 
