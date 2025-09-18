@@ -25,7 +25,7 @@ async def create_workspace(workspace: WorkspaceCreation, conn: asyncpg.Connectio
          raise HTTPException(status_code=500, detail=f"Workspace creation failed -> {e}")     
       
 @router.post("/{workspace_id}/members")
-async def add_workspace_member(email:str, workspace_id: int, conn: asyncpg.Connection = Depends(get_db_connection), token: str = Depends(get_current_user)):
+async def add_workspace_member(email:str, workspace_id: int, added_by: str, conn: asyncpg.Connection = Depends(get_db_connection), token: str = Depends(get_current_user)):
     try: 
         user = await get_user_info(email, conn)
         user_dict = dict(user)

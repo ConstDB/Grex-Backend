@@ -4,6 +4,7 @@ from asyncpg.exceptions import UniqueViolationError
 from ..utils.query_builder import insert_query, get_query, update_query
 from ..utils.logger import logger
 from datetime import datetime, timezone
+from .schemas import GetFiles
 
 async def insert_messages_to_db(message_data: dict, conn:asyncpg.Connection):
     try:
@@ -82,3 +83,27 @@ async def get_sender_data(user_id: int, workspace_id: int, conn: asyncpg.Connect
     res = await conn.fetchrow(query, user_id, workspace_id)
 
     return res
+
+async def fetch_attachments_db(
+    workspace_id: int, 
+    file_type: str, 
+    conn: asyncpg.Connection):
+    
+    query = """
+        SELECT
+            ma.attachment_id,
+            ma.message_id,
+            ma.file_name as name,
+            ma.file_type as type,
+            ma.file_url as url,
+            ma.file_size as size,
+            ma.uploaded_at
+        FROM message_attachments ma
+        JOIN messages m ON ma.message_id = m.message_id
+        WHERE m.workspace_id = $1
+        AND ma.file_type = $2
+        ORDER BY ma.uploaded_at DESC;
+
+    """
+    res = await conn.fetch(query, workspace_id, file_type)
+    return [dict(row) for row in res]
