@@ -1,7 +1,6 @@
 from fastapi import APIRouter
 from ..messages.routes import router as messages_router
 from ..notifications.routes import router as notification_router
-from ..summaries.routes import router as summaries_router
 from ..categories.routes import router as category_router
 from ..task.routes.task_router import router as task_router
 from ..task.routes.task_attachment_router import router as task_attachment_router
@@ -20,7 +19,6 @@ router = APIRouter()
 
 router.include_router(messages_router, tags=["Messages"])
 router.include_router(notification_router, prefix="/notification", tags=["Notification"])
-router.include_router(summaries_router, prefix="/summaries", tags=["Summaries"])
 router.include_router(category_router, tags=["Category"])
 router.include_router(task_router, prefix="/tasks", tags=["Task"])
 router.include_router(task_attachment_router, tags=["Task Attachment"])

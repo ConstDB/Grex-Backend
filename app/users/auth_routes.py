@@ -179,7 +179,7 @@ async def auth_google_callback(data: dict, request: Request, conn: asyncpg.Conne
             "profile_picture" : user_info["picture"]
         }
 
-        access_token = signJWT(user_info["email"])
+        access_token = create_access_token(user_info["email"])
         existing_user = await get_user_from_db(user_info["email"], conn)
         user_dict = dict(existing_user)
 
