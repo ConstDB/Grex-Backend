@@ -94,3 +94,4 @@ async def update_user_information_db(
     
     user = await conn.fetchrow (query, *user_values)
     return dict(user) if user else None
+
