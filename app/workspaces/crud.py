@@ -1,7 +1,7 @@
 import asyncpg
 from fastapi import HTTPException, Depends
 from ..deps import get_db_connection
-from ..utils.query_builder import insert_query
+from ..utils.query_builder import insert_query, get_query
 from ..db_instance import db
 import datetime as date
 from .schemas import WorkspacePatch,WorkspaceMembersPatch
@@ -51,8 +51,8 @@ async def workspace_trigger():
                         FROM users u 
                         WHERE u.user_id = NEW.created_by;
 
-                        INSERT INTO workspace_members (user_id, workspace_id, nickname, role)
-                        VALUES(NEW.created_by, NEW.workspace_id, u_first_name,'leader');
+                        INSERT INTO workspace_members (user_id, workspace_id, nickname, role, added_by)
+                        VALUES(NEW.created_by, NEW.workspace_id, u_first_name,'leader', NEW.created_by);
 
                         INSERT INTO categories (workspace_id, name)
                         VALUES(NEW.workspace_id, 'General');
@@ -98,8 +98,7 @@ async def get_all_user_workspaces(user_id: int, conn:asyncpg.Connection):
                 json_agg(
                     json_build_object(
                         'user_id', u.user_id, 
-                        'profile_picture', u.profile_picture,
-                        'status', u.status ,                
+                        'profile_picture', u.profile_picture,               
                         'phone_number', u.phone_number,      
                         'nickname', wm.nickname
                         )
@@ -131,66 +130,12 @@ async def get_all_user_workspaces(user_id: int, conn:asyncpg.Connection):
     except Exception as e: 
         raise HTTPException(status_code=500, detail=f"Something went wrong -> {e}")
     
-async def get_workspace_from_db(user_id:int, workspace_id: int, conn: asyncpg.Connection):
+async def get_workspace_from_db(workspace_id: int, conn: asyncpg.Connection):
     
     try:    
-        query = """
-            SELECT 
-                w.workspace_id,
-                w.name,
-                w.project_nature,
-                w.description,
-                w.start_date,
-                w.due_date,
-                w.workspace_profile_url,
-                w.created_by, 
-                w.created_at,
-                
-                w.created_by,
-                w.workspace_profile_url, 
-        
-                COALESCE(            
-                    json_agg(
-                        json_build_object(
-                            'user_id', u.user_id, 
-                            'role', wm.role,
-                            'joined_at', wm.joined_at,
-                            'first_name', u.first_name,
-                            'last_name', u.last_name,
-                             'nickname', wm.nickname,
-                            'email', u.email,
-                            'profile_picture', u.profile_picture,
-                            'status', u.status
-                              
-                        )
-                    ) FILTER (WHERE u.user_id IS NOT NULL),
-                    '[]'                   
-                ) AS members
-                FROM workspaces w
-                LEFT JOIN workspace_members wm ON w.workspace_id = wm.workspace_id
-                LEFT JOIN users u ON wm.user_id = u.user_id
-                WHERE w.workspace_id = $1
-                AND EXISTS(
-                    SELECT 1
-                    FROM workspace_members wm2
-                    WHERE wm2.workspace_id = w.workspace_id
-                        AND wm2.user_id = $2
-                        
-                ) 
-                
-                GROUP BY
-                    w.workspace_id,
-                    w.name,
-                    w.project_nature,
-                    w.description,
-                    w.start_date,
-                    w.due_date,
-                    w.workspace_profile_url,
-                    w.created_by, 
-                    w.created_at;
-        """
+        query = get_query("workspace_id", fetch="*", table="workspaces")
            
-        res = await conn.fetchrow(query, workspace_id, user_id )
+        res = await conn.fetchrow(query, workspace_id)
         return res
     except Exception as e: 
         raise HTTPException(status_code=500, detail=f"Something went wrong -> {e}")    
@@ -217,24 +162,26 @@ async def insert_members_read_status(payload:dict, conn: asyncpg.Connection):
         raise HTTPException(status_code=500, detail=f"Failed to add read status on this workspace: {e}")
             
 
-async def search_member_by_name(name:str, workspace_id: int, conn: asyncpg.Connection):
+async def fetch_workspace_members_db(workspace_id: int, conn: asyncpg.Connection):
     try:
-        query="""
-            SELECT
+        query = """
+            SELECT 
                 u.user_id,
+                wm.role,
+                wm.nickname, 
+                wm.joined_at,
+                wm.added_by,
                 u.first_name,
                 u.last_name,
-                wm.nickname, 
                 u.email, 
                 u.profile_picture
-                
-            FROM users u
-            LEFT JOIN workspace_members wm ON u.user_id = wm.user_id AND wm.workspace_id = $2
-            WHERE ((u.first_name || ' ' || u.last_name) ILIKE '%' || $1 || '%')
-            AND wm.workspace_id = $2
+
+            FROM workspace_members wm
+            LEFT JOIN users u ON wm.user_id = u.user_id
+            WHERE wm.workspace_id = $1
         """
 
-        res = await conn.fetch(query, name, workspace_id)
+        res = await conn.fetch(query, workspace_id)
         return res
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch workspace member -> {e}")

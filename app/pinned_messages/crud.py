@@ -2,7 +2,7 @@
 import asyncpg
 from fastapi import HTTPException, Depends
 from ..deps import get_db_connection
-from ..utils.query_builder import insert_query
+from ..utils.query_builder import insert_query, update_query
 from ..db_instance import db
 from datetime import datetime
 from .schemas import PinnedMessagesPayload
@@ -10,10 +10,18 @@ from .schemas import PinnedMessagesPayload
 async def fetch_pinned_messages_db(workspace_id:int,  conn: asyncpg.Connection):
     try:
         query = """
-        SELECT * FROM pinned_messages 
-        WHERE workspace_id = $1
-        ORDER BY pinned_at DESC;
+        SELECT 
+            md.*,
+            wm.nickname AS pinned_by,
+            pm.pinned_at
+        FROM pinned_messages pm
+        JOIN message_details md ON pm.message_id = md.message_id
+        LEFT JOIN workspace_members wm ON wm.user_id = pm.pinned_by AND wm.workspace_id = $1
+        AND pm.workspace_id = md.workspace_id
+        WHERE pm.workspace_id = $1
+        ORDER BY pm.pinned_at DESC;
         """
+
         res = await conn.fetch(query, workspace_id)
         
         return res
@@ -50,3 +58,12 @@ async def unpin_messages_db(workspace_id:int, message_id:int, conn: asyncpg.Conn
     except Exception as e: 
 
         raise HTTPException (status_code=500, detail=f"Process failed -> {e}")
+    
+
+async def update_message_db(message_id:int, conn: asyncpg.Connection , is_pin: bool=True):
+    payload = {
+        "is_pinned": is_pin
+    }
+    query = update_query("message_id", model=payload, table="messages")
+
+    await conn.execute(query, *payload.values(), message_id)

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from ...deps import get_db_connection
-from ...users.auth import get_current_user
+from ...authentication.services import get_current_user
 from ...task.crud import sub_task_crud
 from ...task.schemas.SubTasks_schema import SubTasksCreate, SubTasksPatch, SubTasksOut
 import asyncpg

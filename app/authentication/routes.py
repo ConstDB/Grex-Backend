@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from .schemas import UserLoginSchema, UserRegisterSchema,  RefreshToken, EmailObject
 from fastapi.responses import JSONResponse
-from .auth import verify_password, get_password_hash, create_access_token, create_refresh_token, token_response, oauth, decode_refresh_token
+from .services import verify_password, get_password_hash, create_access_token, create_refresh_token, token_response, oauth, decode_refresh_token
 from authlib.integrations.starlette_client import OAuth
 from fastapi.security import OAuth2PasswordRequestForm
 from ..db.database import Database
 from ..deps import get_db_connection
-from .authentication_crud import add_user_to_db, get_user_from_db, update_refresh_token_on_db, revoke_user_token_on_db
+from .crud import add_user_to_db, get_user_from_db, update_refresh_token_on_db, revoke_user_token_on_db, insert_social_links_db
 from ..utils.logger import logger
 import asyncpg
 from ..config.settings import settings as st
@@ -45,11 +45,16 @@ async def sign_up(user: UserRegisterSchema, conn: asyncpg.Connection = Depends(g
         user_dict["refresh_token_expires_at"] = refresh_payload["refresh_token_expires_at"]
         user_dict["revoked"] = refresh_payload["revoked"]
 
-        # get the user infos from DB
+        # insert and return the user infos from DB
         raw = await add_user_to_db(user_dict, conn)
+
 
         # then convert it into dict
         user_data = dict(raw)
+        
+        # insert social links
+        data = {"user_id":user_data["user_id"]}
+        social_links = await insert_social_links_db(data, conn)
 
         res = {
             "user": user_data,
@@ -83,7 +88,7 @@ async def login(user: UserLoginSchema, conn: asyncpg.Connection = Depends(get_db
         refresh_payload = create_refresh_token(user.email)
 
         # Get user data from DB    
-        raw = await get_user_from_db(user_dict["email"], conn, fetch="user_id, first_name, last_name, email, profile_picture, phone_number, status, password_hash") 
+        raw = await get_user_from_db(user_dict["email"], conn, fetch="user_id, first_name, last_name, email, profile_picture, phone_number, password_hash") 
         
 
         if raw is None:
