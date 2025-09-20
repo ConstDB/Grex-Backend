@@ -15,3 +15,7 @@ class GetLinks(BaseModel):
     link_name: str
     link_url:str
     created_at: datetime
+
+class PutLink(BaseModel):
+    link_name:Optional[str] = None
+    link_url:Optional[str] = None
