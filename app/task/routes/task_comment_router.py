@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from ...deps import get_db_connection
-from ...users.auth import get_current_user
+from ...authentication.services import get_current_user
 from typing import List
 from ...task.crud import task_comment_crud
 from ...task.schemas.TaskComment_schema import TaskCommentCreate, TaskCommentUpdate, TaskCommentOut

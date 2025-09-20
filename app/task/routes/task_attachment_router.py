@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, Depends, HTTPException
 from ...deps import get_db_connection  
-from ...users.auth import get_current_user
+from ...authentication.services import get_current_user
 from ...task.schemas.TaskAttachment_schema import TaskAttachmentCreate, TaskAttachmentDelete
 from ...task.crud.task_attachment_crud import create_attachment, get_attachments_by_task, delete_attachment
 
