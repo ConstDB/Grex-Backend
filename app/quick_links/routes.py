@@ -4,7 +4,7 @@ from typing import List
 from datetime import date
 from ..deps import get_db_connection
 from .crud import fetch_workspace_link_db, remove_workspace_link_db, create_workspace_links_db,update_link_db
-from ..users.auth import get_current_user
+from ..authentication.services import get_current_user
 from .schemas import GetLinks,CreateLinks,PutLink
 
 
