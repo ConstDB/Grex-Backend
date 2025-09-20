@@ -10,10 +10,7 @@ from .config.settings import settings as st
 import os
 from fastapi import FastAPI
 from app.utils.error_handlers import register_exception_handlers
-from app.db.database import Database
 from app.notifications.scheduler import start_scheduler
-
-db_instance = Database()
 
 app = FastAPI()
 

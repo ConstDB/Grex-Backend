@@ -13,18 +13,17 @@ async def create_taskassignment(conn, task_id, user_id):
     row = await conn.fetchrow(query, task_id, user_id)
     
     if row:
-        workspace_id = await conn.fetchval(
-            "SELECT workspace_id FROM tasks WHERE task_id = $1",
+        row = await conn.fetchrow(
+            """
+            SELECT w.workspace_id, w.name AS workspace_name
+            FROM tasks t
+            JOIN workspaces w ON t.workspace_id = w.workspace_id
+            WHERE t.task_id = $1
+            """,
             task_id
         )
-        workspace_name = await conn.fetchval(
-            "SELECT name FROM workspaces WHERE workspace_id = $1",
-            workspace_id
-        )
-        task_name = await conn.fetchval(
-            "SELECT title FROM tasks WHERE task_id = $1",
-            task_id
-        )
+        workspace_id = row["workspace_id"]
+        workspace_name = row["workspace_name"]
         notif_query = """
             INSERT INTO notifications (content, workspace_id)
             VALUES ($1, $2)
@@ -93,14 +92,17 @@ async def delete_taskassignment(conn, task_id: int, user_id: int):
     row = await conn.fetchrow(query, task_id, user_id)
     
     if row:
-        workspace_id = await conn.fetchval(
-            "SELECT workspace_id from tasks WHERE task_id = $1",
+        row = await conn.fetchrow(
+            """
+            SELECT w.workspace_id, w.name AS workspace_name
+            FROM tasks t
+            JOIN workspaces w ON t.workspace_id = w.workspace_id
+            WHERE t.task_id = $1
+            """,
             task_id
         )
-        workspace_name = await conn.fetchval(
-            "SELECT name FROM workspaces WHERE workspace_id = $1",
-            workspace_id
-        )
+        workspace_id = row["workspace_id"]
+        workspace_name = row["workspace_name"]
         notif_query = """
             INSERT INTO notifications (content, workspace_id)
             VALUES ($1, $2)
@@ -117,11 +119,6 @@ async def delete_taskassignment(conn, task_id: int, user_id: int):
                 VALUES ($1, $2, FALSE)
                 RETURNING recipient_id, user_id, is_read, delivered_at
             """
-            recipient_row = await conn.fetchrow(
-                recipient_query,
-                notif_row["notification_id"],
-                user_id
-            )
             recipient_row = await conn.fetchrow(
                 recipient_query,
                 notif_row["notification_id"],
