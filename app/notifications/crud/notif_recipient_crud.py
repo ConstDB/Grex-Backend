@@ -4,20 +4,20 @@ from typing import List
 from ..schemas.notif_recipient_schema import NotificationRecipientCreate, NotificationRecipientOut
 
 @db_error_handler
-async def add_recipients(conn, notification_id: int, recipients: list[NotificationRecipientCreate]):
+async def add_recipients_db(conn, notification_id: int, recipients: list[NotificationRecipientCreate]):
     for recipient in recipients:
         await conn.execute(
             """
-            INSERT INTO notification_recipients (notification_id, user_id, workspace_id)
-            VALUES ($1, $2, $3)
+            INSERT INTO notification_recipients (notification_id, user_id)
+            VALUES ($1, $2)
             """,
-            notification_id, recipient.user_id, recipient.workspace_id,
+            notification_id, recipient.user_id
         )
     return {"status": "recipients added"}
 
 
 @db_error_handler
-async def get_recipients(conn, user_id: int) -> List[NotificationRecipientOut]:
+async def get_recipients_db(conn, user_id: int) -> List[NotificationRecipientOut]:
     query = """
             SELECT
                 r.recipient_id,
@@ -37,7 +37,7 @@ async def get_recipients(conn, user_id: int) -> List[NotificationRecipientOut]:
     return [NotificationRecipientOut(**dict(row)) for row in rows]
 
 
-async def mark_as_read(conn, user_id: int, notification_id: int):
+async def mark_as_read_db(conn, user_id: int, notification_id: int):
     result = await conn.execute(
         """
         UPDATE notification_recipients

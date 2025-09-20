@@ -262,10 +262,6 @@ async def patch_task(
         content = f"{creator_name} patched task_id {task_id}. Changes: {changes}"
         await log_task_action(conn, workspace_id, content)
 
-        workspace_id = await conn.fetchval(
-            "SELECT workspace_id from tasks WHERE task_id = $1",
-            task_id
-        )
         workspace_name = await conn.fetchval(
             "SELECT name FROM workspaces WHERE workspace_id = $1",
             workspace_id

@@ -28,13 +28,15 @@ async def send_deadline_reminders(pool: asyncpg.Pool):
             if isinstance(deadline, datetime) is False:
                 deadline = datetime.combine(deadline, datetime.min.time(), tzinfo=timezone.utc)
 
-            diff = deadline - now
-            if diff <= timedelta(days=7):
-                reminders = [timedelta(days=3), timedelta(hours=12), timedelta(hours=1)]
-            elif diff > timedelta(days=30):
-                reminders = [timedelta(days=7), timedelta(days=3), timedelta(hours=12), timedelta(hours=1)]
-            else:
-                reminders = []
+            diff = deadline - now 
+            reminders = [timedelta(minutes=0), timedelta(minutes=1), timedelta(minutes=5), timedelta(minutes=10)]
+            # diff = deadline - now
+            # if diff <= timedelta(days=7):
+            #     reminders = [timedelta(days=3), timedelta(hours=12), timedelta(hours=1)]
+            # elif diff > timedelta(days=30):
+            #     reminders = [timedelta(days=7), timedelta(days=3), timedelta(hours=12), timedelta(hours=1)]
+            # else:
+            #     reminders = []
 
             for r in reminders:
                 reminder_time = deadline - r
@@ -73,13 +75,15 @@ async def send_deadline_reminders(pool: asyncpg.Pool):
             if isinstance(deadline, datetime) is False:
                 deadline = datetime.combine(deadline, datetime.min.time(), tzinfo=timezone.utc)
            
-            diff = deadline - now
-            if diff <= timedelta(days=7):
-                reminders = [timedelta(days=3), timedelta(hours=12), timedelta(hours=1)]
-            elif diff > timedelta(days=30):
-                reminders = [timedelta(days=7), timedelta(days=3), timedelta(hours=12), timedelta(hours=1)]
-            else:
-                reminders = []
+            diff = deadline - now 
+            reminders = [timedelta(minutes=0), timedelta(minutes=1), timedelta(minutes=5), timedelta(minutes=10)]
+            # diff = deadline - now
+            # if diff <= timedelta(days=7):
+            #     reminders = [timedelta(days=3), timedelta(hours=12), timedelta(hours=1)]
+            # elif diff > timedelta(days=30):
+            #     reminders = [timedelta(days=7), timedelta(days=3), timedelta(hours=12), timedelta(hours=1)]
+            # else:
+            #     reminders = []
 
             for r in reminders:
                 reminder_time = deadline - r

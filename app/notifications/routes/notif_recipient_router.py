@@ -12,13 +12,13 @@ import asyncpg
 router = APIRouter()
 
 @router.post("/{notification_id}")
-async def add_recipients(
+async def add_recipients_route(
     notification_id: int, 
     recipients: List[NotificationRecipientCreate],
     token: str = Depends(get_current_user),
     conn: asyncpg.Connection = Depends(get_db_connection)
 ):
-    result = await notif_recipient_crud.add_recipients(conn, notification_id, recipients)
+    result = await notif_recipient_crud.add_recipients_db(conn, notification_id, recipients)
 
     # Notify all recipients via long polling
     for r in recipients:
@@ -32,21 +32,21 @@ async def add_recipients(
 
 
 @router.get("/", response_model=List[NotificationRecipientOut])
-async def fetch_user_notifications(
+async def fetch_user_notifications_route(
     user_id: int,
     token: str = Depends(get_current_user),
     conn: asyncpg.Connection = Depends(get_db_connection),
 ):
-    return await notif_recipient_crud.get_recipients(conn, user_id)
+    return await notif_recipient_crud.get_recipients_db(conn, user_id)
 
 @router.patch("/{notification_id}/read")
-async def mark_notification_as_read(
+async def mark_notification_as_read_route(
     notification_id: int,
     user_id: int,
     token: str = Depends(get_current_user),
     conn: asyncpg.Connection = Depends(get_db_connection)
 ):
-    return await notif_recipient_crud.mark_as_read(conn, user_id, notification_id)
+    return await notif_recipient_crud.mark_as_read_db(conn, user_id, notification_id)
 
 
 @router.get("/stream")
