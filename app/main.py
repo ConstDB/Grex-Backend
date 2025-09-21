@@ -10,6 +10,7 @@ from .config.settings import settings as st
 import os
 from fastapi import FastAPI
 from app.utils.error_handlers import register_exception_handlers
+from app.notifications.scheduler import start_scheduler
 
 app = FastAPI()
 
@@ -22,6 +23,7 @@ async def lifespan(app: FastAPI):
 
     await db.initialize_connection()
     await workspace_trigger()
+    await start_scheduler(db.pool)
     yield
 
     await db.close_connection()
@@ -53,5 +55,3 @@ app.include_router(router)
 @app.get("/")
 async def dummy_server():
   return "Hello, Web World!"
-
-

@@ -23,14 +23,12 @@ async def create_task(
     return await task_crud.create_task(conn=conn, workspace_id=workspace_id, task=task_in)
 
 # Get specific Task
-@router.get("/{workspace_id}/{task_id}", response_model=TaskAllOut) 
+@router.get("/{workspace_id}/{task_id}") 
 async def get_task(workspace_id: int, 
                    task_id: int, 
                    token: str = Depends(get_current_user),
                    conn: asyncpg.Connection = Depends(get_db_connection)):
     task = await task_crud.get_task(conn=conn, workspace_id=workspace_id, task_id=task_id)
-    if not task:
-        raise HTTPException(status_code=404, detail="Task or workspace not found")
     return task
 
 # Get all Tasks in a Workspace
@@ -38,10 +36,7 @@ async def get_task(workspace_id: int,
 async def get_all_tasks(workspace_id: int, 
                         token: str = Depends(get_current_user),
                         conn: asyncpg.Connection = Depends(get_db_connection)):
-
     get = await task_crud.get_tasks_by_workspace(conn=conn, workspace_id=workspace_id)
-    if not get:
-        raise HTTPException(status_code=404, detail="Workspace does not exist")
     return get
 
 # Update a task

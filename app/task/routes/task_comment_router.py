@@ -25,7 +25,7 @@ async def get_taskcomment(task_id: int,
                           token: str = Depends(get_current_user),
                           conn: asyncpg.Connection = Depends(get_db_connection)):  
     rows = await task_comment_crud.get_taskcomment(conn, task_id)
-    return [TaskCommentCreate(**r) for r in rows] if rows else []
+    return [TaskCommentOut(**r) for r in rows] if rows else []
 
 # Router for updating comment contents
 @router.put("/task/{task_id}/comments/{comment_id}")

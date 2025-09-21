@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS social_links (
     email TEXT
 );
 
+
 -- =========================
 -- WORKSPACES
 -- =========================
@@ -53,8 +54,7 @@ CREATE TABLE IF NOT EXISTS workspace_members (
     nickname VARCHAR(100),
     added_by INTEGER REFERENCES users(user_id),
     joined_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (workspace_id, user_id)
-    
+    PRIMARY KEY (workspace_id, user_id)  
 );
 
 -- =========================
@@ -140,18 +140,6 @@ CREATE TABLE IF NOT EXISTS task_attachments (
     uploaded_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
--- =========================
--- NOTIFICATIONS
--- =========================
-CREATE TABLE IF NOT EXISTS notifications (
-    notification_id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
-    workspace_id INTEGER REFERENCES workspaces(workspace_id) ON DELETE SET NULL,
-    content TEXT NOT NULL,
-    type VARCHAR(50),
-    is_read BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-);
 
 -- =========================
 -- MESSAGES
@@ -291,3 +279,24 @@ LEFT JOIN users u ON m.sender_id = u.user_id
 LEFT JOIN text_messages t ON m.message_id = t.message_id
 LEFT JOIN message_attachments a ON m.message_id = a.message_id
 LEFT JOIN polls p ON m.message_id = p.message_id;
+
+-- =========================
+-- NOTIFICATIONS
+-- =========================
+CREATE TABLE IF NOT EXISTS notifications (
+    notification_id SERIAL PRIMARY KEY,
+    content TEXT NOT NULL,
+    workspace_id INTEGER REFERENCES workspaces(workspace_id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+-- =========================
+-- NOTIFICATION RECIPIENTS
+-- =========================
+CREATE TABLE IF NOT EXISTS notification_recipients (
+    recipient_id SERIAL PRIMARY KEY,
+    notification_id INTEGER REFERENCES notifications(notification_id) ON DELETE CASCADE,
+    user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
+    is_read BOOLEAN DEFAULT FALSE,
+    delivered_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);

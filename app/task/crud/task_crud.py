@@ -1,10 +1,9 @@
-# app/api/task/crud/task_crud.py
-
 from ...task.schemas.Tasks_schema import TaskCreate, TaskPatch, TaskCreateOut, TaskAllOut
 from fastapi import HTTPException
 from datetime import datetime, timezone
 from ...utils.decorators import db_error_handler
 from ...utils.task_logs import log_task_action
+from ...notifications.events import push_notifications
 
 
 now = datetime.now(timezone.utc)
@@ -117,8 +116,6 @@ async def get_task(conn, workspace_id: int, task_id: int):
         WHERE t.workspace_id = $1 AND t.task_id = $2
     """
     row = await conn.fetchrow(query, workspace_id, task_id)
-    if not row:
-        raise HTTPException(status_code=404, detail=f"Task {task_id} not found in workspace {workspace_id}")
     row = dict(row)
     if row.get("category") is None:
         row["category"] = "General"
@@ -242,22 +239,65 @@ async def patch_task(
         old_val = current_task[field]
 
         if field == "category_id":
-            old_cat = await conn.fetchval(
-                "SELECT name FROM categories WHERE category_id=$1", old_val
-            )
-            new_cat = await conn.fetchval(
-                "SELECT name FROM categories WHERE category_id=$1", value
-            )
+            old_cat = await conn.fetchval("SELECT name FROM categories WHERE category_id=$1", old_val)
+            new_cat = await conn.fetchval("SELECT name FROM categories WHERE category_id=$1", value)
             log_changes.append(f"category changed from '{old_cat}' to '{new_cat}'")
         else:
             log_changes.append(f"{field} changed from '{old_val}' to '{value}'")
 
+
+    creator_name = await conn.fetchval(
+    """
+    SELECT first_name || ' ' || last_name
+    FROM users
+    WHERE user_id = $1
+    """,
+    current_task["created_by"]
+    ) or f"User {current_task['created_by']}"
+
     # write the task_logs
     if log_changes:
         changes = ", ".join(log_changes)
-        actor = updated_by or "Leader"
-        content = f"{actor} patched task_id {task_id}. Changes: {changes}"
+        changed_field_names = ", ".join([field.capitalize() for field in changed_fields.keys()])
+        content = f"{creator_name} patched task_id {task_id}. Changes: {changes}"
         await log_task_action(conn, workspace_id, content)
+
+        workspace_name = await conn.fetchval(
+            "SELECT name FROM workspaces WHERE workspace_id = $1",
+            workspace_id
+        )
+        notif_row = await conn.fetchrow(
+            """
+            INSERT INTO notifications (content, workspace_id)
+            VALUES ($1, $2)
+            RETURNING notification_id, content
+            """,
+            f"{creator_name} has modified Task {task_id}. Changes made: [{changed_field_names}]", 
+            workspace_id
+        )
+        if notif_row:
+            assigned_users = await conn.fetch(
+            "SELECT user_id FROM task_assignments WHERE task_id=$1", task_id
+            )
+            for u in assigned_users:
+                recipient_row = await conn.fetchrow(
+                    """
+                    INSERT INTO notification_recipients(notification_id, user_id, is_read)
+                    VALUES ($1, $2, FALSE)
+                    RETURNING recipient_id, user_id, is_read, delivered_at
+                    """,
+                    notif_row["notification_id"],
+                    u["user_id"]
+                )
+                await push_notifications(u["user_id"],{
+                    "notification_id": notif_row["notification_id"],
+                    "user_id": u["user_id"],
+                    "recipient_id": recipient_row["recipient_id"],
+                    "content": notif_row["content"],
+                    "workspace_name": workspace_name,
+                    "is_read": recipient_row["is_read"],
+                    "delivered_at": recipient_row["delivered_at"].isoformat(),
+            })
 
     return dict(row)
 
