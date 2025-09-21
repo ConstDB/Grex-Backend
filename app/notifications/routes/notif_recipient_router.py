@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 from datetime import datetime
 from ...deps import get_db_connection
-from ...users.auth import get_current_user
+from ...authentication.services import get_current_user
 from ...notifications.crud import notif_recipient_crud
 from ..schemas.notif_recipient_schema import NotificationRecipientCreate, NotificationRecipientOut
 from ..events import register_listener, push_notifications

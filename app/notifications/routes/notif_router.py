@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from ...deps import get_db_connection
-from ...users.auth import get_current_user
+from ...authentication.services import get_current_user
 from ...notifications.crud import notif_crud
 from ...notifications.schemas.notif_schema import NotificationCreate, NotificationCreateOut
 import asyncpg
