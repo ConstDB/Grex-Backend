@@ -1,11 +1,24 @@
 from ..categories.schema import CategoryCreate, CategoryUpdate, CategoryDelete
 from datetime import datetime
+from ..utils.query_builder import get_query
 from ..utils.decorators import db_error_handler
-
+from ..users.crud import fetch_current_user_data_db
+from fastapi import HTTPException
+import asyncpg
 
 # For Creating Category
-@db_error_handler
-async def insert_category_db(conn, workspace_id: int, category: CategoryCreate):
+async def insert_category_db(conn, workspace_id: int, email:str,  category: CategoryCreate):
+    
+    user = await fetch_current_user_data_db(email, conn)
+
+    if user is None:
+        raise HTTPException(status_code=401, detail="Authentication required to create tasks")
+
+    creator_role = await fetch_role_db(conn, workspace_id, user["user_id"])
+
+    if creator_role == "member":
+        raise HTTPException(status_code=403, detail="You do not have permission to create tasks")
+
     query = """
         INSERT INTO categories (workspace_id, name)
         VALUES ($1, $2)
@@ -24,6 +37,11 @@ async def fetch_category_db(conn, workspace_id: int):
     """
     rows = await conn.fetch(query, workspace_id)
     return [dict(r) for r in rows]
+
+
+async def fetch_role_db(conn: asyncpg.Connection, workspace_id: int, user_id: int):
+    query= get_query("workspace_id", "user_id", fetch="role", table="workspace_members")
+    return await conn.fetchval(query, workspace_id, user_id)
 
 # Update category
 @db_error_handler

@@ -4,10 +4,16 @@ from datetime import datetime, timezone
 from ...utils.decorators import db_error_handler
 from ...utils.task_logs import log_task_action
 from ...notifications.events import push_notifications
+from ...utils.query_builder import get_query
+import asyncpg
 
 
 now = datetime.now(timezone.utc)
 
+async def fetch_role_db(workspace_id: int, user_id: int, conn: asyncpg.Connection):
+    query = get_query("workspace_id", "user_id", fetch="role", table="workspace_members")
+
+    return await conn.fetchval(query, workspace_id, user_id)
 
 @db_error_handler
 async def create_task(conn, workspace_id: int, task: TaskCreate):
@@ -16,6 +22,12 @@ async def create_task(conn, workspace_id: int, task: TaskCreate):
 
     valid_status = {"pending", "done", "overdue"}
     valid_priority = {"low", "medium", "high"}
+ 
+    creator_role = await fetch_role_db(workspace_id, task.created_by, conn)
+
+    print(creator_role)
+    if creator_role == "member":
+        raise HTTPException(status_code=403, detail="You do not have permission to create tasks")
 
     if status not in valid_status:
         raise ValueError(f"Invalid status: {status}. Must be one of {valid_status}")
