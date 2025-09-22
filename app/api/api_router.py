@@ -13,7 +13,7 @@ from ..authentication.routes import router as auth_router
 from ..workspaces.routes import router as workspaces_router
 from ..messages.websocket import router as websocket_router
 from ..pinned_messages.routes import router as pinned_router  
-from ..quick_links import router as link_router
+from ..quick_links.routes import router as link_router
 
 router = APIRouter()
 

@@ -5,6 +5,10 @@ from .schemas import CreateLinks,PutLink
 
 async def update_link_db(workspace_id: int, link_id: int, link: PutLink, conn: asyncpg.Connection):
     try:
+
+        link_name = await formalize_string(link.link_name)
+        link_url = await formalize_string(link.link_url)
+
         query = """
         UPDATE quick_links
         SET link_name = COALESCE($1, link_name),
@@ -13,7 +17,7 @@ async def update_link_db(workspace_id: int, link_id: int, link: PutLink, conn: a
         RETURNING link_id, workspace_id, link_name, link_url, created_at;
         """
 
-        res = await conn.fetchrow(query, link.link_name, link.link_url, workspace_id, link_id)
+        res = await conn.fetchrow(query, link_name, link_url, workspace_id, link_id)
 
         return dict(res)
     except Exception as e:
@@ -22,12 +26,19 @@ async def update_link_db(workspace_id: int, link_id: int, link: PutLink, conn: a
 
 async def insert_workspace_links_db(workspace_id: int, link: CreateLinks, conn: asyncpg.Connection):
     try:
+        
+        link_name = await formalize_string(link.link_name)
+        link_url = await formalize_string(link.link_url)
+
+        if link_name is None or link_url is None:
+            return None
+        
         query = """
         INSERT INTO quick_links(workspace_id, link_name, link_url)
         VALUES ($1, $2, $3)
         RETURNING link_id, workspace_id, link_name, link_url , created_at
         """
-        res = await conn.fetchrow(query, workspace_id, link.link_name, link.link_url)
+        res = await conn.fetchrow(query, workspace_id, link_name, link_url)
 
         return dict(res)
     except Exception as e:
@@ -60,3 +71,11 @@ async def remove_workspace_link_db(link_id: int, conn: asyncpg.Connection):
         return res 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"process failed ->{e}")
+    
+async def formalize_string(string: str):
+
+    res = string.strip()
+
+    if res == "":
+        res = None
+    return res
