@@ -307,3 +307,14 @@ CREATE TABLE IF NOT EXISTS notification_recipients (
     is_read BOOLEAN DEFAULT FALSE,
     delivered_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
+
+-- =========================
+-- RECENT ACTIVITIES
+-- =========================
+CREATE TABLE IF NOT EXISTS recent_activities (
+    activity_id SERIAL PRIMARY KEY,
+    workspace_id INTEGER REFERENCES workspaces(workspace_id) ON DELETE CASCADE,
+    task_log_id INTEGER REFERENCES task_logs(task_log_id) ON DELETE CASCADE,
+    content TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);

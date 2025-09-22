@@ -52,11 +52,13 @@ async def patch_task(
         conn=conn,
         workspace_id=workspace_id,
         task_id=task_id,
-        patch_task=patch_task   
+        patch_task=patch_task,
+        token=token   
     )
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
     return task
+
 
 # Delete Task
 @router.delete("/{workspace_id}/{task_id}")
@@ -64,7 +66,7 @@ async def delete_task(workspace_id: int,
                       task_id: int, 
                       token: str = Depends(get_current_user),
                       conn: asyncpg.Connection = Depends(get_db_connection)):
-    deleted = await task_crud.delete_task(conn=conn, workspace_id=workspace_id, task_id=task_id)
+    deleted = await task_crud.delete_task(conn=conn, workspace_id=workspace_id, task_id=task_id, token=token)
     if not deleted:
         raise HTTPException(status_code=404, detail="Task not found")
     return {"status": "success", "message": "Task deleted"}
