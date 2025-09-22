@@ -2,7 +2,7 @@
 from fastapi import WebSocket, WebSocketDisconnect, APIRouter, Depends, HTTPException
 from ..websocket_manager import ConnectionManager
 from ..authentication.services import websocket_authentication
-from .crud import insert_messages_to_db, insert_text_messages_to_db, get_sender_data
+from .crud import insert_messages_to_db, insert_text_messages_to_db, get_sender_data, insert_message_attachments_db
 from ..db_instance import db
 from ..utils.logger import logger
 from datetime import datetime
@@ -46,7 +46,14 @@ async def websocket_message_endpoint(websocket: WebSocket, workspace_id: int, us
                     message_id = await insert_messages_to_db(message_data, conn)
                     if payload["type"] == "text":
                         await insert_text_messages_to_db(text_data={"message_id": message_id, "content":payload["content"]}, conn=conn)
-                        
+
+                    if payload["type"] == "attachment":
+                        attachment_payload = payload["content"]
+                        attachment_payload["message_id"] = message_id
+                        await insert_message_attachments_db(attachment_payload, conn)
+                        del payload["content"]["message_id"]
+
+
             message_obj = {
                 "message_id": message_id,
                 "workspace_id": workspace_id,

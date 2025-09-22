@@ -84,6 +84,11 @@ async def get_sender_data(user_id: int, workspace_id: int, conn: asyncpg.Connect
 
     return res
 
+async def insert_message_attachments_db(payload: dict,conn:asyncpg.Connection):
+    query = insert_query(model=payload, table="message_attachments")
+
+    return await conn.execute(query, *payload.values())
+
 async def fetch_attachments_db(
     workspace_id: int, 
     file_type: str, 

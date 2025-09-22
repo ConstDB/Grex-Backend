@@ -14,6 +14,23 @@ async def test_ws():
         response =  await ws.recv()
         print(f"Recieved: {response} ")
 
+async def test_message_attachment():
+    uri = "ws://127.0.0.1:8000/workspace/1/1?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzdHJpbmciLCJleHAiOjE3NTg1NjgxOTYuMDA5NTAyNiwidHlwZSI6ImFjY2VzcyJ9.bwNxBxV7xOhWvpUgX-ZWCV6zBHwRtokqJRm5hAZIpME"
+    async with websockets.connect(uri) as ws:
+        await ws.send(json.dumps({
+            "type":"attachment",
+            "content": {
+                "file_name": "test.docx",
+                "file_url": "test.com",
+                "file_type": "file",
+                "file_size": 23.4 
+            },
+            "reply_to": None
+        }))
 
-asyncio.run(test_ws())
+        response =  await ws.recv()
+        print(f"Recieved: {response} ")
+
+
+asyncio.run(test_message_attachment())
 

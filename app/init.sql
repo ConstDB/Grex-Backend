@@ -149,7 +149,7 @@ CREATE TABLE IF NOT EXISTS messages (
     workspace_id INTEGER REFERENCES workspaces(workspace_id) ON DELETE CASCADE,
     is_pinned BOOLEAN, 
     sender_id INTEGER REFERENCES users(user_id) ON DELETE SET NULL,
-    message_type VARCHAR(20) CHECK (message_type IN ('text', 'image', 'file', 'poll')),
+    message_type VARCHAR(20) CHECK (message_type IN ('text', 'attachment', 'poll')),
     reply_to INTEGER REFERENCES messages(message_id) ON DELETE SET NULL,
     sent_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
