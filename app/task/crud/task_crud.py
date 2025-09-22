@@ -9,7 +9,6 @@ from ...task.services import set_status_to_overdue
 from ...utils.query_builder import get_query
 import asyncpg
 
-
 now = datetime.now(timezone.utc)
 
 async def fetch_role_db(workspace_id: int, user_id: int, conn: asyncpg.Connection):
