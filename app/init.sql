@@ -207,7 +207,6 @@ CREATE TABLE IF NOT EXISTS message_attachments (
 CREATE TABLE IF NOT EXISTS quick_links(
     link_id SERIAL PRIMARY KEY,
     workspace_id INTEGER REFERENCES workspaces(workspace_id) ON DELETE CASCADE, 
-    message_id INTEGER REFERENCES messages(message_id) ON DELETE CASCADE,
     link_name VARCHAR(255),
     link_url TEXT NOT NULL, 
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP

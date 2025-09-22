@@ -26,9 +26,9 @@ class Settings(BaseSettings):
     CLOUD_NAME: str
     CLOUD_API_KEY: str
     CLOUD_SECRET_KEY: str
-    CLOUDINARY_URL: str
+    CLOUDINARY_URL: str 
 
-    GEMINI_API_KEY: str
+    GEMINI_API_KEY:str  = "AIzaSyBUmejYr5OwIZJzdxq-lRWt-Aq6Y5wZOlk"
 
     class Config:
         env_file = ".env"

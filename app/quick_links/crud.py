@@ -15,26 +15,20 @@ async def update_link_db(workspace_id: int, link_id: int, link: PutLink, conn: a
         
         res = await conn.fetchrow(query, link.link_name, link.link_url, workspace_id, link_id)
         
-        if not res:
-            return None
         return dict(res)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"failed to update link -> {e}")
 
         
-         
-
-async def create_workspace_links_db(workspace_id: int, link: CreateLinks, conn: asyncpg.Connection):
+async def insert_workspace_links_db(workspace_id: int, link: CreateLinks, conn: asyncpg.Connection):
     try:
         query = """
         INSERT INTO quick_links(workspace_id, link_name, link_url)
         VALUES ($1, $2, $3)
-        RETURNING link_id, workspace_id, message_id, link_name, link_url , created_at
+        RETURNING link_id, workspace_id, link_name, link_url , created_at
         """
         res = await conn.fetchrow(query, workspace_id, link.link_name, link.link_url)
-
-        if not res:
-            return None   
+  
         return dict(res)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"failed to add link -> {e}")
@@ -46,15 +40,8 @@ async def fetch_workspace_link_db(workspace_id: int, conn: asyncpg.Connection):
         
         SELECT * FROM quick_links 
         WHERE workspace_id = $1 
-        ORDER BY created_at DESC;
+        ORDER BY link_id DESC;
        """
-        
-        
-    # get specific link    
-    #   SELECT * FROM quick_links 
-    #   WHERE workspace_id = $1 AND link_id = $2
-    #   ORDER BY created_at DESC;
-        
         
         res = await conn.fetch(query, workspace_id)
         return [dict(row) for row in res]
