@@ -33,6 +33,6 @@ router.include_router(users_router, tags=["Users"])
 router.include_router(workspaces_router, tags=["Workspaces"])
 router.include_router(websocket_router)
 router.include_router(pinned_router, tags=["Pinned Messages"])
-router.include_router(activity_router, prefix="/recent-activities", tags=["Recent Activities"])
+router.include_router(activity_router, tags=["Recent Activities"])
 
 

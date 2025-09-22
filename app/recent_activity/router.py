@@ -8,7 +8,7 @@ import asyncpg
 
 router = APIRouter()
 
-@router.get("/{workspace_id}", response_model=List[RecentActivityOut])
+@router.get("/workspaces/{workspace_id}/recent-activities", response_model=List[RecentActivityOut])
 async def fetch_activity_route(
     workspace_id: int,
     token: str = Depends(get_current_user),

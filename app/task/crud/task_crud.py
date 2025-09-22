@@ -5,6 +5,7 @@ from ...utils.decorators import db_error_handler
 from ...utils.task_logs import log_task_action
 from ...recent_activity.crud import add_activity_db
 from ...notifications.events import push_notifications
+from ...task.services import set_status_to_overdue
 
 
 now = datetime.now(timezone.utc)
@@ -81,12 +82,17 @@ async def create_task(conn, workspace_id: int, task: TaskCreate):
                               task.start_date, 
                               task.created_by)
 
-    task_id = row['task_id']
+    if row:
+        added_by = await conn.fetchval(
+        """
+        SELECT u.first_name || ' ' || u.last_name
+        FROM users u
+        JOIN tasks t ON t.created_by = u.user_id
+        WHERE t.task_id = $1
+        """, row["task_id"])
 
-    # Log the task creation
     content = (
-        f"Leader {task.created_by} created task '{task.title}' "
-        f"(task_id: {task_id}) with description '{task.description}', deadline: {task.deadline.isoformat()}."
+        f"{added_by} created Task: {task.title} with description '{task.description}', deadline: {task.deadline.isoformat()}."
     )
     task_log = await log_task_action(conn, workspace_id, content)
     task_log_id = task_log["task_log_id"]
@@ -97,6 +103,7 @@ async def create_task(conn, workspace_id: int, task: TaskCreate):
 
 @db_error_handler
 async def get_task(conn, workspace_id: int, task_id: int):
+    await set_status_to_overdue(conn, workspace_id, task_id)
     query = """
         SELECT 
             t.task_id,
@@ -118,9 +125,13 @@ async def get_task(conn, workspace_id: int, task_id: int):
         WHERE t.workspace_id = $1 AND t.task_id = $2
     """
     row = await conn.fetchrow(query, workspace_id, task_id)
+    if not row:
+        return None
+    
     row = dict(row)
     if row.get("category") is None:
         row["category"] = "General"
+
     return TaskAllOut(**row)
 
 
@@ -148,7 +159,18 @@ async def get_tasks_by_workspace(conn, workspace_id: int):
         ORDER BY t.created_at DESC
     """
     rows = await conn.fetch(query, workspace_id)
-    return [TaskAllOut(**dict(r)) for r in rows]
+
+    tasks_list = []
+    for r in rows:
+        task = dict(r)
+
+        await set_status_to_overdue(workspace_id, task["task_id"], conn)
+
+        if task.get("category") is None:
+            task["category"] = "General"
+        tasks_list.append(TaskAllOut(**task))
+
+    return tasks_list
 
 
 @db_error_handler
@@ -156,7 +178,8 @@ async def patch_task(
     conn,
     workspace_id: int,
     task_id: int,
-    patch_task: TaskPatch
+    patch_task: TaskPatch,
+    token: dict
 ):
     # Get only the provided fields
     update_data = patch_task.model_dump(exclude_unset=True) # Get only the provided fields
@@ -220,7 +243,6 @@ async def patch_task(
         u.subject,
         u.description,
         u.deadline,
-        u.status,
         u.priority_level,
         u.start_date,
         u.created_by,
@@ -247,24 +269,28 @@ async def patch_task(
         else:
             log_changes.append(f"{field} changed from '{old_val}' to '{value}'")
 
-
-    creator_name = await conn.fetchval(
+    email = token["sub"]
+    patched_info = await conn.fetchrow(
     """
-    SELECT first_name || ' ' || last_name
-    FROM users
-    WHERE user_id = $1
+    SELECT u.first_name || ' ' || u.last_name AS patched_by,
+           t.title AS task_title
+    FROM users u
+    JOIN tasks t ON t.created_by = u.user_id
+    WHERE u.email = $1 AND t.task_id = $2
     """,
-    current_task["created_by"]
-    ) or f"User {current_task['created_by']}"
-
+    email,
+    task_id
+)
+    patched_by = patched_info["patched_by"] or email
+    task_title = patched_info["task_title"]
     # write the task_logs
     if log_changes:
         changes = ", ".join(log_changes)
         changed_field_names = ", ".join([field.capitalize() for field in changed_fields.keys()])
-        content = f"{creator_name} patched task_id {task_id}. Changes: {changes}"
+        content = f"{patched_by} patched task {task_title}. Changes: {changes}"
         await log_task_action(conn, workspace_id, content)
         
-        activity_content = (f"{creator_name} patched task_id {task_id}. Changes made: {changed_field_names}")
+        activity_content = (f"{patched_by} patched Task {task_title}. Changes made: {changed_field_names}")
         await add_activity_db(conn, workspace_id, None, activity_content)
 
         workspace_name = await conn.fetchval(
@@ -277,7 +303,7 @@ async def patch_task(
             VALUES ($1, $2)
             RETURNING notification_id, content
             """,
-            f"{creator_name} has modified Task {task_id}. Changes made: [{changed_field_names}]", 
+            f"{patched_by} has modified Task {task_title}. Changes made: [{changed_field_names}]", 
             workspace_id
         )
         if notif_row:
@@ -306,18 +332,37 @@ async def patch_task(
 
     return dict(row)
 
-
 @db_error_handler
-async def delete_task(conn, workspace_id: int, task_id: int):
+async def delete_task(conn, workspace_id: int, task_id: int, token: dict):
+    email = token["sub"]
+
+    # Fetch task info before deletion
+    get_info = await conn.fetchrow(
+        """
+        SELECT u.first_name || ' ' || u.last_name AS deleted_by,
+               t.title AS task_title
+        FROM tasks t
+        LEFT JOIN users u ON t.created_by = u.user_id
+        WHERE t.task_id = $1 AND t.workspace_id = $2
+        """,
+        task_id, workspace_id
+    )
+    if get_info:
+        deleted_by = get_info["deleted_by"] or email
+        task_title = get_info["task_title"]
+    else:
+        deleted_by = email
+        task_title = f"(task_id: {task_id})"
+
+    # Delete the task
     query = "DELETE FROM tasks WHERE task_id=$1 AND workspace_id=$2 RETURNING *;"
     row = await conn.fetchrow(query, task_id, workspace_id)
 
     if not row:
-        return None  # task not found
-    
-    content = (
-        f"A workspace Leader deleted task_id: {row['task_id']}"
-    )
+        return None
+
+    # Log recent activity
+    content = f"{deleted_by} deleted Task {task_title}"
     task_log = await log_task_action(conn, workspace_id, content)
     task_log_id = task_log["task_log_id"]
     await add_activity_db(conn, workspace_id, task_log_id, content)

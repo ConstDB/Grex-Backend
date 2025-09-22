@@ -15,16 +15,24 @@ async def create_taskassignment(conn, task_id, user_id):
     if row:
         row = await conn.fetchrow(
             """
-            SELECT w.workspace_id, w.name AS workspace_name
+            SELECT 
+                w.workspace_id, 
+                w.name AS workspace_name, 
+                wm.role,
+                u.first_name || ' ' || u.last_name AS user_name
             FROM tasks t
             JOIN workspaces w ON t.workspace_id = w.workspace_id
-            WHERE t.task_id = $1
+            JOIN workspace_members wm ON wm.workspace_id = w.workspace_id
+            JOIN users u ON u.user_id = wm.user_id
+            WHERE t.task_id = $1 AND wm.user_id = $2
             """,
-            task_id
+            task_id, user_id
         )
         workspace_id = row["workspace_id"]
         workspace_name = row["workspace_name"]
-        content = f"User {user_id} has been assigned to task {task_id}."
+        user_role = row["role"]
+        user = row["user_name"]
+        content = f"{user_role} {user} has been assigned to Task {task_id}."
         await add_activity_db(conn, workspace_id, None, content)
 
         notif_query = """
@@ -97,16 +105,24 @@ async def delete_taskassignment(conn, task_id: int, user_id: int):
     if row:
         row = await conn.fetchrow(
             """
-            SELECT w.workspace_id, w.name AS workspace_name
+            SELECT 
+                w.workspace_id, 
+                w.name AS workspace_name, 
+                wm.role,
+                u.first_name || ' ' || u.last_name AS user_name
             FROM tasks t
             JOIN workspaces w ON t.workspace_id = w.workspace_id
-            WHERE t.task_id = $1
+            JOIN workspace_members wm ON wm.workspace_id = w.workspace_id
+            JOIN users u ON u.user_id = wm.user_id
+            WHERE t.task_id = $1 AND wm.user_id = $2
             """,
-            task_id
+            task_id, user_id
         )
         workspace_id = row["workspace_id"]
         workspace_name = row["workspace_name"]
-        content = f"User {user_id} has been assigned to task {task_id}."
+        user_role = row["role"]
+        user = row["user_name"]
+        content = f"{user_role} {user} has been unassigned to Task {task_id}."
         await add_activity_db(conn, workspace_id, None, content)
         
         notif_query = """
