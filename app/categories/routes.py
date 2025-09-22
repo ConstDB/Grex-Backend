@@ -17,7 +17,10 @@ async def post_category_route(
     conn: asyncpg.Connection = Depends(get_db_connection)
 ):
     try:
-        row = await insert_category_db(conn, workspace_id, category)
+
+        email = token["sub"]
+
+        row = await insert_category_db(conn, workspace_id, email, category)
         return row
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))

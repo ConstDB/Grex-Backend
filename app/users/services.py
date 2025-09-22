@@ -1,4 +1,4 @@
-from .crud import fetch_user_data_db, fetch_social_links_db, partial_update_user_db, partial_update_links_db
+from .crud import fetch_user_data_db, fetch_social_links_db, partial_update_user_db, partial_update_links_db, fetch_user_tasks_db
 from .schemas import GetLinksResponse, GetUserResponse
 import asyncpg
 
@@ -45,3 +45,7 @@ async def partial_update_user_service(user_id: int, payload: dict, conn: asyncpg
         return {"message": "No changes happened."}
     
     return new_data
+
+
+async def get_user_tasks_services(user_id:int, conn:asyncpg.Connection):
+    return await fetch_user_tasks_db(user_id, conn)
