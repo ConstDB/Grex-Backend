@@ -49,67 +49,44 @@ async def partial_update_links_db(user_id: int, payload:dict, conn: asyncpg.Conn
 
     return res
 
-async def update_user_information_db(
-    user_id: int,
-    model: dict, 
-    conn: asyncpg.Connection
-):
-    
-    user_update = []
-    user_values = []
-    idx = 1
-    
-    first_name = model.get("first_name")
-    last_name = model.get("last_name")
-    email = model.get("email")
-    phone_number = model.get("phone_number")
-    password_hash = model.get("password_hash")
-    profile_picture = model.get("profile_picture")
-    
-    
-    if first_name is not None: 
-        user_update.append(f"first_name =  ${idx}")
-        user_values.append(first_name)
-        idx +=1
-        
-    if last_name is not None: 
-        user_update.append(f"last_name = ${idx}")
-        user_values.append(last_name)
-        idx +=1
-    
-    if email is not None: 
-        user_update.append(f"email = ${idx}")
-        user_values.append(email)
-        idx +=1
-  
-    if phone_number is not None:
-        user_update.append(f"phone_number = ${idx}")
-        user_values.append(phone_number)
-        idx +=1
-        
-    if password_hash is not None: 
-        password_hash = get_password_hash(password_hash)
-        user_update.append(f"password_hash = ${idx}")
-        user_values.append(password_hash)
-        idx +=1
-    
-    if profile_picture is not None:
-        user_update.append(f"profile_picture = ${idx}")
-        user_values.append(profile_picture)
-        idx +=1
-        
-    if not user_update:
-       return None
-   
-    query = f"""
-    
-        UPDATE users
-            set {", " .join(user_update)} 
-        WHERE user_id = ${idx}
-        RETURNING first_name, last_name, email, phone_number, profile_picture;
-        """
-    user_values.append(user_id)
-    
-    user = await conn.fetchrow (query, *user_values)
-    return dict(user) if user else None
+async def fetch_user_tasks_db(user_id:int, conn:asyncpg.Connection):
+    query = """
+        SELECT 
+            t.title,
+            t.description,
+            t.deadline,
+            t.start_date,
+            t.task_id,
+            t.workspace_id,
+            w.name AS workspace_name,
+            c.name AS category,
+            t.status,
+            t.priority_level
 
+        FROM tasks t
+        LEFT JOIN workspaces w ON t.workspace_id = w.workspace_id
+        LEFT JOIN categories c ON t.workspace_id = c.workspace_id
+        LEFT JOIN task_assignments ta ON t.task_id = ta.task_id
+        WHERE ta.user_id = $1
+        ORDER BY t.task_id
+    """
+
+    res = await conn.fetch(query, user_id)
+    return res
+
+    
+
+
+
+"""
+ task name
+- task description
+- deadline
+- start_date
+- task_id 
+- workspace_id
+- workspace_name
+- task category
+- status (pending, done, overdue)
+- priority_level
+"""
