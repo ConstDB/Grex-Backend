@@ -24,7 +24,7 @@ class TaskCreateOut(BaseModel):
     title: str
     subject: str
     description: str
-    deadline: Optional[date]
+    deadline: Optional[datetime]
     status: Literal["pending", "done", "overdue"] = "pending"
     priority_level: Optional[Literal["low", "medium", "high"]] = None
     start_date: Optional[date] = None
@@ -36,7 +36,7 @@ class TaskPatch(BaseModel):
     title: Optional[str] = None
     subject: Optional[str] = None
     description: Optional[str] = None
-    deadline: Optional[date] = None
+    deadline: Optional[datetime] = None
     status: Optional[Literal["pending", "done", "overdue"]] = None
     priority_level: Optional[Literal["low", "medium", "high"]] = None
     start_date: Optional[date] = None
@@ -53,7 +53,7 @@ class TaskAllOut(BaseModel):
     title: str
     subject: str
     description: str
-    deadline: Optional[date]
+    deadline: Optional[datetime]
     status: Literal["pending", "done", "overdue"] = "pending"
     priority_level: Optional[Literal["low", "medium", "high"]] = None
     start_date: Optional[date] = None

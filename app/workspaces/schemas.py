@@ -24,7 +24,6 @@ class GetWorkspaces(BaseModel):
     members: List[UserBasic]
     
 class GetWorkspaceInfo (BaseModel):
-    
     workspace_id: int
     name: str
     project_nature: Optional[str] = None
@@ -39,15 +38,19 @@ class GetWorkspaceInfo (BaseModel):
 class WorkspaceAddMember(BaseModel):
     workspace_id: int
     email: str
+    added_by: int 
+
 class WorkspaceChangeRole(BaseModel):
     workspace_id: int 
     user_id: str
     role: str 
     nickname:str
+
    # members:[WorkspaceMember] 
 class WorkspaceKickMember(BaseModel):
     workspace_id: int
     user_id: str
+
 class WorkspaceChangeNickname(BaseModel):
     workspace_id: int
     user_id: int
@@ -61,6 +64,7 @@ class WorkspacePutUpdate(BaseModel):
     due_date: date
     leader_id: str
     created_at: date 
+
 class WorkspacePatch(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
@@ -69,7 +73,6 @@ class WorkspacePatch(BaseModel):
     due_date: Optional [date] = None 
     workspace_profile_url: Optional [str] = None
     
-
 class WorkspaceMembersPatch(BaseModel):
     role:  Optional[str] = None
     nickname:  Optional[str] = None

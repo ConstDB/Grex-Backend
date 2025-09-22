@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from ..deps import get_db_connection
-from ..users.auth import get_current_user
-from .crud import get_few_messages_from_db, get_last_read_timestamp, update_last_read_timestamp,fetch_attachments_db
+from ..authentication.services import get_current_user
+from .crud import get_few_messages_from_db, get_last_read_timestamp, update_last_read_timestamp,fetch_attachments_db, fetch_replied_message_db
 from .schemas import MessageReadStatus,GetFiles 
 from ..utils.logger import logger
 import asyncpg
@@ -56,6 +56,17 @@ async def get_file_attachment_route(
         return await fetch_attachments_db (workspace_id,'file',conn)
     except Exception as e: 
         raise HTTPException(status_code=500, detail=f"Process Failed  -> {e}")
+    
+@router.get("/workspaces/{workspace_id}/messages/{message_id}/replies")
+async def get_replied_message_route(
+    workspace_id:int,
+    message_id: int,
+    conn: asyncpg.Connection = Depends(get_db_connection),
+    token: str = Depends(get_current_user)
+):
+    return await fetch_replied_message_db(message_id, workspace_id, conn)
+
+
     
 
     

@@ -9,7 +9,7 @@ async def add_user_to_db(user: dict, conn: asyncpg.Connection):
     #     INSERT INTO users (first_name, last_name, email, password_hash, phone_number) VALUES ($1, $2, $3, $4, $5) RETURNING *
     # """
     try:
-        query = insert_query(user, table="users", returning="user_id, first_name, last_name, email, profile_picture, phone_number, status")
+        query = insert_query(user, table="users", returning="user_id, first_name, last_name, email, profile_picture, phone_number")
         
         res = await conn.fetchrow(query, *user.values())
 
@@ -53,7 +53,12 @@ async def revoke_user_token_on_db(user_id:int, payload:dict, conn: asyncpg.Conne
         raise HTTPException(status_code=500, detail=f"Something went wrong on CRUD -> {e}")
 
 
-   
+async def insert_social_links_db(payload:dict, conn: asyncpg.Connection):
+    query = insert_query(payload, "social_links")
+
+    res = await conn.fetchrow(query, *payload.values())
+
+    return res
 
         
     

@@ -9,8 +9,25 @@ CREATE TABLE IF NOT EXISTS users (
     revoked BOOLEAN,
     profile_picture TEXT,
     phone_number VARCHAR(20),
-    status VARCHAR(10) CHECK (status IN ('online', 'offline'))
+    role VARCHAR(150),
+    bio TEXT,
+    skills TEXT[]
 );
+
+-- =========================
+-- SOCIAL LINKS
+-- =========================
+CREATE TABLE IF NOT EXISTS social_links (
+    links_id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE, 
+    github TEXT,
+    linkedin TEXT,
+    portfolio TEXT,
+    twitter TEXT,
+    discord TEXT,
+    email TEXT
+);
+
 
 -- =========================
 -- WORKSPACES
@@ -35,9 +52,9 @@ CREATE TABLE IF NOT EXISTS workspace_members (
     user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
     role VARCHAR(20) CHECK (role IN ('leader', 'member')),
     nickname VARCHAR(100),
+    added_by INTEGER REFERENCES users(user_id),
     joined_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (workspace_id, user_id)
-    
+    PRIMARY KEY (workspace_id, user_id)  
 );
 
 -- =========================
@@ -60,7 +77,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     subject VARCHAR(200),
     title VARCHAR(200) NOT NULL,
     description TEXT,
-    deadline DATE,
+    deadline TIMESTAMPTZ,
     status VARCHAR(20) CHECK (status IN ('pending', 'done', 'overdue')),
     priority_level VARCHAR(20),
     start_date DATE NULL,
@@ -123,18 +140,6 @@ CREATE TABLE IF NOT EXISTS task_attachments (
     uploaded_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
--- =========================
--- NOTIFICATIONS
--- =========================
-CREATE TABLE IF NOT EXISTS notifications (
-    notification_id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
-    workspace_id INTEGER REFERENCES workspaces(workspace_id) ON DELETE SET NULL,
-    content TEXT NOT NULL,
-    type VARCHAR(50),
-    is_read BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-);
 
 -- =========================
 -- MESSAGES
@@ -142,6 +147,7 @@ CREATE TABLE IF NOT EXISTS notifications (
 CREATE TABLE IF NOT EXISTS messages (
     message_id SERIAL PRIMARY KEY,
     workspace_id INTEGER REFERENCES workspaces(workspace_id) ON DELETE CASCADE,
+    is_pinned BOOLEAN, 
     sender_id INTEGER REFERENCES users(user_id) ON DELETE SET NULL,
     message_type VARCHAR(20) CHECK (message_type IN ('text', 'image', 'file', 'poll')),
     reply_to INTEGER REFERENCES messages(message_id) ON DELETE SET NULL,
@@ -257,6 +263,7 @@ CREATE OR REPLACE VIEW message_details AS
 SELECT m.message_id,
        m.workspace_id,
        m.sender_id,
+       m.is_pinned,
        u.profile_picture,
        wm.nickname,
        m.message_type,
@@ -272,3 +279,24 @@ LEFT JOIN users u ON m.sender_id = u.user_id
 LEFT JOIN text_messages t ON m.message_id = t.message_id
 LEFT JOIN message_attachments a ON m.message_id = a.message_id
 LEFT JOIN polls p ON m.message_id = p.message_id;
+
+-- =========================
+-- NOTIFICATIONS
+-- =========================
+CREATE TABLE IF NOT EXISTS notifications (
+    notification_id SERIAL PRIMARY KEY,
+    content TEXT NOT NULL,
+    workspace_id INTEGER REFERENCES workspaces(workspace_id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+-- =========================
+-- NOTIFICATION RECIPIENTS
+-- =========================
+CREATE TABLE IF NOT EXISTS notification_recipients (
+    recipient_id SERIAL PRIMARY KEY,
+    notification_id INTEGER REFERENCES notifications(notification_id) ON DELETE CASCADE,
+    user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
+    is_read BOOLEAN DEFAULT FALSE,
+    delivered_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);

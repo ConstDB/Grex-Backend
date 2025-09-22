@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
-from .schemas import PatchUserResponse, GetUserResponse
+from .schemas import GetUserWithLinksResponse, PatchUserResponse
 from ..deps import get_db_connection
-from .user_crud import fetch_users_by_name,fetch_user_data_db,update_user_information_db
-from .auth import get_current_user
+from .crud import fetch_users_by_name
+from .services import get_user_data_service, partial_update_user_service
+from ..authentication.services import get_current_user
 from ..utils.normalizer import normalize_name
 import asyncpg
 
@@ -18,19 +19,19 @@ async def search_users(name:str, conn: asyncpg.Connection = Depends(get_db_conne
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to search for users -> {e}")
 
-@router.get("/user/{user_id}/profile", response_model = GetUserResponse)
+@router.get("/user/{user_id}/profile", response_model=GetUserWithLinksResponse)
 async def get_user_data_route(user_id: int, conn: asyncpg.Connection = Depends(get_db_connection), token: str = Depends(get_current_user)):
     try:
-        users = await fetch_user_data_db(user_id, conn)
+        users = await get_user_data_service(user_id, conn)
         
-        return dict (users)
+        return users
     except Exception as e: 
         raise HTTPException (status_code=500, detail=f"Failed to get User Data -> {e}")
     
-@router.patch("/user/{user_id}/profile",response_model=GetUserResponse)
+@router.patch("/user/{user_id}/profile")
 async def update_user_info_route(user_id:int, model: PatchUserResponse, conn: asyncpg.Connection = Depends(get_db_connection), token: str = Depends(get_current_user)):
     try: 
-        users = await update_user_information_db(user_id, model.model_dump(), conn)
+        users = await partial_update_user_service(user_id, model.model_dump(), conn)
          
         return users
     except Exception as e:

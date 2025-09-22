@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from ...deps import get_db_connection
-from ...users.auth import get_current_user
+from ...authentication.services import get_current_user
 from ...task.crud import task_assignment_crud
 from ...task.schemas.TaskAssignment_schema import TaskAssignmentOut
 from typing import List
