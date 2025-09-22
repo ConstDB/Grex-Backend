@@ -196,6 +196,7 @@ CREATE TABLE IF NOT EXISTS quick_links(
     link_url TEXT NOT NULL, 
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 
+);
 -- =========================
 -- PINNED MESSAGES
 -- =========================

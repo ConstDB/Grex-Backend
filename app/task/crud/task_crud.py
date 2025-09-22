@@ -5,7 +5,7 @@ from ...utils.decorators import db_error_handler
 from ...utils.task_logs import log_task_action
 from ...recent_activity.crud import add_activity_db
 from ...notifications.events import push_notifications
-from ...task.services import set_status_to_overdue
+from ...task.services import set_status_to_overdue, is_overdue
 from ...utils.query_builder import get_query
 import asyncpg
 
@@ -114,7 +114,6 @@ async def create_task(conn, workspace_id: int, task: TaskCreate):
 
 @db_error_handler
 async def get_task(conn, workspace_id: int, task_id: int):
-    await set_status_to_overdue(conn, workspace_id, task_id)
     query = """
         SELECT 
             t.task_id,
@@ -140,6 +139,9 @@ async def get_task(conn, workspace_id: int, task_id: int):
         return None
     
     row = dict(row)
+
+    if await is_overdue(row["deadline"], row["status"]):
+        row = await set_status_to_overdue(task_id, conn)
     if row.get("category") is None:
         row["category"] = "General"
 
@@ -175,7 +177,8 @@ async def get_tasks_by_workspace(conn, workspace_id: int):
     for r in rows:
         task = dict(r)
 
-        await set_status_to_overdue(workspace_id, task["task_id"], conn)
+        if await is_overdue(task["deadline"], task["status"]):
+            task = await set_status_to_overdue(task["task_id"], conn)
 
         if task.get("category") is None:
             task["category"] = "General"
