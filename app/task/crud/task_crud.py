@@ -3,6 +3,7 @@ from fastapi import HTTPException
 from datetime import datetime, timezone
 from ...utils.decorators import db_error_handler
 from ...utils.task_logs import log_task_action
+from ...recent_activity.crud import add_activity_db
 from ...notifications.events import push_notifications
 
 
@@ -82,16 +83,17 @@ async def create_task(conn, workspace_id: int, task: TaskCreate):
 
     task_id = row['task_id']
 
-    # Log the creation
+    # Log the task creation
     content = (
         f"Leader {task.created_by} created task '{task.title}' "
         f"(task_id: {task_id}) with description '{task.description}', deadline: {task.deadline.isoformat()}."
     )
-    await log_task_action(conn, workspace_id, content)
-    
+    task_log = await log_task_action(conn, workspace_id, content)
+    task_log_id = task_log["task_log_id"]
+    await add_activity_db(conn, workspace_id, task_log_id, content)
+
+
     return TaskCreateOut(**dict(row))
-
-
 
 @db_error_handler
 async def get_task(conn, workspace_id: int, task_id: int):
@@ -261,6 +263,9 @@ async def patch_task(
         changed_field_names = ", ".join([field.capitalize() for field in changed_fields.keys()])
         content = f"{creator_name} patched task_id {task_id}. Changes: {changes}"
         await log_task_action(conn, workspace_id, content)
+        
+        activity_content = (f"{creator_name} patched task_id {task_id}. Changes made: {changed_field_names}")
+        await add_activity_db(conn, workspace_id, None, activity_content)
 
         workspace_name = await conn.fetchval(
             "SELECT name FROM workspaces WHERE workspace_id = $1",
@@ -313,5 +318,8 @@ async def delete_task(conn, workspace_id: int, task_id: int):
     content = (
         f"A workspace Leader deleted task_id: {row['task_id']}"
     )
-    await log_task_action(conn, workspace_id, content)
+    task_log = await log_task_action(conn, workspace_id, content)
+    task_log_id = task_log["task_log_id"]
+    await add_activity_db(conn, workspace_id, task_log_id, content)
+
     return dict(row)

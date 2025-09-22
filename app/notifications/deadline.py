@@ -27,8 +27,7 @@ async def send_deadline_reminders(pool: asyncpg.Pool):
             deadline = task["deadline"]
             if isinstance(deadline, datetime) is False:
                 deadline = datetime.combine(deadline, datetime.min.time(), tzinfo=timezone.utc)
-
-            diff = deadline - now         
+        
             diff = deadline - now
             if diff <= timedelta(days=7):
                 reminders = [timedelta(days=3), timedelta(hours=12), timedelta(hours=1)]
@@ -75,7 +74,6 @@ async def send_deadline_reminders(pool: asyncpg.Pool):
             if isinstance(deadline, datetime) is False:
                 deadline = datetime.combine(deadline, datetime.min.time(), tzinfo=timezone.utc)
            
-            diff = deadline - now 
             diff = deadline - now
             if diff <= timedelta(days=7):
                 reminders = [timedelta(days=3), timedelta(hours=12), timedelta(hours=1)]

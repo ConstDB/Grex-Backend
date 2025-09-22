@@ -1,6 +1,6 @@
 from ...utils.decorators import db_error_handler
 from ...notifications.events import push_notifications
-from datetime import datetime
+from ...recent_activity.crud import add_activity_db
 
 # Assigning users to a specific task
 @db_error_handler
@@ -24,6 +24,9 @@ async def create_taskassignment(conn, task_id, user_id):
         )
         workspace_id = row["workspace_id"]
         workspace_name = row["workspace_name"]
+        content = f"User {user_id} has been assigned to task {task_id}."
+        await add_activity_db(conn, workspace_id, None, content)
+
         notif_query = """
             INSERT INTO notifications (content, workspace_id)
             VALUES ($1, $2)
@@ -103,6 +106,9 @@ async def delete_taskassignment(conn, task_id: int, user_id: int):
         )
         workspace_id = row["workspace_id"]
         workspace_name = row["workspace_name"]
+        content = f"User {user_id} has been assigned to task {task_id}."
+        await add_activity_db(conn, workspace_id, None, content)
+        
         notif_query = """
             INSERT INTO notifications (content, workspace_id)
             VALUES ($1, $2)

@@ -2,7 +2,6 @@ from fastapi import APIRouter
 from ..messages.routes import router as messages_router
 from ..notifications.routes.notif_router import router as notification_router
 from ..notifications.routes.notif_recipient_router import router as notification_recipient_router
-# from ..summaries.routes import router as summaries_router
 from ..categories.routes import router as category_router
 from ..task.routes.task_router import router as task_router
 from ..task.routes.task_attachment_router import router as task_attachment_router
@@ -14,7 +13,7 @@ from ..authentication.routes import router as auth_router
 from ..workspaces.routes import router as workspaces_router
 from ..messages.websocket import router as websocket_router
 from ..pinned_messages.routes import router as pinned_router  
-
+from ..recent_activity.router import router as activity_router
 
 
 router = APIRouter()
@@ -23,7 +22,6 @@ router = APIRouter()
 router.include_router(messages_router, tags=["Messages"])
 router.include_router(notification_router, prefix="/notifications", tags=["Notifications"])
 router.include_router(notification_recipient_router, prefix="/notification-recipients", tags=["Notification Recipients"])
-# router.include_router(summaries_router, prefix="/summaries", tags=["Summaries"])
 router.include_router(category_router, tags=["Category"])
 router.include_router(task_router, prefix="/tasks", tags=["Task"])
 router.include_router(task_attachment_router, tags=["Task Attachment"])
@@ -35,5 +33,6 @@ router.include_router(users_router, tags=["Users"])
 router.include_router(workspaces_router, tags=["Workspaces"])
 router.include_router(websocket_router)
 router.include_router(pinned_router, tags=["Pinned Messages"])
+router.include_router(activity_router, prefix="/recent-activities", tags=["Recent Activities"])
 
 
