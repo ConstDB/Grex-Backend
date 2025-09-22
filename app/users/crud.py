@@ -65,7 +65,7 @@ async def fetch_user_tasks_db(user_id:int, conn:asyncpg.Connection):
 
         FROM tasks t
         LEFT JOIN workspaces w ON t.workspace_id = w.workspace_id
-        LEFT JOIN categories c ON t.workspace_id = c.workspace_id
+        LEFT JOIN categories c ON t.category_id = c.category_id
         LEFT JOIN task_assignments ta ON t.task_id = ta.task_id
         WHERE ta.user_id = $1
         ORDER BY t.task_id
@@ -75,18 +75,6 @@ async def fetch_user_tasks_db(user_id:int, conn:asyncpg.Connection):
     return res
 
     
-
-
-
-"""
- task name
-- task description
-- deadline
-- start_date
-- task_id 
-- workspace_id
-- workspace_name
-- task category
-- status (pending, done, overdue)
-- priority_level
-"""
+async def fetch_current_user_data_db(email: str, conn: asyncpg.Connection, fetch: str="user_id"):
+    query = get_query("email", fetch=fetch, table="users")
+    return await conn.fetchrow(query, email)

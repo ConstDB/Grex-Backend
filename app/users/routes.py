@@ -39,5 +39,5 @@ async def update_user_info_route(user_id:int, model: PatchUserResponse, conn: as
 
 # Get All user tasks for analytics
 @router.get("/users/{user_id}/tasks")
-async def get_user_tasks_route(user_id: int, conn: asyncpg.Connection = Depends(get_db_connection)):
+async def get_user_tasks_route(user_id: int, conn: asyncpg.Connection = Depends(get_db_connection), token: str = Depends(get_current_user)):
     return await get_user_tasks_services(user_id, conn)
