@@ -1,6 +1,5 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from app.notifications.deadline import send_deadline_reminders, send_overdue_notifications
-from app.db.database import Database  
+from app.notifications.deadline import send_deadline_reminders, send_overdue_notifications 
 
 async def start_scheduler(pool):
     scheduler = AsyncIOScheduler()

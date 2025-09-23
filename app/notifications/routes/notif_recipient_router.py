@@ -6,7 +6,6 @@ from ...authentication.services import get_current_user
 from ...notifications.crud import notif_recipient_crud
 from ..schemas.notif_recipient_schema import NotificationRecipientCreate, NotificationRecipientOut
 from ..events import register_listener, push_notifications
-from ...notifications.deadline import send_overdue_notifications\
 
 from typing import List
 import asyncpg
