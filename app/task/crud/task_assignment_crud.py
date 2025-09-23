@@ -26,8 +26,8 @@ async def create_taskassignment(conn, task_id, user_id):
             JOIN users u ON u.user_id = wm.user_id
             WHERE t.task_id = $1 AND wm.user_id = $2
             """,
-            task_id, user_id
-        )
+            task_id, user_id)
+        
         workspace_id = row["workspace_id"]
         workspace_name = row["workspace_name"]
         user_role = row["role"]

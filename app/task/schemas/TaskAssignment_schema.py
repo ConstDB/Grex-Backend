@@ -12,4 +12,4 @@ class TaskAssignmentOut(BaseModel):
     task_id: int
     user_id: int
     avatar: Optional[str] = None
-    name: str
+    name: Optional[str] = None
