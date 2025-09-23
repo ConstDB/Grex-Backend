@@ -13,7 +13,7 @@ async def start_scheduler(pool):
     scheduler.add_job(
         send_overdue_notifications,
         "interval",
-        minutes=1,
+        minutes=5,
         args=[pool]
     )
 
