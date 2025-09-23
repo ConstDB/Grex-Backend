@@ -28,7 +28,7 @@ async def get_taskassignment(task_id: int,
                              token: str = Depends(get_current_user),
                              conn: asyncpg.Connection = Depends(get_db_connection)):
     taskassignment = await task_assignment_crud.get_taskassignment(conn, task_id)
-    return [TaskAssignmentOut(**r) for r in taskassignment] if taskassignment else []
+    return [TaskAssignmentOut(**r) for r in taskassignment]
 
 # Router for removing assigned users from task
 @router.delete("/task/{task_id}/assignment/{user_id}")
