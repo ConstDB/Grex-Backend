@@ -152,15 +152,21 @@ async def get_task(conn, workspace_id: int, task_id: int):
 async def get_tasks_by_workspace(conn, workspace_id: int):
     query = """
         SELECT 
+        SELECT 
             t.task_id,
             t.workspace_id,
             t.category_id,
-            c.name AS category,
+            COALESCE(c.name, 'General') AS category,
             t.subject,
             t.title,
             t.description,
             t.deadline,
-            t.status,
+            CASE 
+                WHEN t.status NOT IN ('done','overdue') 
+                     AND t.deadline < now() AT TIME ZONE 'UTC' 
+                THEN 'overdue'
+                ELSE t.status
+            END AS status,
             t.priority_level,
             t.start_date,
             t.created_by,
@@ -172,22 +178,11 @@ async def get_tasks_by_workspace(conn, workspace_id: int):
         ORDER BY t.created_at DESC
     """
     rows = await conn.fetch(query, workspace_id)
+    tasks_list = [TaskAllOut(**dict(r)) for r in rows]
 
-    tasks_list = []
-    overdue_tasks = []
-    for r in rows:
-        task = dict(r)
-
-        if await is_overdue(task["deadline"], task["status"]):
-            task["status"] = "overdue"
-            overdue_tasks.append(task["task_id"])
-
-        if task.get("category") is None:
-            task["category"] = "General"
-        tasks_list.append(TaskAllOut(**task))
-
-    await set_status_to_overdue(overdue_tasks, conn)
-
+    overdue_ids = [t.task_id for t in tasks_list if t.status == "overdue"]
+    if overdue_ids:
+        await set_status_to_overdue(overdue_ids, conn)
     return tasks_list
 
 

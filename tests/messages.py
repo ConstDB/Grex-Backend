@@ -15,7 +15,7 @@ async def test_ws():
         print(f"Recieved: {response} ")
 
 async def test_message_attachment():
-    uri = "ws://127.0.0.1:8000/workspace/1/1?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzdHJpbmciLCJleHAiOjE3NTg1NjgxOTYuMDA5NTAyNiwidHlwZSI6ImFjY2VzcyJ9.bwNxBxV7xOhWvpUgX-ZWCV6zBHwRtokqJRm5hAZIpME"
+    uri = "ws://127.0.0.1:8000/workspace/1/1?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzdHJpbmciLCJleHAiOjE3NTg2OTAxNDguMzQxMTQ1OCwidHlwZSI6ImFjY2VzcyJ9.afup0tiE79Gs7784nkPqiwFKU2sJ5tmSQuFx46dMZes"
     async with websockets.connect(uri) as ws:
         await ws.send(json.dumps({
             "type":"attachment",

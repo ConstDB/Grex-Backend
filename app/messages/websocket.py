@@ -5,7 +5,7 @@ from ..authentication.services import websocket_authentication
 from .crud import insert_messages_to_db, insert_text_messages_to_db, get_sender_data, insert_message_attachments_db
 from ..db_instance import db
 from ..utils.logger import logger
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 
 router = APIRouter()
@@ -63,7 +63,7 @@ async def websocket_message_endpoint(websocket: WebSocket, workspace_id: int, us
                 "type": payload["type"],
                 "content": payload.get("content"),
                 "reply_to": payload.get("reply_to"),
-                "sent_at": datetime.utcnow().isoformat()
+                "sent_at": datetime.now(timezone.utc).isoformat()
             }
 
             await manager.broadcast(workspace_id, message_obj)
