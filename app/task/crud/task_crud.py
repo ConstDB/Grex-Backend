@@ -141,7 +141,7 @@ async def get_task(conn, workspace_id: int, task_id: int):
     row = dict(row)
 
     if await is_overdue(row["deadline"], row["status"]):
-        row = await set_status_to_overdue(task_id, conn)
+        row = await set_status_to_overdue([task_id], conn)
     if row.get("category") is None:
         row["category"] = "General"
 
@@ -174,15 +174,19 @@ async def get_tasks_by_workspace(conn, workspace_id: int):
     rows = await conn.fetch(query, workspace_id)
 
     tasks_list = []
+    overdue_tasks = []
     for r in rows:
         task = dict(r)
 
         if await is_overdue(task["deadline"], task["status"]):
-            task = await set_status_to_overdue(task["task_id"], conn)
+            task["status"] = "overdue"
+            overdue_tasks.append(task["task_id"])
 
         if task.get("category") is None:
             task["category"] = "General"
         tasks_list.append(TaskAllOut(**task))
+
+    await set_status_to_overdue(overdue_tasks, conn)
 
     return tasks_list
 
