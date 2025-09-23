@@ -338,9 +338,8 @@ async def patch_task(
 
 @db_error_handler
 async def delete_task(conn, workspace_id: int, task_id: int, token: dict):
+    
     email = token["sub"]
-
-    # Fetch task info before deletion
     get_info = await conn.fetchrow(
         """
         SELECT u.first_name || ' ' || u.last_name AS deleted_by,
