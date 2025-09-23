@@ -284,19 +284,9 @@ async def patch_task(
             log_changes.append(f"{field} changed from '{old_val}' to '{value}'")
 
     email = token["sub"]
-    patched_info = await conn.fetchrow(
-    """
-    SELECT u.first_name || ' ' || u.last_name AS patched_by,
-           t.title AS task_title
-    FROM users u
-    JOIN tasks t ON t.created_by = u.user_id
-    WHERE u.email = $1 AND t.task_id = $2
-    """,
-    email,
-    task_id
-)
-    patched_by = patched_info["patched_by"] or email
-    task_title = patched_info["task_title"]
+    patched_by = await conn.fetchval("SELECT first_name || ' ' || last_name FROM users WHERE email=$1", email) or email 
+    task_title = await conn.fetchval("SELECT title FROM tasks WHERE task_id=$1 AND workspace_id=$2", task_id, workspace_id)
+
     # write the task_logs
     if log_changes:
         changes = ", ".join(log_changes)
