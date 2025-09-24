@@ -30,6 +30,11 @@ class Settings(BaseSettings):
 
     GEMINI_API_KEY: str
 
+    GREX_EMAIL: str
+    GREX_PASSWORD: str
+    GMAIL_HOST: str
+    GMAIL_PORT: int
+
     class Config:
         env_file = ".env"
 

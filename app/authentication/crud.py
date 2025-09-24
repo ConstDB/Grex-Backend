@@ -3,6 +3,7 @@ import asyncpg
 from asyncpg.exceptions import UniqueViolationError
 from ..utils.query_builder import insert_query, get_query, update_query
 from ..utils.logger import logger
+from datetime import datetime
 
 async def add_user_to_db(user: dict, conn: asyncpg.Connection):
     # query = """
@@ -60,5 +61,13 @@ async def insert_social_links_db(payload:dict, conn: asyncpg.Connection):
 
     return res
 
-        
+async def insert_otp_db(user_id: int, otp: str, expires_at:datetime, conn: asyncpg.Connection):
+    model = {
+        "user_id": user_id,
+        "pin": otp,
+        "expires_at": expires_at
+    }
     
+    query = insert_query(model=model, table="recovery_pins", returning="user_id")
+        
+    return await conn.fetchval(query, *model.values())

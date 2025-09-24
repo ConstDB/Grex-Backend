@@ -2,14 +2,15 @@ from fastapi import HTTPException, Request, Depends
 from authlib.integrations.starlette_client import OAuth
 from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer
+from .crud import get_user_from_db, insert_otp_db
 from dotenv import load_dotenv
 from ..config.settings import settings as st
-from ..utils.logger import logger
+from datetime import datetime, timedelta
+from ..utils.email_handler import send_otp_to_email
+import asyncpg
 import jwt
-import os
 import time
-import logging
-
+import pyotp
 
 load_dotenv()
 
@@ -54,17 +55,17 @@ def token_response(token:str):
         "Access_token" : token
     }
 
-def get_password_hash(password:str):
+def get_hash(text:str):
     """
         encrypts passwords
     """
-    return pwd_content.hash(password)
+    return pwd_content.hash(text)
 
-def verify_password(plain_password:str, hashed_password:str):
+def verify_hash(plain_text:str, hashed_text:str):
     """
         compares plain and hashed password if they are identical
     """
-    return pwd_content.verify(plain_password, hashed_password)
+    return pwd_content.verify(plain_text, hashed_text)
 
 
 def create_access_token(email:str):
@@ -117,7 +118,6 @@ def decode_refresh_token(token:str):
     """
         decodes the token(refresh) from jwt to dict object and also checks if its expired
     """
-
     try:
         decoded_token = jwt.decode(token, JWT_REFRESH_SECRET, algorithms=JWT_ALGORITHM)
         return decoded_token
@@ -128,6 +128,40 @@ def decode_refresh_token(token:str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to decode refresh token -> {e}")
 
+async def forgot_password_service(email:str, conn: asyncpg.Connection):
+    """
+        Service for verifying the email and sending otp
+    """
+
+    user = await get_user_from_db(email, conn, fetch="user_id, first_name")
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    secret = pyotp.random_base32()
+
+    otp = pyotp.TOTP(secret, interval=180).now()
+
+    sent = send_otp_to_email(email, user["first_name"], otp)
+    
+    if sent:
+        expires_at = datetime.now() + timedelta(minutes=3)
+        user = await insert_otp_db(user["user_id"], get_hash(otp), expires_at, conn)
+
+    
+
+
+
+    
+    
+
+
+
+
+
+
+
+    
 
 
 #Google OAuth config

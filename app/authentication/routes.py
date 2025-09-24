@@ -1,16 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from .schemas import UserLoginSchema, UserRegisterSchema,  RefreshToken, EmailObject
 from fastapi.responses import JSONResponse
-from .services import verify_password, get_password_hash, create_access_token, create_refresh_token, token_response, oauth, decode_refresh_token
+from .services import verify_hash, get_hash, create_access_token, create_refresh_token, oauth, decode_refresh_token, forgot_password_service
 from authlib.integrations.starlette_client import OAuth
 from fastapi.security import OAuth2PasswordRequestForm
-from ..db.database import Database
 from ..deps import get_db_connection
 from .crud import add_user_to_db, get_user_from_db, update_refresh_token_on_db, revoke_user_token_on_db, insert_social_links_db
-from ..utils.logger import logger
 import asyncpg
 from ..config.settings import settings as st
-import os
 
 router = APIRouter()
 
@@ -40,7 +37,7 @@ async def sign_up(user: UserRegisterSchema, conn: asyncpg.Connection = Depends(g
         refresh_payload = create_refresh_token(user.email)
 
         # add data that does not come from frontend to user_dict so it can be added on the DB as well
-        user_dict["password_hash"] = get_password_hash(user.password_hash)
+        user_dict["password_hash"] = get_hash(user.password_hash)
         user_dict["refresh_token"] = str(refresh_payload["refresh_token"])
         user_dict["refresh_token_expires_at"] = refresh_payload["refresh_token_expires_at"]
         user_dict["revoked"] = refresh_payload["revoked"]
@@ -87,14 +84,14 @@ async def login(user: UserLoginSchema, conn: asyncpg.Connection = Depends(get_db
         access_payload = create_access_token(user.email)
         refresh_payload = create_refresh_token(user.email)
 
-        # Get user data from DB    
+        # Get user data from DB    /
         raw = await get_user_from_db(user_dict["email"], conn, fetch="user_id, first_name, last_name, email, profile_picture, phone_number, password_hash") 
         
 
         if raw is None:
-            raise HTTPException(status_code=404, detail="User does not exists.")
+            raise HTTPException(status_code=404, detail="User not found")
 
-        if not verify_password(user_dict["password_hash"], raw["password_hash"]):
+        if not verify_hash(user_dict["password_hash"], raw["password_hash"]):
             raise HTTPException(status_code=401, detail="Wrong email or password.")
  
         # Updates the refresh_token related attributes to the DB
@@ -155,6 +152,13 @@ async def logout(user_id: int, conn: asyncpg.Connection = Depends(get_db_connect
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to signout user -> {e}")
+    
+@router.post("/auth/forgot-password")
+async def forgot_password_route(email:str, conn: asyncpg.Connection = Depends(get_db_connection)):
+    await forgot_password_service(email, conn)
+    return {"response" : "We’ve sent a one-time password (OTP) to your email. Enter it to proceed."}
+    
+    
 
 
 
@@ -180,7 +184,7 @@ async def auth_google_callback(data: dict, request: Request, conn: asyncpg.Conne
             "first_name": user_info["given_name"],
             "last_name" : user_info["family_name"],
             "email" : user_info["email"],
-            "password_hash": get_password_hash(st.SECRET_PASSWORD),
+            "password_hash": get_hash(st.SECRET_PASSWORD),
             "profile_picture" : user_info["picture"]
         }
 

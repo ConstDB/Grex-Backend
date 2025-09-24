@@ -1,5 +1,4 @@
 from fastapi import HTTPException
-from ..authentication.services import get_password_hash
 from ..utils.query_builder import get_query, update_query
 import asyncpg
 

@@ -28,6 +28,14 @@ CREATE TABLE IF NOT EXISTS social_links (
     email TEXT
 );
 
+-- =========================
+-- RECOVERY_PIN
+-- =========================
+CREATE TABLE IF NOT EXISTS recovery_pins (
+    user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
+    pin TEXT NOT NULL,
+    expires_at TIMESTAMPTZ NOT NULL
+);
 
 -- =========================
 -- WORKSPACES
@@ -43,6 +51,8 @@ CREATE TABLE IF NOT EXISTS workspaces (
     created_by INTEGER REFERENCES users(user_id) ON DELETE CASCADE, 
     workspace_profile_url TEXT 
 );
+
+
 
 -- =========================
 -- WORKSPACE MEMBERS (M:N)
