@@ -1,14 +1,21 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
+from ...task.schemas.comment_attachment_schema import CommentAttachmentOut, CreateCommentAttachment
 
 class TaskCommentBase(BaseModel):
     content: str
-    created_at: datetime
     sender_id: int
+    attachments: Optional["CreateCommentAttachment"] = None
 
 class TaskCommentCreate(TaskCommentBase):
     pass
+
+class CreateCommentOut(BaseModel):
+    content: str
+    sender_id: int
+    task_id: int
+    attachments: Optional["CommentAttachmentOut"] = None
 
 class TaskCommentUpdate(BaseModel):
     content: str
@@ -24,3 +31,4 @@ class TaskCommentOut(BaseModel):
     sender_id: int
     profile_picture: Optional[str] = None
     sender_name: str
+    attachments: Optional[CommentAttachmentOut] = None

@@ -118,6 +118,18 @@ CREATE TABLE IF NOT EXISTS task_comments (
 );
 
 -- =========================
+-- COMMENT ATTACHMENTS
+-- =========================
+CREATE TABLE IF NOT EXISTS comment_attachments (
+    comment_attachment_id SERIAL PRIMARY KEY,
+    comment_id INTEGER REFERENCES task_comments(comment_id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL,
+    file_size BIGINT,
+    file_type VARCHAR(20) CHECK (file_type IN ('image', 'file')),
+    file_url TEXT NOT NULL
+);
+
+-- =========================
 -- TASK LOGS
 -- =========================
 CREATE TABLE IF NOT EXISTS task_logs (

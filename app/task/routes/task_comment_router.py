@@ -3,7 +3,7 @@ from ...deps import get_db_connection
 from ...authentication.services import get_current_user
 from typing import List
 from ...task.crud import task_comment_crud
-from ...task.schemas.TaskComment_schema import TaskCommentCreate, TaskCommentUpdate, TaskCommentOut
+from ...task.schemas.TaskComment_schema import TaskCommentCreate, TaskCommentUpdate, TaskCommentOut, CreateCommentOut
 import asyncpg
 
 router = APIRouter()
@@ -14,10 +14,10 @@ async def create_taskcomment(task_id: int,
                              taskcomment: TaskCommentCreate, 
                              token: str = Depends(get_current_user),
                              conn: asyncpg.Connection = Depends(get_db_connection)):
-    created = await task_comment_crud.create_taskcomment(conn, task_id, taskcomment)
-    if not created:
+    row = await task_comment_crud.create_taskcomment(conn, task_id, taskcomment)
+    if not row:
         raise HTTPException(status_code=400, detail="Failed to comment on task")
-    return{"status": "success", "data": created}
+    return  CreateCommentOut(**row)
 
 # Router for getting comments in a task
 @router.get("/task/{task_id}/comments/", response_model=List[TaskCommentOut])
