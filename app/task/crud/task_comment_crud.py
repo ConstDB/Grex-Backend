@@ -16,31 +16,29 @@ async def create_taskcomment(conn, task_id: int, taskcomment: TaskCommentCreate)
         return None
     comment_id = row["comment_id"]
 
-    attachments = []
+    attachment = None  
     if taskcomment.attachments:
         attachment_query = """
             INSERT INTO comment_attachments
-            (comment_id, task_id, name, file_size, file_type, file_url, uploaded_by)
-            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            (comment_id, name, file_size, file_type, file_url)
+            VALUES ($1, $2, $3, $4, $5)
             RETURNING *;
         """
 
-    for attachment in taskcomment.attachments:
         att_row = await conn.fetchrow(
             attachment_query,
             comment_id,
-            task_id,
-            attachment.name,
-            attachment.file_size,
-            attachment.file_type,
-            attachment.file_url,
-            attachment.uploaded_by,
+            taskcomment.attachments.name,
+            taskcomment.attachments.file_size,
+            taskcomment.attachments.file_type,
+            taskcomment.attachments.file_url,
         )
-        attachments.append(dict(att_row))
+        attachment = dict(att_row)
     return {
         "content": row["content"],
+        "task_id": row["task_id"],
         "sender_id": row["sender_id"],
-        "attachments": attachments
+        "attachments": attachment,
 }
 
 # View comments in a task
@@ -56,12 +54,10 @@ async def get_taskcomment(conn, task_id: int):
             u.profile_picture,
             (u.first_name || ' ' || u.last_name) AS sender_name,
             a.comment_attachment_id,
-            a.name,
+            a.name AS attachment_name,
             a.file_size,
             a.file_type,
-            a.file_url,
-            a.uploaded_by,
-            a.uploaded_at
+            a.file_url
         FROM task_comments tc
         LEFT JOIN users u ON u.user_id = tc.sender_id
         LEFT JOIN comment_attachments a ON a.comment_id = tc.comment_id
@@ -69,36 +65,33 @@ async def get_taskcomment(conn, task_id: int):
         ORDER BY tc.created_at ASC;
     """
     rows = await conn.fetch(query, task_id)
-    comments = {}
+    comments = []
 
     for r in rows:
-        cid = r["comment_id"]
-        if cid not in comments:
-            comments[cid] = {
-                "comment_id": r["comment_id"],
-                "task_id": r["task_id"],
-                "content": r["content"],
-                "sender_id": r["sender_id"],
-                "created_at": r["created_at"],
-                "profile_picture": r["profile_picture"],
-                "sender_name": r["sender_name"],
-                "attachments": []
-            }
-
+        attachment = None
         if r["comment_attachment_id"]:
-            comments[cid]["attachments"].append({
+            attachment = {
                 "comment_attachment_id": r["comment_attachment_id"],
                 "comment_id": r["comment_id"],
-                "task_id": r["task_id"],
-                "name": r["name"],           
+                "name": r["attachment_name"],
                 "file_size": r["file_size"],
                 "file_type": r["file_type"],
                 "file_url": r["file_url"],
-                "uploaded_by": r["uploaded_by"],
-                "uploaded_at": r["uploaded_at"] 
-            })
+            }
 
-    return list(comments.values())
+        comment = {
+            "comment_id": r["comment_id"],
+            "task_id": r["task_id"],
+            "content": r["content"],
+            "sender_id": r["sender_id"],
+            "created_at": r["created_at"],
+            "profile_picture": r["profile_picture"],
+            "sender_name": r["sender_name"],
+            "attachments": attachment
+        }
+        comments.append(comment)
+
+    return comments
 
 
 

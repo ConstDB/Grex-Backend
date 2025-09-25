@@ -123,13 +123,10 @@ CREATE TABLE IF NOT EXISTS task_comments (
 CREATE TABLE IF NOT EXISTS comment_attachments (
     comment_attachment_id SERIAL PRIMARY KEY,
     comment_id INTEGER REFERENCES task_comments(comment_id) ON DELETE CASCADE,
-    task_id INTEGER REFERENCES tasks(task_id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
     file_size BIGINT,
     file_type VARCHAR(20) CHECK (file_type IN ('image', 'file')),
-    file_url TEXT NOT NULL,
-    uploaded_by INTEGER REFERENCES users(user_id) ON DELETE SET NULL,
-    uploaded_at DATE NOT NULL DEFAULT CURRENT_DATE
+    file_url TEXT NOT NULL
 );
 
 -- =========================

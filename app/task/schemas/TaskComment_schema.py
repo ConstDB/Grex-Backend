@@ -6,7 +6,7 @@ from ...task.schemas.comment_attachment_schema import CommentAttachmentOut, Crea
 class TaskCommentBase(BaseModel):
     content: str
     sender_id: int
-    attachments: Optional[List["CreateCommentAttachment"]] = []
+    attachments: Optional["CreateCommentAttachment"] = None
 
 class TaskCommentCreate(TaskCommentBase):
     pass
@@ -14,7 +14,8 @@ class TaskCommentCreate(TaskCommentBase):
 class CreateCommentOut(BaseModel):
     content: str
     sender_id: int
-    attachments: Optional[List["CommentAttachmentOut"]] = []
+    task_id: int
+    attachments: Optional["CommentAttachmentOut"] = None
 
 class TaskCommentUpdate(BaseModel):
     content: str
@@ -30,4 +31,4 @@ class TaskCommentOut(BaseModel):
     sender_id: int
     profile_picture: Optional[str] = None
     sender_name: str
-    attachments: List[CommentAttachmentOut] = []
+    attachments: Optional[CommentAttachmentOut] = None
