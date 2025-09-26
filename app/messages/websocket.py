@@ -45,7 +45,7 @@ async def websocket_message_endpoint(websocket: WebSocket, workspace_id: int, us
 
                     message_id = await insert_messages_to_db(message_data, conn)
                     if payload["type"] == "text":
-                        await insert_text_messages_to_db(text_data={"message_id": message_id, "content":payload["content"]}, conn=conn)
+                        await insert_text_messages_to_db(text_data={"message_id": message_id, "content":payload["content"]["text"]}, conn=conn)
 
                     if payload["type"] == "attachment":
                         attachment_payload = payload["content"]

@@ -280,15 +280,52 @@ SELECT m.message_id,
        m.workspace_id,
        m.sender_id,
        m.is_pinned,
-       u.profile_picture,
+       u.profile_picture AS avatar,
        wm.nickname,
-       m.message_type,
+       m.message_type AS type,
        m.reply_to,
        m.sent_at,
-       t.content,
-       a.file_url,
-       a.file_type,
-       p.question
+
+       CASE
+            WHEN m.message_type = 'text' THEN
+                jsonb_build_object(
+                    'text', t.content
+                )
+            WHEN m.message_type = 'attachment' THEN
+                jsonb_build_object(
+                    'file_name', a.file_name,
+                    'file_url', a.file_url,
+                    'file_type', a.file_type,
+                    'file_size', a.file_size
+                )
+            WHEN m.message_type = 'poll' THEN
+                jsonb_build_object(
+                    'poll_id', p.poll_id,
+                    'question', p.question,
+                    'options', COALESCE(
+                        (
+                            SELECT jsonb_agg(
+                                jsonb_build_object(
+                                    'option_id', x.option_id,
+                                    'option_text', x.option_text,
+                                    'vote_count', x.vote_count
+                                )
+                            )
+                            FROM (
+                                SELECT 
+                                    po.option_id,
+                                    po.option_text,
+                                    COUNT(pv.vote_id) as vote_count
+                                FROM poll_options po
+                                LEFT JOIN poll_votes pv ON po.option_id = pv.option_id
+                                WHERE po.poll_id = p.poll_id
+                                GROUP BY po.option_id, po.option_text
+                            ) x
+                        ), '[]'::jsonb
+                    )
+                )
+        END AS content
+
 FROM messages m
 LEFT JOIN workspace_members wm ON m.workspace_id = wm.workspace_id AND m.sender_id = wm.user_id
 LEFT JOIN users u ON m.sender_id = u.user_id

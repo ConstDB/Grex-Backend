@@ -3,11 +3,13 @@ import websockets
 import json
 
 async def test_ws():
-    uri = "ws://127.0.0.1:8000/workspace/1/1?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzdHJpbmciLCJleHAiOjE3NTgyMjUxODQuMjMzMzM3NiwidHlwZSI6ImFjY2VzcyJ9.VdAfW1uliMOuiU0qcourhyuJ3BEOdIgTjU0FL2e7ft4"
+    uri = "ws://127.0.0.1:8000/workspace/1/1?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzdHJpbmciLCJleHAiOjE3NTg4NjQ3ODEuOTQ0Njg1LCJ0eXBlIjoiYWNjZXNzIn0.ZeCKM2LwLIEINay51PLQkD5dSBhCzNnrYydaHPbS0Js"
     async with websockets.connect(uri) as ws:
         await ws.send(json.dumps({
             "type":"text",
-            "content": "Hello self",
+            "content": {
+                "text": "Hello self"
+            },
             "reply_to": None
         }))
 
@@ -15,7 +17,7 @@ async def test_ws():
         print(f"Recieved: {response} ")
 
 async def test_message_attachment():
-    uri = "ws://127.0.0.1:8000/workspace/1/1?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzdHJpbmciLCJleHAiOjE3NTg2OTAxNDguMzQxMTQ1OCwidHlwZSI6ImFjY2VzcyJ9.afup0tiE79Gs7784nkPqiwFKU2sJ5tmSQuFx46dMZes"
+    uri = "ws://127.0.0.1:8000/workspace/1/1?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzdHJpbmciLCJleHAiOjE3NTg4NjQ3ODEuOTQ0Njg1LCJ0eXBlIjoiYWNjZXNzIn0.ZeCKM2LwLIEINay51PLQkD5dSBhCzNnrYydaHPbS0Js"
     async with websockets.connect(uri) as ws:
         await ws.send(json.dumps({
             "type":"attachment",
@@ -33,4 +35,6 @@ async def test_message_attachment():
 
 
 asyncio.run(test_message_attachment())
+asyncio.run(test_ws())
+
 

@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from datetime import datetime, timezone
 from typing import Optional
+from ..messages.schemas import MessageResponse
 
 class GetPinnedMessage(BaseModel):
     workspace_id: int 
@@ -9,21 +10,8 @@ class GetPinnedMessage(BaseModel):
     pinned_at:datetime
 
 
-class PinnedMessagesResponse(BaseModel):
-    message_id: int
-    workspace_id: int
-    sender_id: int
-    is_pinned: Optional[bool] = None
-    profile_picture: Optional[str] = None
-    nickname: Optional[str] = None
-    message_type: str
-    reply_to: Optional[int] = None
-    sent_at: datetime
-    content: Optional[str] = None
-    file_url: Optional[str] = None
-    file_type: Optional[str] = None
-    question: Optional[str] = None
-    pinned_by: Optional[str] = None
+class PinnedMessagesResponse(MessageResponse):
+    pinned_by: str
     pinned_at: datetime
 
 class PinnedMessagesPayload(BaseModel):

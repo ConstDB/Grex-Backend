@@ -2,8 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from ..deps import get_db_connection
 from ..authentication.services import get_current_user
 from .crud import get_few_messages_from_db, get_last_read_timestamp, update_last_read_timestamp,fetch_attachments_db, fetch_replied_message_db
-from .schemas import MessageReadStatus,GetFiles 
+from .schemas import MessageReadStatus,GetFiles , MessageResponse
 from ..utils.logger import logger
+import json
 import asyncpg
 from datetime import datetime
 from typing import List
@@ -14,8 +15,19 @@ router = APIRouter()
 @router.get("/workspace/{workspace_id}/messages")
 async def get_messages(workspace_id: int, last_id:int=None, conn: asyncpg.Connection = Depends(get_db_connection), token:str = Depends(get_current_user)):
     try:
-        response = await get_few_messages_from_db(workspace_id, conn, last_id)
-        return response
+        responses = await get_few_messages_from_db(workspace_id, conn, last_id)
+
+        processed_data = []
+
+        for response in responses:
+            result = dict(response)
+            result["content"] = json.loads(result["content"])
+
+            print(result)
+            processed_data.append(MessageResponse(**result))
+
+        return processed_data
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to retrieve messages from DB -> {e}")
 

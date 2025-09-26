@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from typing import List
-from datetime import date
+import json
 from ..deps import get_db_connection
 import asyncpg
 from .crud import fetch_pinned_messages_db, insert_pinned_message_db, unpin_messages_db, update_message_db
@@ -15,7 +15,16 @@ router = APIRouter()
 async def get_pinned_messages_route(workspace_id: int,  conn: asyncpg.Connection=Depends(get_db_connection), token: str=Depends(get_current_user)):
     try:
         messages = await fetch_pinned_messages_db(workspace_id, conn )
-        return [PinnedMessagesResponse(**message) for message in messages] 
+         
+        processed_data = []
+
+        for message in messages:
+            result = dict(message)
+            result["content"] = json.loads(result["content"])
+
+            processed_data.append(PinnedMessagesResponse(**result))
+
+        return processed_data
     except Exception as e: 
         raise HTTPException(status_code=500, detail=f"Process Failed -> {e}")
 

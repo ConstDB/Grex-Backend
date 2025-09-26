@@ -2,7 +2,6 @@ from pydantic import BaseModel
 from typing import Optional, List
 from ..users.schemas import UserBasic, UserDetail
 from datetime import date, datetime
-from ..messages.schemas import Message_Base
 
 class WorkspaceCreation(BaseModel):
     name: str
