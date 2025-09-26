@@ -12,7 +12,7 @@ class TaskCommentCreate(TaskCommentBase):
     pass
 
 class CreateCommentOut(BaseModel):
-    content: Optional[str] = None
+    content: Optional[str] = None 
     sender_id: int
     task_id: int
     attachments: Optional["CommentAttachmentOut"] = None
