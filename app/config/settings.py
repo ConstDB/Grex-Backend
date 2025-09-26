@@ -35,6 +35,8 @@ class Settings(BaseSettings):
     GMAIL_HOST: str
     GMAIL_PORT: int
 
+    OTP_SECRET: str
+
     class Config:
         env_file = ".env"
 

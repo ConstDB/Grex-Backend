@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
-from .schemas import UserLoginSchema, UserRegisterSchema,  RefreshToken, EmailObject
+from .schemas import UserLoginSchema, UserRegisterSchema, EmailObject, ResetPasswordPayload
 from fastapi.responses import JSONResponse
-from .services import verify_hash, get_hash, create_access_token, create_refresh_token, oauth, decode_refresh_token, forgot_password_service
+from .services import verify_hash, get_hash, create_access_token, create_refresh_token, oauth, decode_refresh_token, forgot_password_service, reset_password_service
 from authlib.integrations.starlette_client import OAuth
 from fastapi.security import OAuth2PasswordRequestForm
 from ..deps import get_db_connection
@@ -159,7 +159,10 @@ async def forgot_password_route(email:str, conn: asyncpg.Connection = Depends(ge
     return {"response" : "We’ve sent a one-time password (OTP) to your email. Enter it to proceed."}
     
     
-
+@router.post("/auth/reset-password")
+async def reset_password_route(payload: ResetPasswordPayload,  conn: asyncpg.Connection = Depends(get_db_connection)):
+    res = await reset_password_service(payload=dict(payload), conn=conn)
+    return res
 
 
 # Oauth Routes
@@ -168,7 +171,7 @@ async def auth_google(request: Request):
     redirect_uri = "http://localhost:5142/auth/google/callback"
     return await oauth.grex.authorize_redirect(request, redirect_uri)
 
-    
+
 
 @router.get("/auth/google/callback")
 async def auth_google_callback(data: dict, request: Request, conn: asyncpg.Connection = Depends(get_db_connection)):

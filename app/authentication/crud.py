@@ -1,7 +1,7 @@
 from fastapi import Depends, HTTPException
 import asyncpg
 from asyncpg.exceptions import UniqueViolationError
-from ..utils.query_builder import insert_query, get_query, update_query
+from ..utils.query_builder import insert_query, get_query, update_query, delete_query
 from ..utils.logger import logger
 from datetime import datetime
 
@@ -71,3 +71,19 @@ async def insert_otp_db(user_id: int, otp: str, expires_at:datetime, conn: async
     query = insert_query(model=model, table="recovery_pins", returning="user_id")
         
     return await conn.fetchval(query, *model.values())
+
+
+async def fetch_otp_db(user_id: int, conn: asyncpg.Connection):
+    query = get_query("user_id", fetch="pin", table="recovery_pins")
+    return await conn.fetchval(query, user_id)
+
+async def update_password_db(user_id: int, payload: dict, conn: asyncpg.Connection):
+    query = update_query("user_id", model=payload, table="users")
+    res = await conn.execute(query, *payload.values(), user_id)
+    if res.split()[1] == 0:
+        return False
+    return True
+
+async def delete_pin_record_db(user_id: int, conn:asyncpg.Connection):
+    query = delete_query("user_id", table="recovery_pins")
+    await conn.execute(query, user_id)

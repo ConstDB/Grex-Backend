@@ -18,3 +18,7 @@ class RefreshToken(BaseModel):
 class EmailObject(BaseModel):
     email: str
 
+class ResetPasswordPayload(BaseModel):
+    email: str
+    otp: str
+    password_hash: str

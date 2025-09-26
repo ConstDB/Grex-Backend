@@ -1,8 +1,9 @@
-from fastapi import HTTPException, Request, Depends
+from fastapi import HTTPException, Depends
+from fastapi.responses import JSONResponse
 from authlib.integrations.starlette_client import OAuth
 from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer
-from .crud import get_user_from_db, insert_otp_db
+from .crud import get_user_from_db, insert_otp_db, update_password_db, delete_pin_record_db, fetch_otp_db
 from dotenv import load_dotenv
 from ..config.settings import settings as st
 from datetime import datetime, timedelta
@@ -134,35 +135,60 @@ async def forgot_password_service(email:str, conn: asyncpg.Connection):
     """
 
     user = await get_user_from_db(email, conn, fetch="user_id, first_name")
+    await delete_pin_record_db(user["user_id"], conn)
 
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    
-    secret = pyotp.random_base32()
 
-    otp = pyotp.TOTP(secret, interval=180).now()
+    otp = pyotp.TOTP(st.OTP_SECRET, interval=180).now()
 
     sent = send_otp_to_email(email, user["first_name"], otp)
     
     if sent:
         expires_at = datetime.now() + timedelta(minutes=3)
+
         user = await insert_otp_db(user["user_id"], get_hash(otp), expires_at, conn)
 
     
+async def reset_password_service(payload: dict, conn: asyncpg.Connection):
+    user = await get_user_from_db(payload["email"], conn, fetch="user_id, first_name, last_name, email, profile_picture, phone_number")
 
-
-
+    user = dict(user)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
     
+    password = {"password_hash":get_hash(payload["password_hash"])}
     
-
-
-
-
-
-
-
+    totp = pyotp.TOTP(st.OTP_SECRET, interval=180)
     
+    pin = await fetch_otp_db(user["user_id"], conn)
+    if not totp.verify(payload["otp"], valid_window=1) or not verify_hash(payload['otp'], pin):
+        raise HTTPException(status_code=403, detail="Invalid credentials")
+    
+    await delete_pin_record_db(user["user_id"], conn)
+    res = await update_password_db(user["user_id"], password, conn)
 
+    if res:
+        access_payload = create_access_token(payload["email"])
+        refresh_payload = create_refresh_token(payload["email"])
+
+        res = {
+                "user": user,
+                "access_token": access_payload["token"],
+                "expires_at": access_payload["expires"], 
+            }
+
+        response = JSONResponse(content=res)
+        response.set_cookie(
+            key="refresh_token",
+            value=refresh_payload["refresh_token"],
+            httponly=True,
+            # secure=False, #For dev phase  
+            samesite="None",
+            max_age=7*24*60*60
+        )
+
+        return response
 
 #Google OAuth config
 
