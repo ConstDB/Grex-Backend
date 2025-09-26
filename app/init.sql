@@ -140,20 +140,6 @@ CREATE TABLE IF NOT EXISTS task_logs (
 );
 
 -- =========================
--- TASK ATTACHMENTS
--- =========================
-CREATE TABLE IF NOT EXISTS task_attachments (
-    attachment_id SERIAL PRIMARY KEY,
-    task_id INTEGER REFERENCES tasks(task_id) ON DELETE CASCADE,
-    uploaded_by INTEGER REFERENCES users(user_id) ON DELETE SET NULL,
-    file_url TEXT NOT NULL,
-    file_type VARCHAR(20) CHECK (file_type IN ('image', 'pdf', 'docs')),
-    file_size_mb DECIMAL(10,2),
-    uploaded_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-);
-
-
--- =========================
 -- MESSAGES
 -- =========================
 CREATE TABLE IF NOT EXISTS messages (
