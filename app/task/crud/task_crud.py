@@ -152,7 +152,6 @@ async def get_task(conn, workspace_id: int, task_id: int):
 async def get_tasks_by_workspace(conn, workspace_id: int):
     query = """
         SELECT 
-        SELECT 
             t.task_id,
             t.workspace_id,
             t.category_id,
