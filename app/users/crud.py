@@ -38,13 +38,13 @@ async def fetch_social_links_db(user_id: int, fetch:str, conn: asyncpg.Connectio
     
 async def partial_update_user_db(user_id: int, payload:dict, conn: asyncpg.Connection):
     query = update_query("user_id", model=payload, table="users")
-    res = await conn.fetchrow(query, *payload.values(), user_id)
+    res = await conn.execute(query, *payload.values(), user_id)
 
     return res
 
 async def partial_update_links_db(user_id: int, payload:dict, conn: asyncpg.Connection):
     query = update_query("user_id", model=payload, table="social_links")
-    res = await conn.fetchrow(query, *payload.values(), user_id)
+    res = await conn.execute(query, *payload.values(), user_id)
 
     return res
 

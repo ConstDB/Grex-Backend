@@ -80,7 +80,7 @@ async def fetch_otp_db(user_id: int, conn: asyncpg.Connection):
 async def update_password_db(user_id: int, payload: dict, conn: asyncpg.Connection):
     query = update_query("user_id", model=payload, table="users")
     res = await conn.execute(query, *payload.values(), user_id)
-    if res.split()[1] == 0:
+    if res.split()[1] == "0":
         return False
     return True
 

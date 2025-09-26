@@ -22,3 +22,5 @@ class ResetPasswordPayload(BaseModel):
     email: str
     otp: str
     password_hash: str
+
+

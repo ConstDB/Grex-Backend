@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
-from .schemas import GetUserWithLinksResponse, PatchUserResponse
+from .schemas import GetUserWithLinksResponse, PatchUserResponse, PasswordPayload
 from ..deps import get_db_connection
 from .crud import fetch_users_by_name
-from .services import get_user_data_service, partial_update_user_service, get_user_tasks_services
+from .services import get_user_data_service, partial_update_user_service, get_user_tasks_services, change_password_service
 from ..authentication.services import get_current_user
 from ..utils.normalizer import normalize_name
 import asyncpg
@@ -40,4 +40,8 @@ async def update_user_info_route(user_id:int, model: PatchUserResponse, conn: as
 # Get All user tasks for analytics
 @router.get("/users/{user_id}/tasks")
 async def get_user_tasks_route(user_id: int, conn: asyncpg.Connection = Depends(get_db_connection), token: str = Depends(get_current_user)):
-    return await get_user_tasks_services(user_id, conn)
+    return await get_user_tasks_services(user_id, conn)\
+    
+@router.post("/users/{user_id}/change-password")
+async def change_password_route(user_id: int, payload: PasswordPayload, conn: asyncpg.Connection = Depends(get_db_connection), token: str = Depends(get_current_user)):
+    return await change_password_service(user_id, payload.model_dump(), conn)

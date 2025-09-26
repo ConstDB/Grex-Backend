@@ -53,3 +53,7 @@ class PatchUserResponse(BaseModel):
     skills: Optional[List[str]] = None
     social_links: Optional[GetLinksResponse] = None
     
+class PasswordPayload(BaseModel):
+    old_password: str
+    new_password: str
+
