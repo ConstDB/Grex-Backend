@@ -112,7 +112,7 @@ CREATE TABLE IF NOT EXISTS task_assignments (
 CREATE TABLE IF NOT EXISTS task_comments (
     comment_id SERIAL PRIMARY KEY,
     task_id INTEGER REFERENCES tasks(task_id) ON DELETE CASCADE,
-    content TEXT NOT NULL,
+    content TEXT,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     sender_id INTEGER REFERENCES users(user_id) ON DELETE SET NULL
 );

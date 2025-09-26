@@ -4,7 +4,7 @@ from datetime import datetime
 from ...task.schemas.comment_attachment_schema import CommentAttachmentOut, CreateCommentAttachment
 
 class TaskCommentBase(BaseModel):
-    content: str
+    content: Optional[str] = None
     sender_id: int
     attachments: Optional["CreateCommentAttachment"] = None
 
@@ -12,7 +12,7 @@ class TaskCommentCreate(TaskCommentBase):
     pass
 
 class CreateCommentOut(BaseModel):
-    content: str
+    content: Optional[str] = None
     sender_id: int
     task_id: int
     attachments: Optional["CommentAttachmentOut"] = None
@@ -26,7 +26,7 @@ class TaskCommentDelete(BaseModel):
 class TaskCommentOut(BaseModel):
     comment_id: int
     task_id: int
-    content: str
+    content: Optional[str] = None
     created_at: datetime 
     sender_id: int
     profile_picture: Optional[str] = None
