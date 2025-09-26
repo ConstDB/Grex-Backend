@@ -4,7 +4,6 @@ from ..notifications.routes.notif_router import router as notification_router
 from ..notifications.routes.notif_recipient_router import router as notification_recipient_router
 from ..categories.routes import router as category_router
 from ..task.routes.task_router import router as task_router
-from ..task.routes.task_attachment_router import router as task_attachment_router
 from ..task.routes.task_comment_router import router as task_comment_router
 from ..task.routes.sub_task_router import router as sub_task_router
 from ..task.routes.task_assignment_router import router as task_assignment_router
@@ -24,7 +23,6 @@ router.include_router(notification_router, prefix="/notifications", tags=["Notif
 router.include_router(notification_recipient_router, prefix="/notification-recipients", tags=["Notification Recipients"])
 router.include_router(category_router, tags=["Category"])
 router.include_router(task_router, prefix="/tasks", tags=["Task"])
-router.include_router(task_attachment_router, tags=["Task Attachment"])
 router.include_router(task_comment_router, tags=["Task Comment"])
 router.include_router(sub_task_router, tags=["SubTask"])
 router.include_router(task_assignment_router, tags=["Task Assignment"])
