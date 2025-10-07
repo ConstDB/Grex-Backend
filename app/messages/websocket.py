@@ -45,7 +45,7 @@ async def websocket_message_endpoint(websocket: WebSocket, workspace_id: int, us
                         sender_cache = await manager.get_user_cache(f"{workspace_id}-{user_id}")
 
                     message_id = await insert_messages_to_db(message_data, conn)
-                    await process.insert_data(workspace_id, message_id, payload.get("content"))
+                    await process.insert_data(workspace_id, message_id, payload["content"]["text"])
                     if payload["type"] == "text":
                         await insert_text_messages_to_db(text_data={"message_id": message_id, "content":payload["content"]["text"]}, conn=conn)
 

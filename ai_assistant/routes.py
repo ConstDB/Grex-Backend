@@ -8,5 +8,5 @@ import asyncpg
 router = APIRouter()
 
 @router.post("/assistant/query")
-async def handle_query_route(payload:QueryPayload, conn: asyncpg.Connection = Depends(get_db_connection)):
+async def handle_query_route(payload:QueryPayload, conn: asyncpg.Connection = Depends(get_db_connection), token: str = Depends(get_current_user)):
     return await handle_query_service(payload.model_dump(), conn)

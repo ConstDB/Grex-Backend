@@ -3,12 +3,12 @@ import websockets
 import json
 
 async def test_ws():
-    uri = "ws://127.0.0.1:8000/workspace/1/1?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzdHJpbmciLCJleHAiOjE3NTg4NjQ3ODEuOTQ0Njg1LCJ0eXBlIjoiYWNjZXNzIn0.ZeCKM2LwLIEINay51PLQkD5dSBhCzNnrYydaHPbS0Js"
+    uri = "ws://127.0.0.1:8000/workspace/1/2?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlZHJpY2hkYXJyZW5zYW50dXlvMTcyMDMwQGdtYWlsLmNvbSIsImV4cCI6MTc1OTgxOTAzMy4zMDEzMjQ0LCJ0eXBlIjoiYWNjZXNzIn0.EfGnwEr09mfM-gghtAal7lRjjZ4DKChqtNfj-vlqoUo"
     async with websockets.connect(uri) as ws:
         await ws.send(json.dumps({
             "type":"text",
             "content": {
-                "text": "Hello self"
+                "text": "okay, lets as grexAI"
             },
             "reply_to": None
         }))
@@ -35,7 +35,7 @@ async def test_message_attachment():
 # with open('./mock_messages.json', "r") as file:
 #     messages = json.load(file)
 
-asyncio.run(test_message_attachment())
+# asyncio.run(test_message_attachment())
 asyncio.run(test_ws())
 
 
