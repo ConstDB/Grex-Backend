@@ -122,7 +122,8 @@ async def broadcast_grex_output(workspace_id: int, reply_to: int, output:str):
         "workspace_id": workspace_id,
         "sender_id": GREX_ID,
         "message_type": "text",
-        "reply_to": reply_to 
+        "reply_to": reply_to,
+        "is_pinned": False 
     }
 
     async with db.get_connection() as conn:
@@ -145,7 +146,7 @@ async def broadcast_grex_output(workspace_id: int, reply_to: int, output:str):
         "avatar": sender_cache["avatar"],
         "nickname": sender_cache["nickname"],
         "type": "text",
-        "content": output,
+        "content": {"text": output},
         "reply_to": reply_to,
         "sent_at": datetime.now(timezone.utc).isoformat()
     }
