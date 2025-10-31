@@ -1,8 +1,9 @@
 from qdrant_client import AsyncQdrantClient
 from qdrant_client.models import Distance, VectorParams, PayloadSchemaType
 from app.utils.logger import logger
+from ...app.config.settings import settings as st
 
-qdrant = AsyncQdrantClient(host="localhost", port=6333)
+qdrant = AsyncQdrantClient(url=st.QDRANT_URL, api_key=st.QDRANT_API_KEY)
 
 TASKS_COLLECTION_NAME = "task_logs"
 MESSAGES_COLLECTION_NAME = "messages_logs"
