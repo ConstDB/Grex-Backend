@@ -1,10 +1,11 @@
 import asyncpg
 from fastapi import HTTPException, Depends
 from ..deps import get_db_connection
-from ..utils.query_builder import insert_query
+from ..utils.query_builder import insert_query, get_query
 from ..db_instance import db
 import datetime as date
 from .schemas import WorkspacePatch,WorkspaceMembersPatch
+from ..notifications.events import push_notifications
 
 async def add_workspace_to_db(workspace:dict, conn: asyncpg.Connection):
     try:
@@ -51,8 +52,8 @@ async def workspace_trigger():
                         FROM users u 
                         WHERE u.user_id = NEW.created_by;
 
-                        INSERT INTO workspace_members (user_id, workspace_id, nickname, role)
-                        VALUES(NEW.created_by, NEW.workspace_id, u_first_name,'leader');
+                        INSERT INTO workspace_members (user_id, workspace_id, nickname, role, added_by)
+                        VALUES(NEW.created_by, NEW.workspace_id, u_first_name,'leader', NEW.created_by);
 
                         INSERT INTO categories (workspace_id, name)
                         VALUES(NEW.workspace_id, 'General');
@@ -98,8 +99,7 @@ async def get_all_user_workspaces(user_id: int, conn:asyncpg.Connection):
                 json_agg(
                     json_build_object(
                         'user_id', u.user_id, 
-                        'profile_picture', u.profile_picture,
-                        'status', u.status ,                
+                        'profile_picture', u.profile_picture,               
                         'phone_number', u.phone_number,      
                         'nickname', wm.nickname
                         )
@@ -131,66 +131,12 @@ async def get_all_user_workspaces(user_id: int, conn:asyncpg.Connection):
     except Exception as e: 
         raise HTTPException(status_code=500, detail=f"Something went wrong -> {e}")
     
-async def get_workspace_from_db(user_id:int, workspace_id: int, conn: asyncpg.Connection):
+async def get_workspace_from_db(workspace_id: int, conn: asyncpg.Connection):
     
     try:    
-        query = """
-            SELECT 
-                w.workspace_id,
-                w.name,
-                w.project_nature,
-                w.description,
-                w.start_date,
-                w.due_date,
-                w.workspace_profile_url,
-                w.created_by, 
-                w.created_at,
-                
-                w.created_by,
-                w.workspace_profile_url, 
-        
-                COALESCE(            
-                    json_agg(
-                        json_build_object(
-                            'user_id', u.user_id, 
-                            'role', wm.role,
-                            'joined_at', wm.joined_at,
-                            'first_name', u.first_name,
-                            'last_name', u.last_name,
-                             'nickname', wm.nickname,
-                            'email', u.email,
-                            'profile_picture', u.profile_picture,
-                            'status', u.status
-                              
-                        )
-                    ) FILTER (WHERE u.user_id IS NOT NULL),
-                    '[]'                   
-                ) AS members
-                FROM workspaces w
-                LEFT JOIN workspace_members wm ON w.workspace_id = wm.workspace_id
-                LEFT JOIN users u ON wm.user_id = u.user_id
-                WHERE w.workspace_id = $1
-                AND EXISTS(
-                    SELECT 1
-                    FROM workspace_members wm2
-                    WHERE wm2.workspace_id = w.workspace_id
-                        AND wm2.user_id = $2
-                        
-                ) 
-                
-                GROUP BY
-                    w.workspace_id,
-                    w.name,
-                    w.project_nature,
-                    w.description,
-                    w.start_date,
-                    w.due_date,
-                    w.workspace_profile_url,
-                    w.created_by, 
-                    w.created_at;
-        """
+        query = get_query("workspace_id", fetch="*", table="workspaces")
            
-        res = await conn.fetchrow(query, workspace_id, user_id )
+        res = await conn.fetchrow(query, workspace_id)
         return res
     except Exception as e: 
         raise HTTPException(status_code=500, detail=f"Something went wrong -> {e}")    
@@ -198,10 +144,57 @@ async def get_workspace_from_db(user_id:int, workspace_id: int, conn: asyncpg.Co
 async def workspace_add_member(payload:dict, conn: asyncpg.Connection = Depends(get_db_connection)):
     try:
         query = """
-                INSERT INTO workspace_members (workspace_id, user_id, role, nickname)
-                VALUES ($1, $2 , $3, $4)                  
+                INSERT INTO workspace_members (workspace_id, user_id, role, nickname, added_by)
+                VALUES ($1, $2 , $3, $4, $5)
+                RETURNING *;                  
                 """
-        res = await conn.execute(query, *payload.values() )
+        res = await conn.fetchrow(query, *payload.values())
+
+        row = await conn.fetchrow(
+            """
+            SELECT 
+                (SELECT first_name || ' ' || last_name 
+                FROM users u 
+                WHERE u.user_id = $1) AS added_by,
+                (SELECT name 
+                FROM workspaces w 
+                WHERE w.workspace_id = $2) AS workspace_name
+            """,
+            res["added_by"], res["workspace_id"]
+        )
+
+        added_by = row["added_by"]
+        workspace_name = row["workspace_name"]
+        
+        notif_row = await conn.fetchrow(
+            """
+            INSERT INTO notifications (content, workspace_id)
+            VALUES ($1, $2)
+            RETURNING notification_id, content
+            """,
+            f"You have been added by {added_by} to workspace {workspace_name}. You can now start collaborating!",
+            res['workspace_id']
+        )
+
+        if notif_row:
+            recipient_row = await conn.fetchrow(
+                """
+                INSERT INTO notification_recipients(notification_id, user_id, is_read)
+                VALUES ($1, $2, FALSE)
+                RETURNING recipient_id, user_id, is_read, delivered_at
+                """,
+                notif_row["notification_id"],
+                payload["user_id"]
+            )
+            
+            await push_notifications(payload["user_id"],{
+                    "notification_id": notif_row["notification_id"],
+                    "user_id": payload["user_id"],
+                    "recipient_id": recipient_row["recipient_id"],
+                    "content": notif_row["content"],
+                    "is_read": recipient_row["is_read"],
+                    "delivered_at": recipient_row["delivered_at"].isoformat(),
+            })
         
         return res 
     except Exception as e:
@@ -217,24 +210,26 @@ async def insert_members_read_status(payload:dict, conn: asyncpg.Connection):
         raise HTTPException(status_code=500, detail=f"Failed to add read status on this workspace: {e}")
             
 
-async def search_member_by_name(name:str, workspace_id: int, conn: asyncpg.Connection):
+async def fetch_workspace_members_db(workspace_id: int, conn: asyncpg.Connection):
     try:
-        query="""
-            SELECT
+        query = """
+            SELECT 
                 u.user_id,
+                wm.role,
+                wm.nickname, 
+                wm.joined_at,
+                wm.added_by,
                 u.first_name,
                 u.last_name,
-                wm.nickname, 
                 u.email, 
                 u.profile_picture
-                
-            FROM users u
-            LEFT JOIN workspace_members wm ON u.user_id = wm.user_id AND wm.workspace_id = $2
-            WHERE ((u.first_name || ' ' || u.last_name) ILIKE '%' || $1 || '%')
-            AND wm.workspace_id = $2
+
+            FROM workspace_members wm
+            LEFT JOIN users u ON wm.user_id = u.user_id
+            WHERE wm.workspace_id = $1
         """
 
-        res = await conn.fetch(query, name, workspace_id)
+        res = await conn.fetch(query, workspace_id)
         return res
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch workspace member -> {e}")
@@ -249,6 +244,41 @@ async def kick_member(workspace_id: int, user_id: int, conn: asyncpg.Connection)
         RETURNING *
         """
         res = await conn.fetchrow(query, workspace_id, user_id)
+
+        workspace_name = await conn.fetchval(
+            "SELECT name FROM workspaces WHERE workspace_id = $1",
+            workspace_id
+        )
+
+        notif_row = await conn.fetchrow(
+            """
+            INSERT INTO notifications (content, workspace_id)
+            VALUES ($1, $2)
+            RETURNING notification_id, content
+            """,
+            f"You have been removed from workspace {workspace_name}.",
+            workspace_id
+        )
+
+        if notif_row:
+            recipient_row = await conn.fetchrow(
+                """
+                INSERT INTO notification_recipients(notification_id, user_id, is_read)
+                VALUES ($1, $2, FALSE)
+                RETURNING recipient_id, user_id, is_read, delivered_at
+                """,
+                notif_row["notification_id"],
+                user_id
+            )
+            
+            await push_notifications(user_id,{
+                    "notification_id": notif_row["notification_id"],
+                    "user_id": user_id,
+                    "recipient_id": recipient_row["recipient_id"],
+                    "content": notif_row["content"],
+                    "is_read": recipient_row["is_read"],
+                    "delivered_at": recipient_row["delivered_at"].isoformat(),
+            })
         
 
         return res 

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from ...deps import get_db_connection
-from ...users.auth import get_current_user
+from ...authentication.services import get_current_user
 from ...task.crud import task_assignment_crud
 from ...task.schemas.TaskAssignment_schema import TaskAssignmentOut
 from typing import List
@@ -28,7 +28,7 @@ async def get_taskassignment(task_id: int,
                              token: str = Depends(get_current_user),
                              conn: asyncpg.Connection = Depends(get_db_connection)):
     taskassignment = await task_assignment_crud.get_taskassignment(conn, task_id)
-    return [TaskAssignmentOut(**r) for r in taskassignment] if taskassignment else []
+    return [TaskAssignmentOut(**r) for r in taskassignment]
 
 # Router for removing assigned users from task
 @router.delete("/task/{task_id}/assignment/{user_id}")

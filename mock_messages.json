@@ -1,0 +1,152 @@
+[
+  {
+    "workspace_id": 1,
+    "user_id": 1,
+    "message": "Alright team, let’s align on Grex. We’ll treat this like sprint planning. First, we need to finalize what’s in scope for the MVP."
+  },
+  {
+    "workspace_id": 1,
+    "user_id": 3,
+    "message": "From frontend side, I’ll need a clear idea of the UI flows. Do we have a wireframe yet?"
+  },
+  {
+    "workspace_id": 1,
+    "user_id": 1,
+    "message": "Not yet, but I can draft one on Figma and share later today."
+  },
+  {
+    "workspace_id": 1,
+    "user_id": 2,
+    "message": "Backend-wise, do we already have the database schema defined?"
+  },
+  {
+    "workspace_id": 1,
+    "user_id": 1,
+    "message": "I’ve drafted an initial schema for users, workspaces, and logs. We’ll refine it together."
+  },
+  {
+    "workspace_id": 1,
+    "user_id": 4,
+    "message": "Should we also consider how AI integrates early? Like, where GrexAI fits in the architecture."
+  },
+  {
+    "workspace_id": 1,
+    "user_id": 1,
+    "message": "Good call. Let’s add that to this sprint — at least set up the AI module skeleton."
+  },
+  {
+    "workspace_id": 1,
+    "user_id": 3,
+    "message": "For the frontend, my focus is authentication and the workspace dashboard. Do we prioritize login before dashboard?"
+  },
+  {
+    "workspace_id": 1,
+    "user_id": 1,
+    "message": "Yes. Sprint goal: working auth + basic workspace."
+  },
+  {
+    "workspace_id": 1,
+    "user_id": 2,
+    "message": "Then I’ll pair with Matthew on auth backend — JWT, Google OAuth, that sort of thing."
+  },
+  {
+    "workspace_id": 1,
+    "user_id": 4,
+    "message": "I’m good with that. We can also set up asyncpg connection for PostgreSQL."
+  },
+  {
+    "workspace_id": 1,
+    "user_id": 1,
+    "message": "Perfect. Dan + Matthew = backend auth. I’ll handle Docker + API routing setup."
+  },
+  {
+    "workspace_id": 1,
+    "user_id": 3,
+    "message": "Okay, so if auth is first, I’ll set up the login/signup pages. Basic styling first, polish later."
+  },
+  {
+    "workspace_id": 1,
+    "user_id": 1,
+    "message": "Agile reminder: deliver working increments. Don’t over-engineer visuals yet."
+  },
+  {
+    "workspace_id": 1,
+    "user_id": 3,
+    "message": "Got it. Functionality first."
+  },
+  {
+    "workspace_id": 1,
+    "user_id": 2,
+    "message": "What about Qdrant for vector storage? Are we tackling that in this sprint or later?"
+  },
+  {
+    "workspace_id": 1,
+    "user_id": 1,
+    "message": "Later sprint. Right now we just need structure in place."
+  },
+  {
+    "workspace_id": 1,
+    "user_id": 4,
+    "message": "Should we also add testing setup early? Pytest for backend maybe."
+  },
+  {
+    "workspace_id": 1,
+    "user_id": 1,
+    "message": "Yes. Good practice. Add that to your tasks, Matthew."
+  },
+  {
+    "workspace_id": 1,
+    "user_id": 3,
+    "message": "Can I also request a mock API response so I don’t get blocked waiting on backend?"
+  },
+  {
+    "workspace_id": 1,
+    "user_id": 1,
+    "message": "Absolutely. I’ll create stubs in FastAPI so you can consume them right away."
+  },
+  {
+    "workspace_id": 1,
+    "user_id": 2,
+    "message": "How long do we want this sprint to run? 2 weeks?"
+  },
+  {
+    "workspace_id": 1,
+    "user_id": 1,
+    "message": "Let’s start with 1 week sprints for faster feedback."
+  },
+  {
+    "workspace_id": 1,
+    "user_id": 4,
+    "message": "Works for me. Shorter cycle means quicker corrections."
+  },
+  {
+    "workspace_id": 1,
+    "user_id": 3,
+    "message": "What’s our definition of done for this sprint?"
+  },
+  {
+    "workspace_id": 1,
+    "user_id": 1,
+    "message": "Done = user can register, login, access a simple workspace dashboard."
+  },
+  {
+    "workspace_id": 1,
+    "user_id": 2,
+    "message": "Should we also log activity for tasks? Or leave that for next sprint?"
+  },
+  {
+    "workspace_id": 1,
+    "user_id": 1,
+    "message": "Next sprint. Let’s not overload this one."
+  },
+  {
+    "workspace_id": 1,
+    "user_id": 4,
+    "message": "Cool. So this sprint: auth + dashboard + Dockerized backend/frontend setup."
+  },
+  {
+    "workspace_id": 1,
+    "user_id": 3,
+    "message": "Sounds solid. Let’s crush this sprint, team. 🚀"
+  }
+]

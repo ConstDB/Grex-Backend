@@ -84,6 +84,11 @@ async def get_sender_data(user_id: int, workspace_id: int, conn: asyncpg.Connect
 
     return res
 
+async def insert_message_attachments_db(payload: dict,conn:asyncpg.Connection):
+    query = insert_query(model=payload, table="message_attachments")
+
+    return await conn.execute(query, *payload.values())
+
 async def fetch_attachments_db(
     workspace_id: int, 
     file_type: str, 
@@ -107,3 +112,24 @@ async def fetch_attachments_db(
     """
     res = await conn.fetch(query, workspace_id, file_type)
     return [dict(row) for row in res]
+
+
+async def fetch_replied_message_db(message_id:int, workspace_id:int, conn: asyncpg.Connection):
+    query = """
+        SELECT
+            m.message_id,
+            wm.nickname as sender_name,
+            COALESCE(
+                tm.content,
+                ma.file_url
+            ) AS content
+        FROM messages m
+        LEFT JOIN text_messages tm ON m.message_id = tm.message_id
+        LEFT JOIN message_attachments ma ON m.message_id = ma.message_id
+        LEFT JOIN workspace_members wm ON wm.user_id = m.sender_id AND wm.workspace_id = $2
+        WHERE m.message_id = $1 AND m.workspace_id = $2
+    """
+
+    res = await conn.fetchrow(query, message_id, workspace_id)
+
+    return res

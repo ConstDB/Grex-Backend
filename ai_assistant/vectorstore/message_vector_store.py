@@ -1,0 +1,65 @@
+from ..utils.embedding import compute_embedding
+from qdrant_client.models import PointStruct, FieldCondition, Filter, MatchValue
+from collections import deque
+import numpy as np
+from app.utils.logger import logger
+from .qdrant_config import qdrant, MESSAGES_COLLECTION_NAME
+import asyncio
+
+message_text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit"
+
+class ProcessMessageLogs:
+
+    def __init__(self):
+        self.message = MESSAGES_COLLECTION_NAME
+        self.message_queue = deque()
+
+    async def insert_message_to_vdb(self, workspace_id:int, message_id: int, content: str):
+        try:
+            embedding = compute_embedding(content)
+            point = PointStruct(id=message_id, vector=embedding, payload={"message_id" : message_id, "workspace_id":workspace_id})
+            res = await qdrant.upsert(collection_name=self.message, points=[point])
+            
+        except Exception as e:
+            print(f"failed to insert message into qdrant -> {e}")
+
+    async def get_message_embeddings(self, embedding: np.ndarray, workspace_id: int):
+        try:
+            cluster_filter = FieldCondition(
+                key="workspace_id",
+                match=MatchValue(value=workspace_id)
+            )
+
+            search_filter = Filter(must=cluster_filter)
+
+            records = await qdrant.search(
+                collection_name=self.message,
+                query_vector=embedding,
+                limit=10,
+                with_payload=True,
+                with_vectors=False,
+                query_filter=search_filter
+            )
+
+            return records
+        except Exception as e:
+            print(f"Failed to fetch message logs embeddings -> {e}")
+
+    async def insert_data(self, workspace_id:int, message_id: int, content: str):
+        data = {
+            "workspace_id":workspace_id, "message_id":message_id, "content":content
+        }
+        self.message_queue.append(data)
+
+        if len(self.message_queue) == 1:
+            asyncio.create_task(self.queue())
+
+    async def queue(self):
+        while self.message_queue:
+            try:
+                log = self.message_queue.popleft()
+                await self.insert_message_to_vdb(log["workspace_id"], log["message_id"] , log["content"])
+            except Exception as e:
+                logger.error(f"Failed to insert message log:{log["message_id"]} to qdrant : {e}")
+
+        logger.info("Message queue is empty.")

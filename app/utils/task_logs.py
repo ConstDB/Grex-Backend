@@ -1,6 +1,8 @@
 from datetime import datetime
 from app.utils.decorators import db_error_handler
+from ai_assistant.vectorstore.task_vector_store import ProcessTaskLog
 
+process = ProcessTaskLog()
 @db_error_handler
 async def log_task_action(conn, workspace_id: int, content: str):
     query = """
@@ -9,4 +11,7 @@ async def log_task_action(conn, workspace_id: int, content: str):
         RETURNING task_log_id;
     """
     row = await conn.fetchrow(query, workspace_id, content)
-    return dict(row)
+    dict_row = dict(row)
+    
+    await process.insert_data(dict_row["task_log_id"], workspace_id, content)
+    return dict_row

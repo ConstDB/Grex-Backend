@@ -1,11 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from ..deps import get_db_connection
-from ..users.auth import get_current_user
+from ..authentication.services import get_current_user
 from ..categories.crud import insert_category_db, update_category_db, fetch_category_db, delete_category_db
 from ..categories.schema import CategoryCreate, CategoryUpdate, CategoryOut, CategoryDelete
-
 import asyncpg
-from typing import List
+
 
 router = APIRouter()
 
@@ -18,7 +17,10 @@ async def post_category_route(
     conn: asyncpg.Connection = Depends(get_db_connection)
 ):
     try:
-        row = await insert_category_db(conn, workspace_id, category)
+
+        email = token["sub"]
+
+        row = await insert_category_db(conn, workspace_id, email, category)
         return row
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))

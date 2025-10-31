@@ -4,15 +4,27 @@ from typing import Optional, Literal
 from decimal import Decimal
 
 
-class Message_Base(BaseModel):
+class TextMessage(BaseModel):
+    text: str
+
+class AttachmentMessage(BaseModel):
+    file_url: str
+    file_name: str
+    file_size: float
+    file_type: Literal["file", "image"]
+
+class MessageResponse(BaseModel):
     message_id: int
     workspace_id: int
     sender_id: int
-    message_type: Literal["text", "image", "file", "poll"] = "text"
+    is_pinned: bool
+    avatar: Optional[str]= None
+    nickname: str
+    type: Literal["text", "attachment", "poll"]
     reply_to: Optional[int] = None
+    sent_at: datetime
+    content: TextMessage | AttachmentMessage
 
-class Message_Create(Message_Base):
-    pass
 
 class Message_read(BaseModel):
     message_id: int

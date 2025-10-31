@@ -10,6 +10,8 @@ from .config.settings import settings as st
 import os
 from fastapi import FastAPI
 from app.utils.error_handlers import register_exception_handlers
+from app.notifications.scheduler import start_scheduler
+from ai_assistant.vectorstore.qdrant_config import setup_collection
 
 app = FastAPI()
 
@@ -21,9 +23,10 @@ register_exception_handlers(app)
 async def lifespan(app: FastAPI):
 
     await db.initialize_connection()
+    await setup_collection()
     await workspace_trigger()
+    await start_scheduler(db.pool)
     yield
-
     await db.close_connection()
 
 app = FastAPI(lifespan=lifespan)
@@ -53,5 +56,3 @@ app.include_router(router)
 @app.get("/")
 async def dummy_server():
   return "Hello, Web World!"
-
-

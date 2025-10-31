@@ -28,6 +28,15 @@ class Settings(BaseSettings):
     CLOUD_SECRET_KEY: str
     CLOUDINARY_URL: str
 
+    GEMINI_API_KEY: str
+
+    GREX_EMAIL: str
+    GREX_PASSWORD: str
+    GMAIL_HOST: str
+    GMAIL_PORT: int
+
+    OTP_SECRET: str
+
     class Config:
         env_file = ".env"
 
