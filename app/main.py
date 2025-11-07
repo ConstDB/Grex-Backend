@@ -3,14 +3,11 @@ from contextlib import asynccontextmanager
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi.middleware.cors import CORSMiddleware
 from .workspaces.crud import workspace_trigger
-from .utils.logger import logger
 from .db_instance import db
 from .api.api_router import router
 from .config.settings import settings as st
-import os
-from fastapi import FastAPI
-from app.utils.error_handlers import register_exception_handlers
-from app.notifications.scheduler import start_scheduler
+from .utils.error_handlers import register_exception_handlers
+from .notifications.scheduler import start_scheduler
 from ai_assistant.vectorstore.qdrant_config import setup_collection
 
 app = FastAPI()

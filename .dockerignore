@@ -3,3 +3,13 @@ __pycache__/
 .pytest_cache/
 *.pyc
 .venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+data/
+.env
+venv/
+.venv/
+.git/
+.gitignore

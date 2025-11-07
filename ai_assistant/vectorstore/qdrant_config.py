@@ -1,7 +1,7 @@
 from qdrant_client import AsyncQdrantClient
 from qdrant_client.models import Distance, VectorParams, PayloadSchemaType
 from app.utils.logger import logger
-from ...app.config.settings import settings as st
+from app.config.settings import settings as st
 
 qdrant = AsyncQdrantClient(url=st.QDRANT_URL, api_key=st.QDRANT_API_KEY)
 
