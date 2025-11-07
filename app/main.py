@@ -8,7 +8,7 @@ from .api.api_router import router
 from .config.settings import settings as st
 from .utils.error_handlers import register_exception_handlers
 from .notifications.scheduler import start_scheduler
-from ai_assistant.vectorstore.qdrant_config import setup_collection
+from .ai_assistant.vectorstore.qdrant_config import setup_collection
 
 app = FastAPI()
 

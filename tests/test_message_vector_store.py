@@ -2,7 +2,7 @@ import pytest
 import asyncio
 from unittest.mock import AsyncMock, patch
 import numpy as np
-from ai_assistant.vectorstore.message_vector_store import ProcessMessageLogs
+from app.ai_assistant.vectorstore.message_vector_store import ProcessMessageLogs
 # from ..ai_assistant.vectorstore.message_vector_store import ProcessMessageLogs
 
 @pytest.mark.asyncio

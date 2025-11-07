@@ -37,5 +37,5 @@ trainer = Trainer(
 
 trainer.train()
 
-model.save_pretrained("./ai_assistant/model/grex-distilbert")
-tokenizer.save_pretrained("./ai_assistant/model/grex-distilbert")
+model.save_pretrained("./app/ai_assistant/model/grex-distilbert")
+tokenizer.save_pretrained("./app/ai_assistant/model/grex-distilbert")

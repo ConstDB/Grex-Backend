@@ -1,6 +1,6 @@
 from transformers import pipeline
 
-model_name = "ai_assistant/model/grex-distilbert"
+model_name = "app/ai_assistant/model/grex-distilbert"
 classifier = pipeline("text-classification", model=model_name, tokenizer=model_name)
 
 def query_classifier(query: str):

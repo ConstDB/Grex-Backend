@@ -1,6 +1,6 @@
 from datetime import datetime
 from app.utils.decorators import db_error_handler
-from ai_assistant.vectorstore.task_vector_store import ProcessTaskLog
+from ..ai_assistant.vectorstore.task_vector_store import ProcessTaskLog
 
 process = ProcessTaskLog()
 @db_error_handler
