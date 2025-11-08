@@ -6,24 +6,24 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /
-
 # Install Torch separately with CPU wheel
 RUN pip install --no-cache-dir torch==2.8.0+cpu \
     --extra-index-url https://download.pytorch.org/whl/cpu
 
-# Install other requirements
-COPY requirements.txt .
+# Copy requirement file first (better for caching)
+COPY requirements.txt /app/requirements.txt
+
+# Set working directory early
+WORKDIR /app
+
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application
+# Copy application code
 COPY . /app
 
-# Expose port
+# Expose FastAPI port
 EXPOSE 8000
 
-RUN ls -R
-
-# # Use uvicorn to serve FastAPI
+# Run FastAPI via Uvicorn
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
-
