@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     POSTGRES_USER: str 
     POSTGRES_PASSWORD:str 
     POSTGRES_DB: str 
+    POSTGRES_HOST: str
 
     JWT_REFRESH_SECRET: str 
     JWT_ACCESS_SECRET: str 

@@ -13,7 +13,7 @@ load_dotenv()
 
 class Database:
 
-    def __init__(self, database=st.POSTGRES_DB, host="localhost", user=st.POSTGRES_USER, password=st.POSTGRES_PASSWORD, port=5432):
+    def __init__(self, database=st.POSTGRES_DB, host=st.POSTGRES_HOST, user=st.POSTGRES_USER, password=st.POSTGRES_PASSWORD, port=5432):
         self.pool = None
         self.database = database
         self.host = host
