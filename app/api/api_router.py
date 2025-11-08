@@ -34,5 +34,5 @@ router.include_router(websocket_router)
 router.include_router(pinned_router, tags=["Pinned Messages"])
 router.include_router(link_router, tags=["Quick Links"])
 router.include_router(activity_router, tags=["Recent Activities"])
-router.include_router(grex_router, tags=["Grex AI"])
+# router.include_router(grex_router, tags=["Grex AI"])
 
