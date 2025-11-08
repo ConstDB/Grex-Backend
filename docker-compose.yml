@@ -20,8 +20,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    volumes:
-      - ./app/ai_assistant/model/grex-distilbert:/app/ai_assistant/model/grex-distilbert:ro
     ports:
       - "8000:8000"
     env_file:
