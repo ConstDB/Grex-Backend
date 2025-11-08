@@ -22,6 +22,8 @@ COPY . /app
 # Expose port
 EXPOSE 8000
 
+RUN ls -R
+
 # # Use uvicorn to serve FastAPI
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
-RUN ls -R
+
