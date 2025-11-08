@@ -21,7 +21,7 @@ services:
       context: .
       dockerfile: Dockerfile
     volumes:
-      - ./app:/app/app
+      - ./app/ai_assistant/model/grex-distilbert:/app/ai_assistant/model/grex-distilbert:ro
     ports:
       - "8000:8000"
     env_file:
