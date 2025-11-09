@@ -1,9 +1,7 @@
 from transformers import pipeline
-from pathlib import Path
 
-# model_name = "app/ai_assistant/model/grex-distilbert"
-model_path = Path(__file__).parent / "model/grex-distilbert"
-classifier = pipeline("text-classification", model_path, tokenizer=model_path)
+model_name = "Oshborne/Grex-distilbert"
+classifier = pipeline("text-classification", model_name, tokenizer=model_name)
 
 def query_classifier(query: str):
     result = classifier(query)
