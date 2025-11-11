@@ -30,7 +30,8 @@ app = FastAPI(lifespan=lifespan)
 
 origins = [
   "http://localhost:5173",
-  "http://192.168.195.26:5173"
+  "http://192.168.195.26:5173",
+  "https://grex-frontend.vercel.app"
 ]
  
 app.add_middleware(
